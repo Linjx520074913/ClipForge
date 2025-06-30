@@ -1,0 +1,50 @@
+import { WebGPURenderer } from "../renderer/WebGPURenderer";
+import { IPlayer, PlayerEvent } from "./IPlayer";
+import { createPlayer } from "./PlayerFactory";
+
+export class VideoPlayer{
+    private player: IPlayer;
+
+    private renderer: WebGPURenderer;
+
+    constructor(canvas: HTMLCanvasElement){
+        this.renderer = new WebGPURenderer(canvas);
+        this.player = createPlayer('webav', this.renderer);
+    }
+
+    async load(src: string | ReadableStream<Uint8Array>): Promise<void>{
+        await this.player.load(src);
+    }
+
+    play(): void{
+        this.player.play();
+    }
+
+    pause(): void{
+        this.player.pause();
+    }
+
+    stop(): void{
+        this.player.stop();
+    }
+
+    seek(timeUs: number): void{
+        this.player.seek(timeUs);
+    }
+
+    getCurrentTimeUs(): number{
+        return this.player.getCurrentTimeUs();
+    }
+
+    getDurationUs(): number{
+        return this.player.getDurationUs();
+    }
+
+    on(event: PlayerEvent, cb: () => void): void{
+        this.player.on(event, cb);
+    }
+
+    destroy(): void{
+        this.player.destroy();
+    }
+}

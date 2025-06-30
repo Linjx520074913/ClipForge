@@ -1,0 +1,133 @@
+{
+    "header": {
+    "stamp": {
+        "sec": 1747298426,
+        "nanosec": 518000000
+    },
+    "frame_id": "map"
+    },
+    "points": [
+    {
+        "name": "0",
+        "type": "workpose",
+        "x": -10.987,
+        "y": -5.657,
+        "angle": 0
+    },
+    {
+        "name": "1",
+        "type": "workpose",
+        "x": -5.483,
+        "y": -4.574,
+        "angle": 0
+    },
+    {
+        "name": "2",
+        "type": "workpose",
+        "x": -2.235,
+        "y": -2.138,
+        "angle": 0
+    },
+    {
+        "name": "3",
+        "type": "workpose",
+        "x": 3.720,
+        "y": 0.568,
+        "angle": 0
+    },
+    {
+        "name": "4",
+        "type": "workpose",
+        "x": 3.900,
+        "y": 5.441,
+        "angle": 0
+    },
+    {
+        "name": "5",
+        "type": "workpose",
+        "x": -57.633,
+        "y": 6.704,
+        "angle": 0
+    },
+    {
+        "name": "6",
+        "type": "workpose",
+        "x": -36.159,
+        "y": -0.244,
+        "angle": 0
+    }
+    ],
+    "paths": [
+    {
+        "name": "0---1",
+        "source_point": "0",
+        "destination_point": "1",
+        "forward_reverse": 0,
+        "double_single": 0,
+        "max_velocity": 1000,
+        "length": 5610,
+        "max_linear_acceleration": 500,
+        "max_linear_deceleration": 500,
+        "max_angular_velocity": 1000
+    },
+    {
+        "name": "1---2",
+        "source_point": "1",
+        "destination_point": "2",
+        "forward_reverse": 0,
+        "double_single": 0,
+        "max_velocity": 1000,
+        "length": 4060,
+        "max_linear_acceleration": 500,
+        "max_linear_deceleration": 500,
+        "max_angular_velocity": 1000
+    },
+    {
+        "name": "4---5",
+        "source_point": "4",
+        "destination_point": "5",
+        "forward_reverse": 0,
+        "double_single": 0,
+        "max_velocity": 1000,
+        "length": 61546,
+        "max_linear_acceleration": 500,
+        "max_linear_deceleration": 500,
+        "max_angular_velocity": 1000
+    }
+    ],
+    "bezierpaths": [
+    {
+        "name": "2---3",
+        "source_point": "2",
+        "destination_point": "3",
+        "forward_reverse": 0,
+        "double_single": 0,
+        "max_velocity": 1000,
+        "length": 6541,
+        "max_linear_acceleration": 500,
+        "max_linear_deceleration": 500,
+        "max_angular_velocity": 1000,
+        "x_control1": -1.693,
+        "y_control1": 1.922,
+        "x_control2": 1.735,
+        "y_control2": -0.334
+    },
+    {
+        "name": "3---4",
+        "source_point": "3",
+        "destination_point": "4",
+        "forward_reverse": 0,
+        "double_single": 0,
+        "max_velocity": 1000,
+        "length": 4876,
+        "max_linear_acceleration": 500,
+        "max_linear_deceleration": 500,
+        "max_angular_velocity": 1000,
+        "x_control1": 3.780,
+        "y_control1": 2.192,
+        "x_control2": 7.792,
+        "y_control2": 2.418
+    }
+    ],
+    "specialpolygon": []
+}
