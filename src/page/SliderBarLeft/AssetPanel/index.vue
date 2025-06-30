@@ -1,10 +1,10 @@
 <template>
     <div>
-        TemplateLibrary
+        AssetLibrary
     </div>
 </template>
 
 <script setup lang="ts">
 import { defineOptions } from 'vue';
-defineOptions({ name: 'TemplateLibrary' });
+defineOptions({ name: 'AssetPanel' });
 </script>

@@ -135,4 +135,17 @@ export class WebAVPlayer implements IPlayer {
     this.renderer?.destroy();
     this.eventListeners.clear();
   }
+
+    setOuterSize(outerWidth: number, outerHeight: number): void {
+        if(this.renderer){
+            this.renderer.setOuterSize(outerWidth, outerHeight);
+        }
+    }
+
+    resize(width: number, height: number): void {
+        if(this.renderer){
+            console.error('######################', width, height)
+            this.renderer.resize(width, height);
+        }
+    }
 }

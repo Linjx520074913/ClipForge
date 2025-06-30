@@ -19,14 +19,35 @@
         </div>
         <!-- 分割线 -->
         <div class="w-full h-[1px] bg-gray-200"/>
+        <!-- 测试视频 -->
+        <div v-for="(item, index) in samples" :key="index" class="px-[12px]">
+            <div class="flex flex-col hover:bg-gray-200 p-2 rounded-[10px]">
+                <video 
+                    muted
+                    :src="item.url" class="w-full h-[150px] rounded-[10px] mb-1"
+                    @mouseenter="($event.target as HTMLVideoElement).play()"
+                    @mouseleave="handleMouseLeave"/>
+                <p class="text-[13px] text-gray-500">{{ item.name }}</p>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { defineOptions, ref } from 'vue';
-defineOptions({ name: 'MediaVault' });
+defineOptions({ name: 'MediaPanel' });
 
 const selectAll = ref(false);
+
+const samples = [
+    { url: './test2.mp4', name: 'test2.mp4' }
+]
+
+function handleMouseLeave(e: any){
+    (e.target as HTMLVideoElement).pause();
+    (e.target as HTMLVideoElement).currentTime = 0;
+}
+
 </script>
 
 <style scoped lang="scss">

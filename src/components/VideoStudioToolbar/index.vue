@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-row cursor-pointer">
+    <div class="flex flex-row cursor-pointer z-10">
         <!-- 下拉菜单 -->
         <div class="w-3/5 flex items-center justify-center relative hover:bg-[#F1F1F2] rounded-md" 
             ref="dropdownRef"
@@ -66,7 +66,7 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 onMounted(() => {
-    activeRatio(aspectRatios[0]);
+    activeRatio(aspectRatios[1]);
     document.addEventListener('click', handleClickOutside);
 })
 

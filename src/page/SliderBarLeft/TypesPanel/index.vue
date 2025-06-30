@@ -1,10 +1,10 @@
 <template>
     <div>
-        AssetLibrary
+        TypeFoundry
     </div>
 </template>
 
 <script setup lang="ts">
 import { defineOptions } from 'vue';
-defineOptions({ name: 'AssetLibrary' });
+defineOptions({ name: 'TypesPanel' });
 </script>

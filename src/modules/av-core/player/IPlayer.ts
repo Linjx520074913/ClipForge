@@ -77,4 +77,17 @@ export interface IPlayer {
      * @param callback 回调函数
      */
     on(event: PlayerEvent, callback: () => void): void;
+
+    /**
+     * 设置外层容器尺寸，正常要先设置外层容器尺寸，然后在改尺寸下，根据分辨率的比例，
+     * 算出最合适的渲染尺寸，及 setOuterSize(outWidth, outHeigth) -> resize(frameWidth, frameHeight)
+     */
+    setOuterSize(outerWidth: number, outerHeight: number): void;
+    
+    /**
+     * 重置视频大小
+     * @param width 
+     * @param height 
+     */
+    resize(frameWidth: number, frameHeight: number): void;
 }

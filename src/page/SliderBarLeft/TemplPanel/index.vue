@@ -1,10 +1,10 @@
 <template>
     <div>
-        TypeFoundry
+        TemplPanel
     </div>
 </template>
 
 <script setup lang="ts">
 import { defineOptions } from 'vue';
-defineOptions({ name: 'TypeFoundry' });
+defineOptions({ name: 'TemplPanel' });
 </script>

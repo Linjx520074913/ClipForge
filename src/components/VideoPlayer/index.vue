@@ -38,7 +38,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['ready', 'play', 'pause', 'stop', 'ended', 'error']);
-
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let player = ref<VideoPlayer | null>(null);
 

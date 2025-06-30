@@ -47,4 +47,12 @@ export class VideoPlayer{
     destroy(): void{
         this.player.destroy();
     }
+
+    setOuterSize(outerWidth: number, outerHeight: number): void{
+        this.player.setOuterSize(outerWidth, outerHeight);
+    }
+
+    resize(width: number, height: number): void{
+        this.player.resize(width, height);
+    }
 }

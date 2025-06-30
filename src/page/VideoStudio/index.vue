@@ -2,14 +2,14 @@
     <div class="flex flex-row">
         <div class="flex flex-col flex-1 overflow-hidden min-w-[300px] rounded-[15px] shadow-sm border bg-white">
             <!-- 主渲染区域 -->
-            <div class="stage-canvas w-full h-[540px] relative border-b border-b-black grid place-items-center" ref="stageCanvasRef">
+            <div class="stage-canvas w-full h-[778px] relative border-b border-b-gray-300 grid place-items-center" ref="stageCanvasRef">
                 <!-- 预览区域 -->
                 <div class="canvas-container border border-red-800 relative" ref="canvasContainerRef">
                     <!-- 顶部工具条 -->
                     <VideoStudioToolbar 
                         class="absolute w-[158px] h-[34px] rounded-[5px] shadow-[0_3px_10px_rgba(0,0,0,0.12)] bottom-full mb-2 left-1/2 -translate-x-1/2"
                         @update:ratio="handleRatioUpdate"/>
-                    <MediaPlayer/>
+                    <MediaPlayer ref="mediaplayerRef" :width="playerSize.w" :height="playerSize.h" :src="src"/>
                 </div>
             </div>
             <!-- 时间轴 -->
@@ -25,7 +25,8 @@
 <script setup lang="ts">
 import {
     SlidingPanel,
-    VideoStudioToolbar
+    VideoStudioToolbar,
+    MediaPlayer
 } from '@src/components/index'
 import { AspecRatioItem } from '@src/components/VideoStudioToolbar';
 import { PanelItem } from '@src/components/SlidingPanel';
@@ -40,12 +41,19 @@ import {
 import { defineOptions, ref, onMounted, onBeforeUnmount } from 'vue';
 defineOptions({ name: 'VideoStudio' });
 
+// 右侧侧边栏菜单
 const rightSlidingItems: PanelItem[] = [
     { id: 0, label: '音频', icon: 'volume_up',      tooltip: 'test', component: AudioPanel },
-    { id: 1, label: '滤镜', icon: 'filter_vintage', tooltip: 'test', component: ColorPanel },
+    { id: 1, label: '滤镜', icon: 'filter_vintage', tooltip: 'test', component: FilterPanel },
     { id: 2, label: '效果', icon: 'contrast',       tooltip: 'test', component: EffectPanel },
-    { id: 3, label: '颜色', icon: 'palette',        tooltip: 'test', component: FilterPanel } ,
-]
+    { id: 3, label: '颜色', icon: 'palette',        tooltip: 'test', component: ColorPanel } ,
+];
+
+const src = './test2.mp4';
+
+const mediaplayerRef = ref(null);
+
+const playerSize = ref({ w: 0, h: 0 });
 
 const stageCanvasRef = ref<HTMLElement | null>();
 const canvasContainerRef = ref<HTMLElement | null>();
@@ -65,6 +73,7 @@ function handleRatioUpdate(item: AspecRatioItem){
     resizeCanvasContainer(ratio);
 }
 
+let targetW = 0, targetH = 0;
 /**
  * 重置容器尺寸
  * @param ratio  目标比例, 比如 16/9
@@ -72,13 +81,11 @@ function handleRatioUpdate(item: AspecRatioItem){
 function resizeCanvasContainer(ratio: number){
 
     // padding
-    const padding = { h: 200, v: 100 };
+    const padding = { h: 100, v: 100 };
     // 渲染区域尺寸
     const stageCanvas = stageCanvasRef.value!;
     const w = stageCanvas.clientWidth - padding.h;
     const h = stageCanvas.clientHeight - padding.v;
-
-    let targetW, targetH;
 
     // 先按宽度算高度
     targetW = w;
@@ -90,8 +97,14 @@ function resizeCanvasContainer(ratio: number){
         targetW = h * ratio;
     }
 
-    canvasContainerRef.value!.style.width = `${targetW}px`
-    canvasContainerRef.value!.style.height = `${targetH}px`
+    canvasContainerRef.value!.style.width = `${targetW}px`;
+    canvasContainerRef.value!.style.height = `${targetH}px`;
+
+    playerSize.value.w = targetW;
+    playerSize.value.h = targetH;
+    (mediaplayerRef.value as any).resize(targetW, targetH);
+    // console.error('##########', mediaplayerRef as any, targetW, targetH)
+    // console.error('!!!!!!!', targetW, targetH)
 }
 
 onMounted(() => {
@@ -100,7 +113,7 @@ onMounted(() => {
             for (const entry of entries) {
                 const { width, height } = entry.contentRect
                 // containerSize.value = { width, height }
-                console.log('📏 canvas 尺寸变了：', width, height)
+                console.error('📏 canvas 尺寸变了：', width, height)
                 resizeCanvasContainer(ratio)
             }
         })

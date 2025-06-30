@@ -1,10 +1,10 @@
 <template>
     <div 
-        class='border border-red-500 grid place-items-center bg-black relative' 
+        class='grid place-items-center bg-black relative' 
         :style="{ width: width + 'px', height: height + 'px' }">
-        <canvas ref="canvasRef" class="w-full h-full"/>
+        <canvas ref="canvasRef" class='w-full h-full'/>
         <!-- 控制条 -->
-        <div class="flex flex-row justify-between items-center absolute left-0 bottom-0 w-full h-[38px] bg-white px-2">
+        <div class="hidden flex flex-row justify-between items-center absolute left-0 bottom-0 w-full h-[38px] bg-white px-2">
             <!-- 按钮 -->
             <div class="flex flex-row space-x-1">
                 <div class="bg-blue-500 p-2 cursor-pointer" @click="handleClick('play')">play</div>
@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineOptions, defineProps, defineEmits, onMounted, ref, watch, onBeforeUnmount } from 'vue';
+import { defineOptions, defineProps, defineEmits, onMounted, ref, defineExpose, onBeforeUnmount } from 'vue';
 import { VideoPlayer } from '@avcore';
 import throttle from 'lodash/throttle';
 
@@ -139,6 +139,12 @@ function handleUp(e: MouseEvent) {
     }, 50);
 }
 
+function resize(width: number, height: number){
+    console.error('$$$$$$$$', width, height)
+    if (!canvasRef.value || !player.value) return;
+    player.value.setOuterSize(width, height);
+}
+
 onMounted(async () => {
     if (!canvasRef.value) return;
     
@@ -193,5 +199,9 @@ onBeforeUnmount(() => {
     if (player.value) {
         player.value.destroy();
     }
+});
+
+defineExpose({
+    resize
 });
 </script>

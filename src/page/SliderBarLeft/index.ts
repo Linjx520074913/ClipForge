@@ -1,11 +1,11 @@
-import AssetLibrary from './AssetLibrary/index.vue';
-import MediaVault   from './MediaVault/index.vue';
-import TemplateLibrary from './TemplateLibrary/index.vue';
-import TypeFoundry from './TypeFoundry/index.vue';
+import AssetPanel from './AssetPanel/index.vue';
+import MediaPanel from './MediaPanel/index.vue';
+import TemplPanel from './TemplPanel/index.vue';
+import TypesPanel from './TypesPanel/index.vue';
 
 export{
-    AssetLibrary,
-    MediaVault,
-    TemplateLibrary,
-    TypeFoundry
+    AssetPanel,
+    MediaPanel,
+    TemplPanel,
+    TypesPanel
 }

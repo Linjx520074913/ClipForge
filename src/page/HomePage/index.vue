@@ -30,19 +30,19 @@ import {
 import { AspecRatioItem } from '@src/components/VideoStudioToolbar';
 import { PanelItem } from '@src/components/SlidingPanel';
 import {
-    AssetLibrary,
-    MediaVault,
-    TemplateLibrary,
-    TypeFoundry
+    AssetPanel,
+    MediaPanel,
+    TemplPanel,
+    TypesPanel
 } from '@src/page/SliderBarLeft/index';
 
 defineOptions({ name: 'HomePage' });
 
 const leftSlidingItems: PanelItem[] = [
-    { id: 0, label: '您的媒体', icon: 'movie_info',             tooltip: 'test', component: MediaVault },
-    { id: 1, label: '内容库',   icon: 'books_movies_and_music', tooltip: 'test', component: AssetLibrary },
-    { id: 2, label: '文字',     icon: 'text_fields',            tooltip: 'test', component: TypeFoundry },
-    { id: 3, label: '模板',     icon: 'stacks',                 tooltip: 'test', component: TemplateLibrary },
+    { id: 0, label: '您的媒体', icon: 'movie_info',             tooltip: 'test', component: MediaPanel },
+    { id: 1, label: '内容库',   icon: 'books_movies_and_music', tooltip: 'test', component: AssetPanel },
+    { id: 2, label: '文字',     icon: 'text_fields',            tooltip: 'test', component: TemplPanel },
+    { id: 3, label: '模板',     icon: 'stacks',                 tooltip: 'test', component: TypesPanel },
 ]
 
 </script>

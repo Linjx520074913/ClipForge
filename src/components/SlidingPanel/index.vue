@@ -19,9 +19,9 @@
         </div>
         <div 
             class="h-full bg-white rounded-[15px] shadow-md transition-all duration-300 overflow-hidden"
-            :style="{ width: isExpanded ? '240px' : '0px' }"
+            :style="{ width: isExpanded ? '300px' : '0px' }"
         >
-            <div class="w-[240px] shrink-0">
+            <div class="w-[300px] shrink-0">
                 <!-- drawer 标题 -->
                 <div class="w-full h-[40px] font-bold text-[15px] pt-[20px] pl-[16px] pr-[16px] mb-[16px] flex flex-row justify-between items-center">
                     <span>{{  activedItem.label }}</span>

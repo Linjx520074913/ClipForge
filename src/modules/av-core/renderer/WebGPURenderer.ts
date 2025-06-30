@@ -15,27 +15,27 @@ export class WebGPURenderer implements IRenderer {
     private bindGroup: GPUBindGroup | null = null;
     private format: any;
 
-    private init: boolean = false;
-
-    private size: { w: number, h: number }
+    private size: { w: number; h: number };
+    private frameSize: { w: number; h: number };
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
-        this.size = { w: canvas.clientWidth, h: canvas.clientHeight }
-        this.initWebGPU(canvas)
+        this.size = { w: 0, h: 0 };
+        this.frameSize = { w: 0, h: 0 };
+        this.initWebGPU(canvas);
     }
 
     private async initWebGPU(canvas: HTMLCanvasElement): Promise<void> {
         const adapter = await navigator.gpu.requestAdapter({
-        powerPreference: "high-performance",
+            powerPreference: "high-performance",
         });
         if (!adapter) {
-        throw new Error("WebGPU adapter not found");
+            throw new Error("WebGPU adapter not found");
         }
 
         this.device = await adapter.requestDevice();
         if (!this.device) {
-        throw new Error("WebGPU device not found");
+            throw new Error("WebGPU device not found");
         }
 
         this.ctx = canvas.getContext("webgpu");
@@ -45,14 +45,14 @@ export class WebGPURenderer implements IRenderer {
 
         this.format = navigator.gpu.getPreferredCanvasFormat();
         this.ctx.configure({
-        device: this.device,
-        format: this.format,
-        alphaMode: "opaque",
+            device: this.device,
+            format: this.format,
+            alphaMode: "opaque",
         });
     }
 
     private async initTexture(width: number, heigth: number) {
-        if(this.texture){
+        if (this.texture) {
             this.texture.destroy();
             this.texture = null;
         }
@@ -92,16 +92,16 @@ export class WebGPURenderer implements IRenderer {
             this.pipeline = this.device.createRenderPipeline({
                 layout: "auto",
                 vertex: {
-                    module,
-                    entryPoint: "vs_main",
+                module,
+                entryPoint: "vs_main",
                 },
                 fragment: {
-                    module,
-                    entryPoint: "fs_main",
-                    targets: [{ format: this.format }],
+                module,
+                entryPoint: "fs_main",
+                targets: [{ format: this.format }],
                 },
                 primitive: {
-                    topology: "triangle-list",
+                topology: "triangle-list",
                 },
             });
         }
@@ -110,12 +110,19 @@ export class WebGPURenderer implements IRenderer {
             this.bindGroup = this.device.createBindGroup({
                 layout: this.pipeline.getBindGroupLayout(0),
                 entries: [
-                    { binding: 0, resource: this.sampler },
-                    { binding: 1, resource: this.texture.createView() },
-                    { binding: 2, resource: { buffer: this.uniformBuffer } },
+                { binding: 0, resource: this.sampler },
+                { binding: 1, resource: this.texture.createView() },
+                { binding: 2, resource: { buffer: this.uniformBuffer } },
                 ],
             });
         }
+    }
+
+    setOuterSize(outerWidth: number, outerHeight: number) {
+        console.error("setOuterSize", outerWidth, outerHeight, this.frameSize);
+        this.size = { w: outerWidth, h: outerHeight };
+        // 如果有 frame 尺寸，重新触发一次渲染
+        this.resize(this.frameSize.w, this.frameSize.h, true);
     }
 
     /**
@@ -123,39 +130,46 @@ export class WebGPURenderer implements IRenderer {
      * 保持渲染的比例与视频帧的比例一直，不会变形
      * @param width
      * @param height
+     * @param forceRender 是否强制渲染
      * @returns
      */
-    resize(width: number, height: number) {
-        if (!this.canvas) {
+    resize(frameWidth: number, frameHeight: number, forceRender: boolean = false) {
+
+        if (!this.canvas || frameWidth == 0 || frameHeight == 0) {
             return;
         }
 
-        const frameRadio = width / height;
-        const canvasRadio = this.canvas.width / this.canvas.height;
+        const frameRadio = frameWidth / frameHeight;
+        const canvasRadio = this.size.w / this.size.h;
 
-        if (frameRadio == canvasRadio) {
+        if (frameRadio == canvasRadio && !forceRender) {
             return;
         }
 
-        this.canvas.width = width;
-        this.canvas.height = height;
+        this.frameSize.w = frameWidth;
+        this.frameSize.h = frameHeight;
 
-        if (frameRadio > canvasRadio) {
-            this.canvas.style.width = this.size.h * frameRadio + "px";
-            this.canvas.style.height = this.size.h + "px";
-            
-        } else {
-            this.canvas.style.width = this.size.w + "px";
-            this.canvas.style.height = this.size.w / frameRadio + "px"; 
+        let targetW, targetH;
+        // 先按宽度算高度
+        targetW = this.size.w;
+        targetH = this.size.w / frameRadio;
+
+        // 如果高度超出，就用高度算宽度
+        if (targetH > this.size.h) {
+            targetH = this.size.h;
+            targetW = this.size.h * frameRadio;
         }
 
-        console.error('============', frameRadio, canvasRadio,  this.canvas.style.width, this.canvas.style.height)
+        this.canvas.width = frameWidth;
+        this.canvas.height = frameHeight;
+
+        this.canvas.style.width = targetW + "px";
+        this.canvas.style.height = targetH + "px";
     }
 
     async render(video: VideoFrame): Promise<void> {
-        
         const renderWidth = video.displayWidth;
-        const renderHeight= video.displayHeight;
+        const renderHeight = video.displayHeight;
         this.resize(renderWidth, renderHeight);
 
         let textureChanged = false;
@@ -163,7 +177,7 @@ export class WebGPURenderer implements IRenderer {
             !this.texture ||
             this.texture.width != renderWidth ||
             this.texture.height != renderHeight
-        ){
+        ) {
             await this.initTexture(renderWidth, renderHeight);
             textureChanged = true;
         }
@@ -178,7 +192,7 @@ export class WebGPURenderer implements IRenderer {
         this.device.queue.copyExternalImageToTexture(
             { source: frame },
             { texture: this.texture },
-            [ renderWidth, renderHeight ]
+            [renderWidth, renderHeight]
         );
         frame.close();
 
@@ -192,14 +206,14 @@ export class WebGPURenderer implements IRenderer {
         // 开始渲染
         const encoder = this.device.createCommandEncoder();
         const pass = encoder.beginRenderPass({
-        colorAttachments: [
-            {
+            colorAttachments: [
+                {
                 view: this.ctx.getCurrentTexture().createView(),
                 loadOp: "clear",
                 storeOp: "store",
                 clearValue: { r: 0, g: 0, b: 0, a: 1 },
-            },
-        ],
+                },
+            ],
         });
 
         pass.setPipeline(this.pipeline);
