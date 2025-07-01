@@ -134,14 +134,15 @@ export class WebGPURenderer implements IRenderer {
      * @returns
      */
     resize(frameWidth: number, frameHeight: number, forceRender: boolean = false) {
-
+       
         if (!this.canvas || frameWidth == 0 || frameHeight == 0) {
             return;
         }
 
         const frameRadio = frameWidth / frameHeight;
-        const canvasRadio = this.size.w / this.size.h;
+        const canvasRadio = this.canvas.width / this.canvas.height;
 
+        console.error('#######', frameRadio, canvasRadio, forceRender)
         if (frameRadio == canvasRadio && !forceRender) {
             return;
         }
@@ -160,6 +161,7 @@ export class WebGPURenderer implements IRenderer {
             targetW = this.size.h * frameRadio;
         }
 
+        console.error("resize", frameWidth, frameHeight, this.frameSize);
         this.canvas.width = frameWidth;
         this.canvas.height = frameHeight;
 

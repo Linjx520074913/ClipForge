@@ -1,27 +1,13 @@
 <template>
     <div 
-        class='grid place-items-center bg-black relative' 
-        :style="{ width: width + 'px', height: height + 'px' }">
-        <canvas ref="canvasRef" class='w-full h-full'/>
-        <!-- 控制条 -->
-        <div class="hidden flex flex-row justify-between items-center absolute left-0 bottom-0 w-full h-[38px] bg-white px-2">
-            <!-- 按钮 -->
-            <div class="flex flex-row space-x-1">
-                <div class="bg-blue-500 p-2 cursor-pointer" @click="handleClick('play')">play</div>
-                <div class="bg-blue-500 p-2 cursor-pointer" @click="handleClick('pause')">pause</div>
-                <div class="bg-blue-500 p-2 cursor-pointer" @click="handleClick('stop')">stop</div>
-            </div>
-            <!-- 进度条 -->
-            <div class="w-full h-[5px] bg-gray-300 relative" id="progress-bar"
-                @mousedown="handleDown">
-                <div class="h-full bg-red-500" 
-                    :style="{ width: percent + '%'}"/>
-                <div class="absolute top-1/2 -translate-y-1/2 bg-blue-600 w-[12px] h-[12px] rounded-full transform -translate-x-1/2"
-                    :style="{ left: percent + '%'}"/>
-            </div>
-            <!-- 时间 -->
-            <div class="grid place-items-center" v-if="player">{{ formatTime(curTimeUs) }} / {{ formatTime(player.getDurationUs()) }}</div>
-        </div>
+        class='bg-black relative'
+        :style="{ width: width + 'px', height: height + 'px' }"
+    >
+        <SelectableBox @resize="onBoxResize" v-model:selected="isFocusd">
+            <!-- 预览区域 -->
+            <canvas ref="previewCanvasRef" class='w-full h-full'
+                @click="isFocusd = true"/>
+        </SelectableBox>
     </div>
 </template>
 
@@ -29,6 +15,7 @@
 import { defineOptions, defineProps, defineEmits, onMounted, ref, defineExpose, onBeforeUnmount } from 'vue';
 import { VideoPlayer } from '@avcore';
 import throttle from 'lodash/throttle';
+import SelectableBox from '../SelectableBox/index.vue'
 
 defineOptions({ name: 'MediaPlayer' });
 const props = defineProps({
@@ -39,7 +26,7 @@ const props = defineProps({
 
 const emit = defineEmits(['ready', 'play', 'pause', 'stop', 'ended', 'error']);
 
-const canvasRef = ref<HTMLCanvasElement | null>(null);
+const previewCanvasRef = ref<HTMLCanvasElement | null>(null);
 let player = ref<VideoPlayer | null>(null);
 
 const percent = ref(0);
@@ -48,6 +35,10 @@ const curTimeUs  = ref(0);
 
 const seekable = ref(false);
 const isDragging = ref(false);
+
+// 预览区域是否聚焦
+const isFocusd = ref(false);
+
 
 function handleClick(type: 'play' | 'pause' | 'stop') {
     if (!player.value){
@@ -68,6 +59,13 @@ function handleClick(type: 'play' | 'pause' | 'stop') {
             break;
     }
     emit(type, {})
+}
+
+/**
+ * 聚焦
+ */
+function focusOn(){
+
 }
 
 // 格式化时间
@@ -139,17 +137,25 @@ function handleUp(e: MouseEvent) {
     }, 50);
 }
 
+/**
+ * 拖选框尺寸变化
+ */
+function onBoxResize(size: { width: number, height: number}){
+    console.error('onBoxResize', size, previewCanvasRef.value.style.width)
+    previewCanvasRef.value.style.width = `${size.width}px`;
+    previewCanvasRef.value.style.height = `${size.height}px`;
+}
+
 function resize(width: number, height: number){
-    console.error('$$$$$$$$', width, height)
-    if (!canvasRef.value || !player.value) return;
+    if (!previewCanvasRef.value || !player.value) return;
     player.value.setOuterSize(width, height);
 }
 
 onMounted(async () => {
-    if (!canvasRef.value) return;
+    if (!previewCanvasRef.value) return;
     
     try {
-        player.value = new VideoPlayer(canvasRef.value);
+        player.value = new VideoPlayer(previewCanvasRef.value);
         
         // 注册播放器事件
         player.value.on('ready', () => {
