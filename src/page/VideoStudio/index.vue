@@ -3,13 +3,23 @@
         <div class="flex flex-col flex-1 overflow-hidden min-w-[300px] rounded-[15px] shadow-sm border bg-white">
             <!-- 主渲染区域 -->
             <div class="stage-canvas w-full h-[778px] relative border-b border-b-gray-300 grid place-items-center" ref="stageCanvasRef">
-                <!-- 预览区域 -->
-                <div class="canvas-container border border-red-800 relative" ref="canvasContainerRef">
+                <!-- 预览区域,根据比例重置过大小 -->
+                <div class="canvas-container border border-red-800 relative overflow-hidden" ref="canvasContainerRef">
                     <!-- 顶部工具条 -->
                     <VideoStudioToolbar 
                         class="absolute w-[158px] h-[34px] rounded-[5px] shadow-[0_3px_10px_rgba(0,0,0,0.12)] bottom-full mb-2 left-1/2 -translate-x-1/2"
                         @update:ratio="handleRatioUpdate"/>
-                    <MediaPlayer ref="mediaplayerRef" :width="playerSize.w" :height="playerSize.h" :src="src"/>
+                    <!-- <MediaPlayer ref="mediaplayerRef" :width="playerSize.w" :height="playerSize.h" :src="src"/> -->
+                    <ResizableLayer ref="mediaRef" v-if="canvasContainerRef">
+                        <template #content>  
+                            <canvas class="w-full h-full bg-blue-400" @click="isFocus = true"/>
+                        </template>
+                    </ResizableLayer>
+                    <ResizableLayer1 ref="mediaRef" v-if="canvasContainerRef">
+                        <template #content>  
+                            <canvas class="w-full h-full bg-blue-400" @click="isFocus = true"/>
+                        </template>
+                    </ResizableLayer1>
                 </div>
             </div>
             <!-- 时间轴 -->
@@ -26,7 +36,9 @@
 import {
     SlidingPanel,
     VideoStudioToolbar,
-    MediaPlayer
+    MediaPlayer,
+    ResizableLayer,
+    ResizableLayer1
 } from '@src/components/index'
 import { AspecRatioItem } from '@src/components/VideoStudioToolbar';
 import { PanelItem } from '@src/components/SlidingPanel';
@@ -51,7 +63,9 @@ const rightSlidingItems: PanelItem[] = [
 
 const src = './test2.mp4';
 
-const mediaplayerRef = ref(null);
+const mediaRef = ref(null);
+
+const isFocus = ref(false);
 
 const playerSize = ref({ w: 0, h: 0 });
 
@@ -102,7 +116,12 @@ function resizeCanvasContainer(ratio: number){
 
     playerSize.value.w = targetW;
     playerSize.value.h = targetH;
-    (mediaplayerRef.value as any).resize(targetW, targetH);
+
+    if(mediaRef.value){
+        (mediaRef.value as any).onParentResize();
+    }
+    
+    // (mediaplayerRef.value as any).resize(targetW, targetH);
     // console.error('##########', mediaplayerRef as any, targetW, targetH)
     // console.error('!!!!!!!', targetW, targetH)
 }

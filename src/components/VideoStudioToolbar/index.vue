@@ -66,7 +66,7 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 onMounted(() => {
-    activeRatio(aspectRatios[1]);
+    activeRatio(aspectRatios[0]);
     document.addEventListener('click', handleClickOutside);
 })
 
