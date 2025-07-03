@@ -1,14 +1,9 @@
 <template>
-    <div 
-        class='bg-black relative'
-        :style="{ width: width + 'px', height: height + 'px' }"
-    >
-        <SelectableBox @resize="onBoxResize" v-model:selected="isFocusd">
-            <!-- 预览区域 -->
-            <canvas ref="previewCanvasRef" class='w-full h-full'
-                @click="isFocusd = true"/>
-        </SelectableBox>
-    </div>
+    <SelectableBox @resize="onBoxResize" v-model:selected="isFocusd">
+        <!-- 预览区域 -->
+        <canvas ref="previewCanvasRef"
+            @click="isFocusd = true"/>
+    </SelectableBox>
 </template>
 
 <script setup lang="ts">

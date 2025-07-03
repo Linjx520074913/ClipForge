@@ -4,12 +4,12 @@
             <!-- 主渲染区域 -->
             <div class="stage-canvas w-full h-[778px] relative border-b border-b-gray-300 grid place-items-center" ref="stageCanvasRef">
                 <!-- 预览区域 -->
-                <div class="canvas-container border border-red-800 relative" ref="canvasContainerRef">
+                <div class="canvas-container border-[1px] border-gray-300 relative overflow-hidden" ref="canvasContainerRef">
                     <!-- 顶部工具条 -->
                     <VideoStudioToolbar 
                         class="absolute w-[158px] h-[34px] rounded-[5px] shadow-[0_3px_10px_rgba(0,0,0,0.12)] bottom-full mb-2 left-1/2 -translate-x-1/2"
                         @update:ratio="handleRatioUpdate"/>
-                    <MediaPlayer ref="mediaplayerRef" :width="playerSize.w" :height="playerSize.h" :src="src"/>
+                    <MediaPlayer ref="mediaplayerRef" :src="src" class="absolute"/>
                 </div>
             </div>
             <!-- 时间轴 -->
@@ -26,7 +26,8 @@
 import {
     SlidingPanel,
     VideoStudioToolbar,
-    MediaPlayer
+    MediaPlayer,
+    SelectableBox
 } from '@src/components/index'
 import { AspecRatioItem } from '@src/components/VideoStudioToolbar';
 import { PanelItem } from '@src/components/SlidingPanel';
@@ -40,7 +41,7 @@ import {
 
 import { defineOptions, ref, onMounted, onBeforeUnmount } from 'vue';
 defineOptions({ name: 'VideoStudio' });
-
+const isFocusd = ref(true)
 // 右侧侧边栏菜单
 const rightSlidingItems: PanelItem[] = [
     { id: 0, label: '音频', icon: 'volume_up',      tooltip: 'test', component: AudioPanel },
