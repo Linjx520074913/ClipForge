@@ -1,5 +1,6 @@
 <template>
-    <div class='absolute' ref="rootRef" @mousedown.stop.prevent="mouseDown" >
+    <div class='absolute' ref="rootRef" @mousedown.stop.prevent="mouseDown"
+        :style="{ zIndex: zIndex }" >
         <!-- 内容插槽 -->
         <slot name="content"/>
         <!-- 四角控制点，插入到 body 中，这样超出预览区才可以显示 -->
@@ -19,11 +20,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineOptions, defineProps, defineEmits, defineExpose, computed, onMounted, onBeforeUnmount } from 'vue';
-defineOptions({ name: 'ResizableLayer' });
+import { ref, defineOptions, defineProps, defineEmits, defineExpose, onMounted, onBeforeUnmount } from 'vue';
+defineOptions({ name: 'ResizableBox' });
 const props = defineProps({
     width: { type: Number, default: 300 },
     height: { type: Number, default: 300 },
+    zIndex: { type: Number, default: 1 },
     selected: { type: Boolean, default: false },
     to: { type: String, default: 'body' }
 });
@@ -51,7 +53,8 @@ function updateStyle() {
         left: `${rect.left}px`,
         top: `${rect.top}px`,
         width: `${rect.width}px`,
-        height: `${rect.height}px`
+        height: `${rect.height}px`,
+        zIndex: props.zIndex
     }
     
 }
@@ -187,31 +190,48 @@ function isInRect(e: MouseEvent, el: HTMLElement | null) {
     }
 
 function handleClickOutside(event: MouseEvent) {
-  const insideRoot = isInRect(event, rootRef.value);
-  const insideControl = isInRect(event, controlRef.value);
+    // 用鼠标坐标的方法，判断是否点击到了组件外
+    // TODO: 如果组件发生重叠，这种方法就是不能判断是否点击到了组件外
+    
+    const insideRoot = isInRect(event, rootRef.value);
+    const insideControl = isInRect(event, controlRef.value);
 
-  if (!insideRoot && !insideControl) {
-    emit('update:selected', false);
-  }
+    if (!insideControl) {
+        emit('update:selected', false);
+    }
 }
 
+let observer: ResizeObserver;
 
-onMounted(() => {
-    // 初始化元素尺寸，使用 props 中的默认值
-    // 如果不设置的话，在移动到预览区域的右边的时候，会挤压这个组件
-    if (rootRef.value) {
-        rootRef.value.style.width = `${props.width}px`;
-        rootRef.value.style.height = `${props.height}px`;
-    }
+onMounted(async() => {
+    // 这一段的作用是设置 rootRef 的宽度和高度与 slot 里面的元素保持一致
+    // 这样控制点和线框才能完整覆盖到 slot 上
     
-    updateStyle();
+    if (!rootRef.value) return;
+
+    // 选出 slot 实际渲染的第一个元素
+    const slotEl = rootRef.value.firstElementChild as HTMLElement;
+    if (!slotEl) return;
+
+    observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+            const { width, height } = entry.contentRect;
+            // 初始化元素尺寸
+            // 如果不设置的话，在移动到预览区域的右边的时候，会挤压这个组件
+            rootRef.value!.style.width = `${width}px`;
+            rootRef.value!.style.height = `${height}px`;
+            updateStyle(); // 同步控制框
+        }
+    });
+
+    observer.observe(slotEl);
     document.addEventListener('mousedown', handleClickOutside);
-})
+});
 
 onBeforeUnmount(() => {
+    observer?.disconnect(); 
     document.removeEventListener('mousedown', handleClickOutside);
 })
-
 
 /**
  * 接口暴露  

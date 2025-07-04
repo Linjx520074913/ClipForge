@@ -9,22 +9,18 @@
                         @update:ratio="handleRatioUpdate"/>
                 <!-- 预览区域,根据比例重置过大小 -->
                 <div class="canvas-container border border-red-800 relative overflow-hidden" ref="canvasContainerRef">
-                    <!-- <MediaPlayer ref="mediaplayerRef" :width="playerSize.w" :height="playerSize.h" :src="src"/> -->
-                    <ResizableLayer v-model:selected="isFocus" v-if="canvasContainerRef" @mousedown="isFocus = true">
-                        <template #content>  
-                            <canvas class="w-full h-full bg-blue-400" />
+                    <!-- 生成 layer 层, layer 中包含 Video/Audio/Text/Image 等 -->
+                    <ResizableBox v-for="(layer, index) in layers" :key="index" 
+                        v-model:selected="layer.active"
+                        :zIndex="layer.zIndex"
+                        >
+                        <template #content>
+                            <video v-if="layer.type == 'video'" :src="layer.source.uri" @mousedown="layer.active = true"/>
+                            <img class="object-contain w-full h-full" v-if="layer.type == 'image'" :src="layer.source.uri" @mousedown="layer.active = true"/>
+                            <!-- TODO: 文字的拉伸有问题 -->
+                            <div v-if="layer.type == 'text'" @mousedown="layer.active = true">{{ layer.source.text }} </div>
                         </template>
-                    </ResizableLayer>
-                    <ResizableLayer v-model:selected="isFocus1" v-if="canvasContainerRef" @mousedown="isFocus1 = true">
-                        <template #content>  
-                            <canvas class="w-full h-full bg-red-400" />
-                        </template>
-                    </ResizableLayer>
-                    <!-- <ResizableLayer1 ref="mediaRef" v-if="canvasContainerRef">
-                        <template #content>  
-                            <canvas class="w-full h-full bg-blue-400" @click="isFocus = true"/>
-                        </template>
-                    </ResizableLayer1> -->
+                    </ResizableBox>
                 </div>
             </div>
             <!-- 时间轴 -->
@@ -42,11 +38,12 @@ import {
     SlidingPanel,
     VideoStudioToolbar,
     MediaPlayer,
-    ResizableLayer,
-    ResizableLayer1
+    ResizableBox,
 } from '@src/components/index'
 import { AspecRatioItem } from '@src/components/VideoStudioToolbar';
 import { PanelItem } from '@src/components/SlidingPanel';
+
+import { useVideoStudio } from './index';
 
 import { 
     AudioPanel,
@@ -57,6 +54,8 @@ import {
 
 import { defineOptions, ref, onMounted, onBeforeUnmount } from 'vue';
 defineOptions({ name: 'VideoStudio' });
+
+const { layers } = useVideoStudio();
 
 // 右侧侧边栏菜单
 const rightSlidingItems: PanelItem[] = [
