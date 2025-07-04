@@ -53,6 +53,7 @@ function updateStyle() {
         width: `${rect.width}px`,
         height: `${rect.height}px`
     }
+    
 }
 
 // 控制点
@@ -196,12 +197,19 @@ function handleClickOutside(event: MouseEvent) {
 
 
 onMounted(() => {
+    // 初始化元素尺寸，使用 props 中的默认值
+    // 如果不设置的话，在移动到预览区域的右边的时候，会挤压这个组件
+    if (rootRef.value) {
+        rootRef.value.style.width = `${props.width}px`;
+        rootRef.value.style.height = `${props.height}px`;
+    }
+    
     updateStyle();
-    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
 })
 
 onBeforeUnmount(() => {
-    document.removeEventListener('click', handleClickOutside);
+    document.removeEventListener('mousedown', handleClickOutside);
 })
 
 
