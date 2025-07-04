@@ -15,6 +15,11 @@
                             <canvas class="w-full h-full bg-blue-400" />
                         </template>
                     </ResizableLayer>
+                    <ResizableLayer v-model:selected="isFocus1" v-if="canvasContainerRef" @mousedown="isFocus1 = true">
+                        <template #content>  
+                            <canvas class="w-full h-full bg-red-400" />
+                        </template>
+                    </ResizableLayer>
                     <!-- <ResizableLayer1 ref="mediaRef" v-if="canvasContainerRef">
                         <template #content>  
                             <canvas class="w-full h-full bg-blue-400" @click="isFocus = true"/>
@@ -66,6 +71,7 @@ const src = './test2.mp4';
 const mediaRef = ref(null);
 
 const isFocus = ref(false);
+const isFocus1 = ref(false);
 
 const playerSize = ref({ w: 0, h: 0 });
 

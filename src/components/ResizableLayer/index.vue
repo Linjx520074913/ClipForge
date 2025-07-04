@@ -1,5 +1,5 @@
 <template>
-    <div class='relative inline-block' ref="rootRef" @mousedown.stop.prevent="mouseDown" >
+    <div class='absolute' ref="rootRef" @mousedown.stop.prevent="mouseDown" >
         <!-- 内容插槽 -->
         <slot name="content"/>
         <!-- 四角控制点，插入到 body 中，这样超出预览区才可以显示 -->
