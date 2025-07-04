@@ -1,15 +1,15 @@
 <template>
-    <div class='relative inline-block' ref="rootRef" >
+    <div class='relative inline-block' ref="rootRef" @mousedown.stop.prevent="mouseDown" >
         <!-- 内容插槽 -->
         <slot name="content"/>
         <!-- 四角控制点，插入到 body 中，这样超出预览区才可以显示 -->
         <Teleport :to="to">
-            <div class='absolute ring-2 ring-purple pointer-events-auto' v-if="selected" @mousedown.stop.prevent="mouseDown"
+            <div class='absolute ring-2 ring-purple pointer-events-none' v-if="selected"
                 ref="controlRef"
                 :style="style">
                 <div 
                     v-for="(p, index) in pos" :key="index"
-                    :class="['absolute w-[10px] h-[10px] bg-white border border-gray-400 rounded-full', posCls[p]]"
+                    :class="['absolute w-[10px] h-[10px] bg-white border border-gray-400 rounded-full pointer-events-auto', posCls[p]]"
                     @mousedown.stop.prevent="startResize(p, $event)"
                 />
                 <span class="material-symbols-outlined absolute top-full mt-[10px] left-1/2">forward_media</span>
@@ -24,7 +24,7 @@ defineOptions({ name: 'ResizableLayer' });
 const props = defineProps({
     width: { type: Number, default: 300 },
     height: { type: Number, default: 300 },
-    selected: { type: Boolean, default: true },
+    selected: { type: Boolean, default: false },
     to: { type: String, default: 'body' }
 });
 const emit = defineEmits<{
@@ -37,8 +37,8 @@ const controlRef = ref<HTMLDivElement | null>(null);
 const style = ref({
     left: '0',
     top: '0',
-    width: '100%',
-    height: '100%'
+    width: '0px',
+    height: '0px'
 });
 
 function updateStyle() {
@@ -196,6 +196,7 @@ function handleClickOutside(event: MouseEvent) {
 
 
 onMounted(() => {
+    updateStyle();
     document.addEventListener('click', handleClickOutside);
 })
 
