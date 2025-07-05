@@ -27,17 +27,17 @@ const layers: Ref<ILayer[]> = ref([
         zIndex: 10,
         active: false
     },
-    // {
-    //     id: 'layer-002',
-    //     type: 'video',
-    //     source: {
-    //         id: 'video-001',
-    //         type: 'video',
-    //         uri: '/test4.mp4'
-    //     },
-    //     zIndex: 2,
-    //     active: false
-    // },
+    {
+        id: 'layer-002',
+        type: 'video',
+        source: {
+            id: 'video-001',
+            type: 'video',
+            uri: '/test4.mp4'
+        },
+        zIndex: 2,
+        active: false
+    },
     // {
     //     id: 'layer-003',
     //     type: 'image',

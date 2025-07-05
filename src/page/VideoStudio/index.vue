@@ -67,8 +67,6 @@ const rightSlidingItems: PanelItem[] = [
     { id: 3, label: '颜色', icon: 'palette',        tooltip: 'test', component: ColorPanel } ,
 ];
 
-const src = './test2.mp4';
-
 const mediaRef = ref(null);
 
 const playerSize = ref({ w: 0, h: 0 });

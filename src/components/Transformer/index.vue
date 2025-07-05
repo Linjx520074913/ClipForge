@@ -1,5 +1,5 @@
 <template>
-    <div class='absolute' ref="rootRef" @mousedown.stop.prevent="startMove"
+    <div class='absolute' ref="rootRef" @mousedown="startMove"
         :style="{ zIndex: zIndex }" >
         <!-- 内容插槽 -->
         <slot name="content"/>
@@ -12,7 +12,7 @@
                     :class="['absolute w-[10px] h-[10px] bg-white border border-gray-400 rounded-full pointer-events-auto', anchorCls[p]]"
                     @mousedown.stop.prevent="startResize(p, $event)"
                 />
-                <span class="material-symbols-outlined absolute top-full mt-[10px] left-1/2">forward_media</span>
+                <div class="material-symbols-outlined absolute top-full mt-[10px] left-1/2 z-30">forward_media</div>
             </div>
         </Teleport>
     </div>
@@ -68,8 +68,12 @@ function onParentResize() {
 
 
 function handleClickOutside(event: MouseEvent) {
-    console.error('FSDFSDFSDF handleClickCousdf', event.target,)
-    emit('update:selected', false);
+    if (!rootRef.value) return;
+
+    const slotEl = rootRef.value.firstElementChild as HTMLElement;
+    if(slotEl != event.target){
+        emit('update:selected', false);
+    }
 }
 
 let observer: ResizeObserver;
