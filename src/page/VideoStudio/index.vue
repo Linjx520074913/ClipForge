@@ -11,8 +11,10 @@
                 <div class="canvas-container border border-red-800 relative overflow-hidden" ref="canvasContainerRef">
                     <!-- 生成 layer 层, layer 中包含 Video/Audio/Text/Image 等 -->
                     <ResizableBox v-for="(layer, index) in layers" :key="index" 
+                        v-if="canvasContainerRef"
                         v-model:selected="layer.active"
                         :zIndex="layer.zIndex"
+                        :to="'.stage-canvas'"
                         >
                         <template #content>
                             <video v-if="layer.type == 'video'" :src="layer.source.uri" @mousedown="layer.active = true"/>

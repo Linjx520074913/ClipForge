@@ -25,41 +25,41 @@ const layers: Ref<ILayer[]> = ref([
             uri: '/test2.mp4'
         },
         zIndex: 10,
-        active: false
+        active: true
     },
-    {
-        id: 'layer-002',
-        type: 'video',
-        source: {
-            id: 'video-001',
-            type: 'video',
-            uri: '/test4.mp4'
-        },
-        zIndex: 2,
-        active: false
-    },
-    {
-        id: 'layer-003',
-        type: 'image',
-        source: {
-            id: 'image-01',
-            type: 'image',
-            uri: '/tauri.svg'
-        },
-        zIndex: 11,
-        active: false
-    },
-    {
-        id: 'layer-004',
-        type: 'text',
-        source: {
-            id: 'text-01',
-            type: 'text',
-            uri: '',
-            text: 'HelloWorld'
-        },
-        zIndex: 12
-    }
+    // {
+    //     id: 'layer-002',
+    //     type: 'video',
+    //     source: {
+    //         id: 'video-001',
+    //         type: 'video',
+    //         uri: '/test4.mp4'
+    //     },
+    //     zIndex: 2,
+    //     active: false
+    // },
+    // {
+    //     id: 'layer-003',
+    //     type: 'image',
+    //     source: {
+    //         id: 'image-01',
+    //         type: 'image',
+    //         uri: '/tauri.svg'
+    //     },
+    //     zIndex: 11,
+    //     active: false
+    // },
+    // {
+    //     id: 'layer-004',
+    //     type: 'text',
+    //     source: {
+    //         id: 'text-01',
+    //         type: 'text',
+    //         uri: '',
+    //         text: 'HelloWorld'
+    //     },
+    //     zIndex: 12
+    // }
 ]);
 
 export function useVideoStudio(){

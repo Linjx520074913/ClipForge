@@ -44,18 +44,23 @@ const style = ref({
 });
 
 function updateStyle() {
-    const rect = rootRef.value?.getBoundingClientRect();
-    if (!rect){
-        return
-    }
+    if (!rootRef.value) return;
 
+    // 获取 rootRef 的位置
+    const rect = rootRef.value.getBoundingClientRect();
+    
+    // 获取 Teleport 目标容器的位置
+    const teleportTarget = document.querySelector(props.to) as HTMLElement;
+    const teleportRect = teleportTarget?.getBoundingClientRect() || { left: 0, top: 0 };
+
+    // 更新控制框的样式
     style.value = {
-        left: `${rect.left}px`,
-        top: `${rect.top}px`,
+        left: `${rect.left - teleportRect.left}px`,
+        top: `${rect.top - teleportRect.top}px`,
         width: `${rect.width}px`,
         height: `${rect.height}px`,
         zIndex: props.zIndex
-    }
+    };
     
 }
 
