@@ -10,7 +10,7 @@
                 <!-- 预览区域,根据比例重置过大小 -->
                 <div class="canvas-container border border-red-800 relative overflow-hidden" ref="canvasContainerRef">
                     <!-- 生成 layer 层, layer 中包含 Video/Audio/Text/Image 等 -->
-                    <ResizableBox v-for="(layer, index) in layers" :key="index" 
+                    <Transformer v-for="(layer, index) in layers" :key="index" 
                         v-if="canvasContainerRef"
                         v-model:selected="layer.active"
                         :zIndex="layer.zIndex"
@@ -22,7 +22,7 @@
                             <!-- TODO: 文字的拉伸有问题 -->
                             <div v-if="layer.type == 'text'" @mousedown="layer.active = true">{{ layer.source.text }} </div>
                         </template>
-                    </ResizableBox>
+                    </Transformer>
                 </div>
             </div>
             <!-- 时间轴 -->
@@ -40,7 +40,7 @@ import {
     SlidingPanel,
     VideoStudioToolbar,
     MediaPlayer,
-    ResizableBox,
+    Transformer,
 } from '@src/components/index'
 import { AspecRatioItem } from '@src/components/VideoStudioToolbar';
 import { PanelItem } from '@src/components/SlidingPanel';
@@ -70,9 +70,6 @@ const rightSlidingItems: PanelItem[] = [
 const src = './test2.mp4';
 
 const mediaRef = ref(null);
-
-const isFocus = ref(false);
-const isFocus1 = ref(false);
 
 const playerSize = ref({ w: 0, h: 0 });
 

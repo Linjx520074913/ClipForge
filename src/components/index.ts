@@ -6,13 +6,13 @@ import Header from "./Header/index.vue";
 import SlidingPanel  from './SlidingPanel/index.vue';
 import SelectableBox from './SelectableBox/index.vue';
 
-import ResizableBox from "./ResizableBox/index.vue";
+import Transformer from "./Transformer/index.vue";
 
 export { MediaPlayer }
 export { TimeLine }
 
 export {
-    ResizableBox,
+    Transformer,
     Header,
     SlidingPanel,
     VideoStudioToolbar,

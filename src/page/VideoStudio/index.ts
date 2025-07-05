@@ -25,7 +25,7 @@ const layers: Ref<ILayer[]> = ref([
             uri: '/test2.mp4'
         },
         zIndex: 10,
-        active: true
+        active: false
     },
     // {
     //     id: 'layer-002',
