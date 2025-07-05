@@ -207,13 +207,11 @@ export function useMove(
 }
 
 export function useRotate(
-    props: any,
-    rootRef: Ref<HTMLElement | null>,
+    wrapperRef: Ref<HTMLElement | null>,
     anchorRef: Ref<HTMLElement | null>
 ) {
     let startAngle = 0;  // 存储起始角度
     let curAngle = 0;    // 存储当前角度
-    let transformStart = { x: 0, y: 0 };  // 存储起始点
 
     /**
      * 计算鼠标与元素中心的角度
@@ -234,7 +232,7 @@ export function useRotate(
      * @param e 鼠标按下事件
      */
     function startRotate(e: MouseEvent) {
-        const root = rootRef.value;
+        const root = wrapperRef.value;
         if (!root) return;
 
         // 计算元素中心位置
@@ -245,9 +243,6 @@ export function useRotate(
         // 计算起始角度
         startAngle = getAngle(e.clientX, e.clientY, centerX, centerY);
 
-        // 保存初始鼠标位置
-        transformStart = { x: e.clientX, y: e.clientY };
-
         window.addEventListener('mousemove', onRotate);
         window.addEventListener('mouseup', stopRotate);
     }
@@ -257,7 +252,7 @@ export function useRotate(
      * @param e 鼠标移动事件
      */
     function onRotate(e: MouseEvent) {
-        const root = rootRef.value;
+        const root = wrapperRef.value;
         const ctrl = anchorRef.value;
         if (!root) return;
         if (!ctrl) return;
@@ -279,7 +274,6 @@ export function useRotate(
         root.style.transform = `rotate(${curAngle}deg)`;
 
         ctrl.style.transform = `rotate(${curAngle}deg)`;
-
     }
 
     /**

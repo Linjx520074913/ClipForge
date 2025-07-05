@@ -1,23 +1,23 @@
 <template>
     <div class='absolute' ref="rootRef" @mousedown="startMove"
         :style="{ zIndex: zIndex }" >
-        <!-- 内容插槽 -->
-        <slot name="content"/>
-        <!-- 四角控制点，插入到 body 中，这样超出预览区才可以显示 -->
-        <Teleport :to="to">
-            <div class='absolute ring-2 ring-purple pointer-events-none' v-if="selected"
-                :style="anchorStyle"
-                ref="anchorRef">
-                <div 
-                    v-for="(p, index) in cornerAnchors" :key="index"
-                    :class="['absolute w-[10px] h-[10px] bg-white border border-gray-400 rounded-full pointer-events-auto', anchorCls[p]]"
-                    @mousedown.stop.prevent="startResize(p, $event)"
-                />
-                <div @mousedown.stop.prevent="startRotate"
-                    ref="rotateRef"
-                    class="material-symbols-outlined absolute top-full mt-[10px] left-1/2 pointer-events-auto cursor-grab active:cursor-grabbing">forward_media</div>
-            </div>
-        </Teleport>
+        <div ref="wrapperRef" class="relative">
+            <!-- 内容插槽 -->
+            <slot name="content"/>
+
+            <!-- 四角控制点，插入到 body 中，这样超出预览区才可以显示 -->
+            <Teleport :to="to">
+                <div
+                    class="absolute ring-2 ring-purple pointer-events-none" v-if="selected" :style="anchorStyle" ref="anchorRef">
+                    <div 
+                        v-for="(p, index) in cornerAnchors" :key="index"
+                        :class="['absolute w-[10px] h-[10px] bg-white border border-gray-400 rounded-full pointer-events-auto', anchorCls[p]]"
+                        @mousedown.stop.prevent="startResize(p, $event)"
+                    />
+                    <div @mousedown.stop.prevent="startRotate" ref="rotateRef" class="material-symbols-outlined absolute top-full mt-[10px] left-1/2 pointer-events-auto cursor-grab active:cursor-grabbing">forward_media</div>
+                </div>
+            </Teleport>
+        </div>
     </div>
 </template>
 
@@ -54,6 +54,7 @@ const emit = defineEmits<{
 
 const rootRef = ref<HTMLElement | null>(null);
 const rotateRef = ref<HTMLDivElement | null>(null);
+const wrapperRef = ref<HTMLDivElement | null>(null);
 const anchorRef = ref<HTMLDivElement | null>(null);
 
 const anchorStyle = ref({ left: '0px', top: '0px', width: '0px', height: '0px', zIndex: 1});
@@ -62,7 +63,7 @@ let { cornerAnchors, anchorCls, startResize } = useResize(rootRef);
 
 let { startMove } = useMove(props, emit, rootRef, anchorStyle)
 
-let { startRotate } = useRotate(props, rootRef, anchorRef);
+let { startRotate } = useRotate(wrapperRef, anchorRef);
 
 /**
  * 父节点尺寸变化
@@ -74,12 +75,12 @@ function onParentResize() {
 
 
 function handleClickOutside(event: MouseEvent) {
-    if (!rootRef.value || !rotateRef.value) return;
+    // if (!rootRef.value || !rotateRef.value) return;
 
-    const slotEl = rootRef.value.firstElementChild as HTMLElement;
-    if(slotEl != event.target && event.target != rotateRef.value){
-        emit('update:selected', false);
-    }
+    // const slotEl = rootRef.value.firstElementChild as HTMLElement;
+    // if(slotEl != event.target && event.target != rotateRef.value){
+    //     emit('update:selected', false);
+    // }
 }
 
 let observer: ResizeObserver;
