@@ -18,7 +18,11 @@
                         >
                         <template #content>
                             <video v-if="layer.type == 'video'" :src="layer.source.uri" @mousedown="layer.active = true"/>
-                            <img class="object-contain w-full h-full" v-if="layer.type == 'image'" :src="layer.source.uri" @mousedown="layer.active = true"/>
+                            <img class="object-contain w-full h-full" 
+                                v-if="layer.type == 'image'" 
+                                :src="layer.source.uri" 
+                                @mousedown="layer.active = true"
+                                draggable="false"/>
                             <!-- TODO: 文字的拉伸有问题 -->
                             <div v-if="layer.type == 'text'" @mousedown="layer.active = true">{{ layer.source.text }} </div>
                         </template>

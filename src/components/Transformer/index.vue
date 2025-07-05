@@ -1,7 +1,7 @@
 <template>
     <div class='absolute' ref="rootRef" @mousedown="startMove"
         :style="{ zIndex: zIndex }" >
-        <div ref="wrapperRef" class="relative">
+        <div ref="wrapperRef" class="relative select-none">
             <!-- 内容插槽 -->
             <slot name="content"/>
 
@@ -75,12 +75,13 @@ function onParentResize() {
 
 
 function handleClickOutside(event: MouseEvent) {
-    // if (!rootRef.value || !rotateRef.value) return;
+    console.error('FFFFFFFFFFFFFFFFFFF', event.target)
+    if (!rootRef.value || !rotateRef.value) return;
 
-    // const slotEl = rootRef.value.firstElementChild as HTMLElement;
-    // if(slotEl != event.target && event.target != rotateRef.value){
-    //     emit('update:selected', false);
-    // }
+    const slotEl = rootRef.value.firstElementChild?.firstElementChild as HTMLElement;
+    if(slotEl != event.target && event.target != rotateRef.value){
+        emit('update:selected', false);
+    }
 }
 
 let observer: ResizeObserver;

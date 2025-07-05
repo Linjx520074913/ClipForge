@@ -38,28 +38,28 @@ const layers: Ref<ILayer[]> = ref([
         zIndex: 2,
         active: false
     },
-    // {
-    //     id: 'layer-003',
-    //     type: 'image',
-    //     source: {
-    //         id: 'image-01',
-    //         type: 'image',
-    //         uri: '/tauri.svg'
-    //     },
-    //     zIndex: 11,
-    //     active: false
-    // },
-    // {
-    //     id: 'layer-004',
-    //     type: 'text',
-    //     source: {
-    //         id: 'text-01',
-    //         type: 'text',
-    //         uri: '',
-    //         text: 'HelloWorld'
-    //     },
-    //     zIndex: 12
-    // }
+    {
+        id: 'layer-003',
+        type: 'image',
+        source: {
+            id: 'image-01',
+            type: 'image',
+            uri: '/tauri.svg'
+        },
+        zIndex: 11,
+        active: false
+    },
+    {
+        id: 'layer-004',
+        type: 'text',
+        source: {
+            id: 'text-01',
+            type: 'text',
+            uri: '',
+            text: 'HelloWorld'
+        },
+        zIndex: 12
+    }
 ]);
 
 export function useVideoStudio(){
