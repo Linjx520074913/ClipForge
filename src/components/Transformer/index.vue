@@ -6,13 +6,16 @@
         <!-- 四角控制点，插入到 body 中，这样超出预览区才可以显示 -->
         <Teleport :to="to">
             <div class='absolute ring-2 ring-purple pointer-events-none' v-if="selected"
-                :style="anchorStyle">
+                :style="anchorStyle"
+                ref="anchorRef">
                 <div 
                     v-for="(p, index) in cornerAnchors" :key="index"
                     :class="['absolute w-[10px] h-[10px] bg-white border border-gray-400 rounded-full pointer-events-auto', anchorCls[p]]"
                     @mousedown.stop.prevent="startResize(p, $event)"
                 />
-                <div class="material-symbols-outlined absolute top-full mt-[10px] left-1/2 z-30">forward_media</div>
+                <div @mousedown.stop.prevent="startRotate"
+                    ref="rotateRef"
+                    class="material-symbols-outlined absolute top-full mt-[10px] left-1/2 pointer-events-auto cursor-grab active:cursor-grabbing">forward_media</div>
             </div>
         </Teleport>
     </div>
@@ -35,7 +38,7 @@
  */
 import { ref, defineOptions, defineProps, defineEmits, defineExpose, onMounted, onBeforeUnmount } from 'vue';
 
-import { useResize, useMove, updateAnchorStyle } from './index';
+import { useResize, useMove, useRotate, updateAnchorStyle } from './index';
 
 defineOptions({ name: 'Transformer' });
 const props = defineProps({
@@ -50,6 +53,8 @@ const emit = defineEmits<{
 }>();
 
 const rootRef = ref<HTMLElement | null>(null);
+const rotateRef = ref<HTMLDivElement | null>(null);
+const anchorRef = ref<HTMLDivElement | null>(null);
 
 const anchorStyle = ref({ left: '0px', top: '0px', width: '0px', height: '0px', zIndex: 1});
 
@@ -57,6 +62,7 @@ let { cornerAnchors, anchorCls, startResize } = useResize(rootRef);
 
 let { startMove } = useMove(props, emit, rootRef, anchorStyle)
 
+let { startRotate } = useRotate(props, rootRef, anchorRef);
 
 /**
  * 父节点尺寸变化
@@ -68,10 +74,10 @@ function onParentResize() {
 
 
 function handleClickOutside(event: MouseEvent) {
-    if (!rootRef.value) return;
+    if (!rootRef.value || !rotateRef.value) return;
 
     const slotEl = rootRef.value.firstElementChild as HTMLElement;
-    if(slotEl != event.target){
+    if(slotEl != event.target && event.target != rotateRef.value){
         emit('update:selected', false);
     }
 }

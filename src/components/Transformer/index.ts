@@ -205,3 +205,92 @@ export function useMove(
         startMove
     }
 }
+
+export function useRotate(
+    props: any,
+    rootRef: Ref<HTMLElement | null>,
+    anchorRef: Ref<HTMLElement | null>
+) {
+    let startAngle = 0;  // 存储起始角度
+    let curAngle = 0;    // 存储当前角度
+    let transformStart = { x: 0, y: 0 };  // 存储起始点
+
+    /**
+     * 计算鼠标与元素中心的角度
+     * @param x 当前鼠标 x 坐标
+     * @param y 当前鼠标 y 坐标
+     * @param centerX 元素的中心点 x 坐标
+     * @param centerY 元素的中心点 y 坐标
+     * @returns 角度（弧度）
+     */
+    function getAngle(x: number, y: number, centerX: number, centerY: number): number {
+        const dx = x - centerX;
+        const dy = y - centerY;
+        return Math.atan2(dy, dx) * (180 / Math.PI);  // 转为角度
+    }
+
+    /**
+     * 开始旋转
+     * @param e 鼠标按下事件
+     */
+    function startRotate(e: MouseEvent) {
+        const root = rootRef.value;
+        if (!root) return;
+
+        // 计算元素中心位置
+        const rect = root.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        // 计算起始角度
+        startAngle = getAngle(e.clientX, e.clientY, centerX, centerY);
+
+        // 保存初始鼠标位置
+        transformStart = { x: e.clientX, y: e.clientY };
+
+        window.addEventListener('mousemove', onRotate);
+        window.addEventListener('mouseup', stopRotate);
+    }
+
+    /**
+     * 进行旋转
+     * @param e 鼠标移动事件
+     */
+    function onRotate(e: MouseEvent) {
+        const root = rootRef.value;
+        const ctrl = anchorRef.value;
+        if (!root) return;
+        if (!ctrl) return;
+
+        const rect = root.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        // 获取当前角度
+        const currentAngle = getAngle(e.clientX, e.clientY, centerX, centerY);
+
+        // 计算角度变化
+        const angleDifference = currentAngle - startAngle;
+        
+        // 更新旋转角度
+        curAngle = angleDifference;
+
+        // 应用旋转变换
+        root.style.transform = `rotate(${curAngle}deg)`;
+
+        ctrl.style.transform = `rotate(${curAngle}deg)`;
+
+    }
+
+    /**
+     * 停止旋转
+     */
+    function stopRotate() {
+        window.removeEventListener('mousemove', onRotate);
+        window.removeEventListener('mouseup', stopRotate);
+    }
+
+    return {
+        startRotate
+    };
+}
