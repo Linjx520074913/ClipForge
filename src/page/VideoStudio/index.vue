@@ -1,6 +1,6 @@
 <template>
-    <div class="flex flex-row">
-        <div class="flex flex-col flex-1 overflow-hidden min-w-[300px] rounded-[15px] shadow-sm border bg-white">
+    <div class="flex flex-row w-full">
+        <div class="flex flex-col flex-1 overflow-hidden overflow-x-scroll min-w-[300px] rounded-[15px] shadow-sm border bg-white">
             <!-- 主渲染区域 -->
             <div class="stage-canvas w-full h-[778px] relative border-b border-b-gray-300 grid place-items-center" ref="stageCanvasRef">
                 <!-- 顶部工具条 -->
@@ -30,11 +30,12 @@
                 </div>
             </div>
             <!-- 时间轴 -->
+            <!-- <TimeLine class="min-w-full" /> -->
         </div>
         <!-- 分割线 -->
         <div class="resize w-[7px] h-full"></div>
         <!-- 右侧面板 -->
-        <SlidingPanel class="h-full" :items="rightSlidingItems" :expanded="false"/>
+        <SlidingPanel class="h-full" :items="rightSlidingItems" :expanded="true"/>
     </div>
     
 </template>
@@ -45,6 +46,7 @@ import {
     VideoStudioToolbar,
     MediaPlayer,
     Transformer,
+    TimeLine
 } from '@src/components/index'
 import { AspecRatioItem } from '@src/components/VideoStudioToolbar';
 import { PanelItem } from '@src/components/SlidingPanel';

@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col w-full h-[410px] border-red-400 border">
+    <div class="flex flex-col border-red-400 border overflow-x-scroll">
         <TimelineControls class="w-full h-[41px] bg-blue-200"/>
         <TimelineRuler 
             :duration="10"

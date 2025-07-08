@@ -23,6 +23,10 @@
 
 <script setup lang="ts">
 /**
+ * TODO:
+ * 1、旋转之后再次点击，锚点控制框不是旋转后的状态
+ */
+/**
  * 功能描述：
     1、移动功能：
     组件通过 startMove 函数处理鼠标按下事件，支持拖拽移动组件。
@@ -75,7 +79,6 @@ function onParentResize() {
 
 
 function handleClickOutside(event: MouseEvent) {
-    console.error('FFFFFFFFFFFFFFFFFFF', event.target)
     if (!rootRef.value || !rotateRef.value) return;
 
     const slotEl = rootRef.value.firstElementChild?.firstElementChild as HTMLElement;
