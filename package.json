@@ -18,6 +18,8 @@
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "@webav/av-cliper": "^1.1.5",
+    "axios": "^1.10.0",
+    "cors": "^2.8.5",
     "express": "^5.1.0",
     "express-generator-typescript": "^2.7.3",
     "font-awesome": "^4.7.0",
