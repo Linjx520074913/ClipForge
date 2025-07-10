@@ -1,10 +1,10 @@
 <template>
-    <div class="flex flex-row cursor-pointer z-10">
+    <div class="flex flex-row cursor-pointer z-30">
         <!-- 下拉菜单 -->
         <div class="w-3/5 flex items-center justify-center relative hover:bg-[#F1F1F2] rounded-md" 
             ref="dropdownRef"
             @click="isActived = !isActived">
-            <span class="material-symbols-outlined mr-1">crop_free</span>
+            <span class="material-icons mr-1">crop_free</span>
             <span class="text-[14px] font-bold">大小</span>
             <span class="material-symbols-outlined">keyboard_arrow_down</span>
             <!-- 下拉菜单 -->

@@ -20,7 +20,8 @@ export class WebGPURenderer implements IRenderer {
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
-        this.size = { w: 0, h: 0 };
+        this.size = { w: this.canvas.width, h: this.canvas.height };
+        console.error('++++++', this.size)
         this.frameSize = { w: 0, h: 0 };
         this.initWebGPU(canvas);
     }
@@ -142,7 +143,7 @@ export class WebGPURenderer implements IRenderer {
         const frameRadio = frameWidth / frameHeight;
         const canvasRadio = this.canvas.width / this.canvas.height;
 
-        console.error('#######', frameRadio, canvasRadio, forceRender)
+        // console.error('#######', frameRadio, canvasRadio, forceRender)
         if (frameRadio == canvasRadio && !forceRender) {
             return;
         }

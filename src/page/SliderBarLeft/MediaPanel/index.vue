@@ -20,28 +20,62 @@
         <!-- 分割线 -->
         <div class="w-full h-[1px] bg-gray-200"/>
         <!-- 测试视频 -->
-        <div v-for="(item, index) in samples" :key="index" class="px-[12px]">
+        <div v-for="(item, index) in videoLayers" :key="index" class="px-[12px]">
             <div class="flex flex-col hover:bg-gray-200 p-2 rounded-[10px]">
-                <video 
+                <video
                     muted
-                    :src="item.url" class="w-full h-[150px] rounded-[10px] mb-1"
+                    :src="item.source.uri"
+                    class="w-full h-[150px] rounded-[10px] mb-1 cursor-grab active:cursor-grabbing"
                     @mouseenter="($event.target as HTMLVideoElement).play()"
-                    @mouseleave="handleMouseLeave"/>
-                <p class="text-[13px] text-gray-500">{{ item.name }}</p>
+                    @mouseleave="handleMouseLeave"
+                    draggable="true"
+                    @dragstart="(e) => handleDragStart(e, item)"
+                    />
+                <p class="text-[13px] text-gray-500">{{ item.label }}</p>
             </div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { defineOptions, ref } from 'vue';
+import { defineOptions, ref, Ref } from 'vue';
+import { ILayer } from '@src-shared';
 defineOptions({ name: 'MediaPanel' });
 
 const selectAll = ref(false);
 
-const samples = [
-    { url: './test2.mp4', name: 'test2.mp4' }
-]
+
+const videoLayers: Ref<ILayer[]> = ref([
+    {
+        id: 'layer-001',
+        type: 'video',
+        label: '测试视频1',
+        source: {
+            id: 'video-001',
+            type: 'video',
+            uri: '/test2.mp4'
+        },
+        zIndex: 10,
+        active: false
+    },
+    {
+        id: 'layer-002',
+        type: 'video',
+        label: '测试视频2',
+        source: {
+            id: 'video-001',
+            type: 'video',
+            uri: '/test4.mp4'
+        },
+        zIndex: 2,
+        active: false
+    }
+]);
+
+function handleDragStart(event: DragEvent, item: ILayer){
+    // dataTransfer 不能传对象，要先序列化
+    event.dataTransfer?.setData('application/json', JSON.stringify(item));
+}
 
 function handleMouseLeave(e: any){
     (e.target as HTMLVideoElement).pause();

@@ -33,6 +33,7 @@ export class WebAVPlayer implements IPlayer {
       const resp = await fetch(source);
       this.clip = new MP4Clip(resp.body!);
       const { duration, width, height } = await this.clip.ready;
+      console.error('@@@@@@@@@@@@@', width, height)
       this.durationUs = duration;
       this.seek(0);
       this.emit("ready");
@@ -57,7 +58,7 @@ export class WebAVPlayer implements IPlayer {
 
         this.currentTimeUs = timeUs;
 
-        const { state, video } = await this.clip.tick(timeUs);
+        const { state, video  } = await this.clip.tick(timeUs);
         
         if (state === 'done') {
             console.error('##################################', state)
@@ -87,7 +88,7 @@ export class WebAVPlayer implements IPlayer {
   }
 
   stop(): void {
-    this.loop(true);
+    // this.loop(true);
     this.pause();
     this.emit("stop");
   }

@@ -12,6 +12,7 @@ import {
     SlidingPanel,
     VideoStudioToolbar,
     MediaPlayer,
+    VideoPreview,
     TransformableLayer,
     TimeLine
 } from '@src/components/index'
@@ -32,50 +33,50 @@ interface ILayer{
 }
 
 const layers: Ref<ILayer[]> = ref([
-    {
-        id: 'layer-001',
-        type: 'video',
-        source: {
-            id: 'video-001',
-            type: 'video',
-            uri: '/test2.mp4'
-        },
-        zIndex: 10,
-        active: false
-    },
-    {
-        id: 'layer-002',
-        type: 'video',
-        source: {
-            id: 'video-001',
-            type: 'video',
-            uri: '/test4.mp4'
-        },
-        zIndex: 2,
-        active: false
-    },
-    {
-        id: 'layer-003',
-        type: 'image',
-        source: {
-            id: 'image-01',
-            type: 'image',
-            uri: '/tauri.svg'
-        },
-        zIndex: 11,
-        active: false
-    },
-    {
-        id: 'layer-004',
-        type: 'text',
-        source: {
-            id: 'text-01',
-            type: 'text',
-            uri: '',
-            text: 'HelloWorld'
-        },
-        zIndex: 12
-    }
+    // {
+    //     id: 'layer-001',
+    //     type: 'video',
+    //     source: {
+    //         id: 'video-001',
+    //         type: 'video',
+    //         uri: '/test2.mp4'
+    //     },
+    //     zIndex: 10,
+    //     active: false
+    // },
+    // {
+    //     id: 'layer-002',
+    //     type: 'video',
+    //     source: {
+    //         id: 'video-001',
+    //         type: 'video',
+    //         uri: '/test4.mp4'
+    //     },
+    //     zIndex: 2,
+    //     active: false
+    // },
+    // {
+    //     id: 'layer-003',
+    //     type: 'image',
+    //     source: {
+    //         id: 'image-01',
+    //         type: 'image',
+    //         uri: '/tauri.svg'
+    //     },
+    //     zIndex: 11,
+    //     active: false
+    // },
+    // {
+    //     id: 'layer-004',
+    //     type: 'text',
+    //     source: {
+    //         id: 'text-01',
+    //         type: 'text',
+    //         uri: '',
+    //         text: 'HelloWorld'
+    //     },
+    //     zIndex: 12
+    // }
 ]);
 
 export function useVideoStudio(){
@@ -84,6 +85,8 @@ export function useVideoStudio(){
 
     // 储存所有图层（视频、音频、图像、文本）的引用
     const layersRef = ref([]);
+
+    const videoRef = ref([]);
 
     const stageCanvasRef = ref<HTMLElement | null>();
     const canvasContainerRef = ref<HTMLElement | null>();
@@ -150,7 +153,7 @@ export function useVideoStudio(){
         // console.error('!!!!!!!', targetW, targetH)
     }
 
-    function initResizeObserver(){
+    function addResizeObserver(){
         if (stageCanvasRef.value) {
             resizeObserver = new ResizeObserver(entries => {
                 for (const entry of entries) {
@@ -165,7 +168,7 @@ export function useVideoStudio(){
         }
     }
 
-    function uninitResizeObserver(){
+    function removeResizeObserver(){
         if (resizeObserver && canvasContainerRef.value) {
             resizeObserver.unobserve(canvasContainerRef.value)
             resizeObserver.disconnect()
@@ -177,13 +180,81 @@ export function useVideoStudio(){
         canvasContainerRef,
         resizeObserver,
         init,
+        videoRef,
         layersRef,
         layers,
         resizeCanvasContainer,
         handleRatioUpdate,
         rightSlidingItems,
-        initResizeObserver,
-        uninitResizeObserver
+        addResizeObserver,
+        removeResizeObserver
+    }
+}
+
+/**
+ * 全局拖拽事件，用于高亮拖拽的元素
+ * @returns 
+ */
+export function useDrag(){
+    
+    // 全局拖拽状态
+    const globalDragging = ref(false);
+
+    const draggingEnter = ref(false);
+
+    function onDragStart(e: DragEvent){
+        console.error('useGlobalDragState start')
+        globalDragging.value = true;
+        
+    }
+
+    function onDragEnd(e: DragEvent){
+        console.error('useGlobalDragState end')
+        globalDragging.value = false;
+    }
+
+    function addGlobalDragEvent(){
+        window.addEventListener('dragstart', onDragStart);
+        window.addEventListener('dragend', onDragEnd);
+    }
+
+    function removeGlobalDragEvent(){
+        window.removeEventListener('dragstart', onDragStart);
+        window.removeEventListener('dragend', onDragEnd);
+    }
+
+    function onDragEnter(e: DragEvent){
+        draggingEnter.value = true;
+    }
+
+    function onDrop(e: DragEvent){
+        draggingEnter.value = false;
+        e.preventDefault();
+        const data = e.dataTransfer?.getData('application/json');
+        if(!data) return;
+
+        try {
+            const layer: ILayer = JSON.parse(data);
+            console.log('接收到拖拽数据:', layer);
+            // 添加到 layers 中
+            layers.value.push(layer);
+        } catch (e) {
+            console.error('数据解析失败', e);
+        }
+    }
+
+    function onDragLeave(e: DragEvent){
+        draggingEnter.value = false;
+    }
+    
+    return{
+        globalDragging,
+        draggingEnter,
+        onDragEnter,
+        onDrop,
+        onDragLeave,
+        addGlobalDragEvent,
+        removeGlobalDragEvent
     }
 }
 
@@ -198,6 +269,7 @@ export {
     SlidingPanel,
     VideoStudioToolbar,
     MediaPlayer,
+    VideoPreview,
     TransformableLayer,
     TimeLine
 }

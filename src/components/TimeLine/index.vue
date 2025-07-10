@@ -8,11 +8,6 @@
                 {{ playing ? 'pause_circle' : 'play_circle' }}
             </span>
         </div>
-        <!-- <TimelineRuler 
-            :duration="10"
-            class="w-full h-[80px] bg-green-200"
-        />
-        <TimelineViewport class="w-full flex-1 bg-blue-300"/> -->
     </div>
 </template>
 
