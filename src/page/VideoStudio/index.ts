@@ -1,4 +1,20 @@
 import { ref, Ref } from "vue";
+import { AspecRatioItem } from '@src/components/VideoStudioToolbar';
+import { PanelItem } from '@src/components/SlidingPanel';
+import { 
+    AudioPanel,
+    ColorPanel,
+    EffectPanel,
+    FilterPanel
+} from '@src/page/SliderBarRight/index';
+
+import {
+    SlidingPanel,
+    VideoStudioToolbar,
+    MediaPlayer,
+    TransformableLayer,
+    TimeLine
+} from '@src/components/index'
 
 interface IMediaSource {
     id: string;                                   // 唯一标识符
@@ -63,7 +79,125 @@ const layers: Ref<ILayer[]> = ref([
 ]);
 
 export function useVideoStudio(){
-    return {
-        layers
+    // 视频编辑器初始化状态
+    const init = ref(false);
+
+    // 储存所有图层（视频、音频、图像、文本）的引用
+    const layersRef = ref([]);
+
+    const stageCanvasRef = ref<HTMLElement | null>();
+    const canvasContainerRef = ref<HTMLElement | null>();
+    let resizeObserver: ResizeObserver | null = null;
+
+    const mediaRef = ref(null);
+
+    let targetW = 0, targetH = 0;
+
+    let ratio = 16 / 9;
+
+    // 右侧侧边栏菜单
+    const rightSlidingItems: PanelItem[] = [
+        { id: 0, label: '音频', icon: 'volume_up',      tooltip: 'test', component: AudioPanel },
+        { id: 1, label: '滤镜', icon: 'filter_vintage', tooltip: 'test', component: FilterPanel },
+        { id: 2, label: '效果', icon: 'contrast',       tooltip: 'test', component: EffectPanel },
+        { id: 3, label: '颜色', icon: 'palette',        tooltip: 'test', component: ColorPanel } ,
+    ];
+
+    /**
+     * 处理视频比例更新
+     * @param item 
+     */
+    function handleRatioUpdate(item: AspecRatioItem){
+        if(!item) return;
+
+        const [w, h] = item.value?.split(':').map(Number)!;
+        ratio = w / h;
+        resizeCanvasContainer(ratio);
     }
+    /**
+     * 重置容器尺寸
+     * @param ratio  目标比例, 比如 16/9
+     */
+    function resizeCanvasContainer(ratio: number){
+
+        // padding
+        const padding = { h: 100, v: 100 };
+        // 渲染区域尺寸
+        const stageCanvas = stageCanvasRef.value!;
+        const w = stageCanvas.clientWidth - padding.h;
+        const h = stageCanvas.clientHeight - padding.v;
+
+        // 先按宽度算高度
+        targetW = w;
+        targetH = w / ratio;
+
+        // 如果高度超出，就用高度算宽度
+        if(targetH > h){
+            targetH = h;
+            targetW = h * ratio;
+        }
+
+        canvasContainerRef.value!.style.width = `${targetW}px`;
+        canvasContainerRef.value!.style.height = `${targetH}px`;
+
+
+        if(mediaRef.value){
+            (mediaRef.value as any).onParentResize();
+        }
+        
+        // (mediaplayerRef.value as any).resize(targetW, targetH);
+        // console.error('##########', mediaplayerRef as any, targetW, targetH)
+        // console.error('!!!!!!!', targetW, targetH)
+    }
+
+    function initResizeObserver(){
+        if (stageCanvasRef.value) {
+            resizeObserver = new ResizeObserver(entries => {
+                for (const entry of entries) {
+                    const { width, height } = entry.contentRect
+                    // containerSize.value = { width, height }
+                    console.error('📏 canvas 尺寸变了：', width, height)
+                    resizeCanvasContainer(ratio)
+                }
+            })
+    
+            resizeObserver.observe(stageCanvasRef.value)
+        }
+    }
+
+    function uninitResizeObserver(){
+        if (resizeObserver && canvasContainerRef.value) {
+            resizeObserver.unobserve(canvasContainerRef.value)
+            resizeObserver.disconnect()
+        }
+    }
+
+    return {
+        stageCanvasRef,
+        canvasContainerRef,
+        resizeObserver,
+        init,
+        layersRef,
+        layers,
+        resizeCanvasContainer,
+        handleRatioUpdate,
+        rightSlidingItems,
+        initResizeObserver,
+        uninitResizeObserver
+    }
+}
+
+export function useTimeline(){
+    const playing = ref(false);     // 播放状态
+    return{
+        playing
+    }
+}
+
+export {
+    SlidingPanel,
+    VideoStudioToolbar,
+    MediaPlayer,
+    TransformableLayer,
+    TimeLine
 }

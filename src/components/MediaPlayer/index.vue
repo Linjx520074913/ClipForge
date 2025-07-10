@@ -3,11 +3,9 @@
         class='bg-black relative'
         :style="{ width: width + 'px', height: height + 'px' }"
     >
-        <SelectableBox @resize="onBoxResize" v-model:selected="isFocusd">
             <!-- 预览区域 -->
             <canvas ref="previewCanvasRef" class='w-full h-full'
                 @click="isFocusd = true"/>
-        </SelectableBox>
     </div>
 </template>
 
@@ -15,7 +13,6 @@
 import { defineOptions, defineProps, defineEmits, onMounted, ref, defineExpose, onBeforeUnmount } from 'vue';
 import { VideoPlayer } from '@avcore';
 import throttle from 'lodash/throttle';
-import SelectableBox from '../SelectableBox/index.vue'
 
 defineOptions({ name: 'MediaPlayer' });
 const props = defineProps({

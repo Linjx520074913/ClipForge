@@ -44,7 +44,7 @@ import { ref, defineOptions, defineProps, defineEmits, defineExpose, onMounted, 
 
 import { useResize, useMove, useRotate, updateAnchorStyle } from './index';
 
-defineOptions({ name: 'Transformer' });
+defineOptions({ name: 'TransformableLayer' });
 const props = defineProps({
     width: { type: Number, default: 300 },
     height: { type: Number, default: 300 },
@@ -75,6 +75,15 @@ let { startRotate } = useRotate(wrapperRef, anchorRef);
 function onParentResize() {
     console.log('父组件尺寸变化通知：');
     updateAnchorStyle(rootRef, props, anchorStyle);
+}
+
+function getContentElement(){
+    if (!rootRef.value) return;
+
+    console.error('获取内容元素', rootRef);
+    const slotEl = rootRef.value.firstElementChild?.firstElementChild as HTMLElement;
+
+    return slotEl;
 }
 
 
@@ -124,7 +133,8 @@ onBeforeUnmount(() => {
  * 接口暴露  
  */ 
 defineExpose({
-    onParentResize
+    onParentResize,
+    getContentElement
 })
 
 </script>

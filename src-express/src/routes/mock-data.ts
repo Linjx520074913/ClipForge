@@ -5,7 +5,7 @@ export function useMockData(){
         {
             id: 'filter-001',
             type: 'brightness',
-            enabled: true,
+            enabled: false,
             label: '黄金时刻',
             params: [
                 { name: 'u_brightness', value: 1.2, min: 0, max: 2, step: 0.01 }
@@ -14,7 +14,7 @@ export function useMockData(){
         {
             id: 'filter-002',
             type: 'brightness',
-            enabled: true,
+            enabled: false,
             label: '醒目蓝',
             params: [
                 { name: 'u_brightness', value: 1.2, min: 0, max: 2, step: 0.01 }
@@ -23,7 +23,7 @@ export function useMockData(){
         {
             id: 'filter-003',
             type: 'brightness',
-            enabled: true,
+            enabled: false,
             label: '怀旧西部',
             params: [
                 { name: 'u_brightness', value: 1.2, min: 0, max: 2, step: 0.01 }

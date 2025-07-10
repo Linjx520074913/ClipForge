@@ -30,7 +30,7 @@
                     >menu_open</span>
                 </div>
                 <!-- drawer 内容区域 -->
-                <component class="w-full h-full" :is="activedItem.component" />
+                <component class="w-full h-full" :is="activedItem.component" @onChildEvent="(payload) => emit('onChildEvent', payload)"/>
             </div>
         </div>
     </div>
@@ -49,7 +49,7 @@
 //     { id: 2, label: '文字',   icon: 'text_fields',            tooltip: 'test', component: 'MediaVault'},
 //     { id: 3, label: '模板',   icon: 'stacks',                 tooltip: 'test', component: 'MediaVault'},
 // ]
-import { defineOptions, defineProps, defineEmits, ref, withDefaults, computed, watch } from 'vue';
+import { defineOptions, defineProps, defineEmits, useAttrs, ref, withDefaults, computed, watch } from 'vue';
 import { PanelItem } from './index';
 import MediaVault from '@src/page/LeftSliderBar/MediaVault/index.vue'
 
@@ -63,7 +63,8 @@ const props = withDefaults(defineProps<{
     placement: 'right',
 });
 const emit = defineEmits<{
-    (e: 'update:expanded', val: boolean): void
+    (e: 'update:expanded', val: boolean): void,  // 面板是否展开
+    (e: 'onChildEvent', payload: any): void,      // 子组件事件
 }>();
 
 // 高亮块样式
