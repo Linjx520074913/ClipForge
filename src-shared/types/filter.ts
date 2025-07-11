@@ -1,7 +1,8 @@
 // 滤镜类型
 export type FilterType = 
-    | 'brightness'
-    | 'contrast'
+    | 'mosaic'
+    | 'wave'
+    | 'cartoon'
 
 // 每个 Type 映射到一个 Shader 文件或内联字符串
 const FilterShaders: Record<FilterType, string> = {
@@ -12,6 +13,7 @@ const FilterShaders: Record<FilterType, string> = {
 // 单个滤镜参数项
 export interface FilterParam{
     name:  string;                       // 参数名, 如 brightness
+    label: string;                       // 参数文本,如亮度
     value: number | string | boolean;    // 参数值, 如 0.8
     min?:  number;                       // 可选，用于 UI 滑条
     max?:  number;                       // 可选，用于 UI 滑条

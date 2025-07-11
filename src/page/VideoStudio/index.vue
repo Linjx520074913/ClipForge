@@ -81,6 +81,7 @@ import {
 } from './index';
 
 import { ILayer } from '@src-shared';
+import { IFilter } from 'src/modules/av-core/renderer/Filter/Type';
 
 import { defineOptions, ref, onMounted, onBeforeUnmount, watch, Ref } from 'vue';
 defineOptions({ name: 'VideoStudio' });
@@ -114,10 +115,15 @@ const {
     removeGlobalDragEvent
 } = useDrag();
 
-function handleRightSlidingPanelEvent(payload: any){
-    console.error('右侧面板事件:', payload);
-}
+function handleRightSlidingPanelEvent(filters: IFilter[]){
+    
+    console.error('右侧面板事件:', filters);
 
+    // 所有视频组件实例
+    videoRef.value.forEach((instance: any, i: any) => {
+        instance.setFilters(filters);
+    })
+}
 
 
 watch(() => playing, (val: Ref<boolean>) => {

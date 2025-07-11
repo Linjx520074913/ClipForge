@@ -66,7 +66,7 @@ onMounted(async() => {
         filter_list.value = res.data;
         console.error('Filter List:', filter_list.value);
     }catch(e){
-
+        console.error(e)
     }
 });
 </script>

@@ -1,7 +1,7 @@
-import IFilter from './Filter';
+import FilterInst from './FilterInst';
 
 export class FilterPipeline{
-    private filters: IFilter[] = [];
+    private filters: FilterInst[] = [];
     private device:  GPUDevice;
     private format:  GPUTextureFormat;
 
@@ -16,18 +16,22 @@ export class FilterPipeline{
      * 添加滤镜
      * @param filter 
      */
-    async addFilter(filter: IFilter){
-        await filter.init();
+    async addFilter(filter: FilterInst){
+        await filter.init(this.device, this.format);
         this.filters.push(filter);
+    }
+
+    getFilters(): FilterInst[]{
+        return this.filters;
     }
 
     /**
      * 移除滤镜
      * @param name 
      */
-    removeFilter(name: string){
+    removeFilter(type: string){
         // this.filters = this.filters.filter(f => f.name !== name);
-        const idx = this.filters.findIndex(f => f.name === name);
+        const idx = this.filters.findIndex(f => f.getFilterType() === type);
         if(idx >= 0){
             this.filters[idx].destroy();
             this.filters.splice(idx, 1);

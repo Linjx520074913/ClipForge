@@ -4,27 +4,18 @@ export function useMockData(){
     const filter_list: Filter[] = [
         {
             id: 'filter-001',
-            type: 'brightness',
+            type: 'mosaic',
             enabled: false,
-            label: '黄金时刻',
+            label: '马赛克',
             params: [
-                { name: 'u_brightness', value: 1.2, min: 0, max: 2, step: 0.01 }
+                { name: 'pixel_size', label: '像素大小', value: 8, min: 0, max: 2, step: 0.01 }
             ]
         },
         {
             id: 'filter-002',
-            type: 'brightness',
+            type: 'wave',
             enabled: false,
-            label: '醒目蓝',
-            params: [
-                { name: 'u_brightness', value: 1.2, min: 0, max: 2, step: 0.01 }
-            ]
-        },
-        {
-            id: 'filter-003',
-            type: 'brightness',
-            enabled: false,
-            label: '怀旧西部',
+            label: '波浪',
             params: [
                 { name: 'u_brightness', value: 1.2, min: 0, max: 2, step: 0.01 }
             ]

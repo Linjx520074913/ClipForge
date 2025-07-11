@@ -1,6 +1,7 @@
 import { WebGPURenderer } from "../renderer/WebGPURenderer";
 import { IPlayer, PlayerEvent } from "./IPlayer";
 import { createPlayer } from "./PlayerFactory";
+import { IFilter } from '@src-shared';
 
 export class VideoPlayer{
     private player: IPlayer;
@@ -14,6 +15,10 @@ export class VideoPlayer{
 
     async load(src: string | ReadableStream<Uint8Array>): Promise<void>{
         await this.player.load(src);
+    }
+
+    setFilters(filters: IFilter[]){
+        this.player.setFilters(filters);
     }
 
     play(): void{

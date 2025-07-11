@@ -1,6 +1,8 @@
+import { IFilter } from '@src-shared';
+
 export interface IRenderer {
     
-    setFilter(filter: IFilter): void;
+    setFilters(filter: IFilter[]): void;
 
     /**
      * 渲染视频帧

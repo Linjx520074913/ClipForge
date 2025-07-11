@@ -1,11 +1,11 @@
 import type { IRenderer } from './IRenderer';
-import mosaic from './shader/mosaic.wgsl?raw';
 import raw from './shader/raw.wgsl?raw';
-import wave from './shader/wave.wgsl?raw';
 
 import { FilterPipeline } from './Filter/FilterPipeline';
 
 import FilterInst from './Filter/FilterInst';
+
+import { IFilter } from '@src-shared';
 
 export class WebGPURenderer implements IRenderer {
     private canvas: HTMLCanvasElement;
@@ -59,8 +59,6 @@ export class WebGPURenderer implements IRenderer {
         });
 
         this.filterPipeline = new FilterPipeline(this.device, this.format);
-        this.filterPipeline.addFilter(new FilterInst(this.device, this.format, mosaic));
-        this.filterPipeline.addFilter(new FilterInst(this.device, this.format, wave));
     }
 
     private async initTexture(width: number, heigth: number) {
@@ -120,8 +118,39 @@ export class WebGPURenderer implements IRenderer {
 
     }
 
-    setFilter(filter: IFilter): void {
-        
+    /**
+     * 设置滤镜组
+     * @param filters 滤镜面板选中的滤镜组 
+     * @returns 
+     */
+    setFilters(filters: IFilter[]): void {
+        if(!this.filterPipeline){
+            console.error('this.filterPipeline not initizlize!');
+            return;
+        }
+        // const curFilterInsts = this.filterPipeline.getFilters();
+        // const newFilterTypes = filters.map(f => f.type);
+
+        // // Step 1: 移除多余的旧滤镜
+        // for(const old of curFilterInsts){
+        //     if(!newFilterTypes.includes(old.getFilterType())){
+        //         this.filterPipeline.removeFilter(old.getFilterType());
+        //     }
+        // }
+        // for(const f of filters){
+        //     this.filterPipeline.addFilter(new FilterInst(f.type));
+        // }
+
+        // TODO: 第一版，先移除所有滤镜
+        // 优化：动态添加/移除滤镜
+        for(const old of this.filterPipeline.getFilters()){
+            this.filterPipeline.removeFilter(old.getFilterType());
+        }
+
+        for(const f of filters){
+            console.error('++++++++ addFilter', f.type);
+            this.filterPipeline.addFilter(new FilterInst(f.type));
+        }
     }
 
     setOuterSize(outerWidth: number, outerHeight: number) {
@@ -175,6 +204,11 @@ export class WebGPURenderer implements IRenderer {
         this.canvas.style.height = targetH + "px";
     }
 
+    /**
+     * 渲染
+     * @param video 
+     * @returns 
+     */
     async render(video: VideoFrame): Promise<void> {
 
         if(!this.device || !this.ctx || !this.filterPipeline){
@@ -250,6 +284,9 @@ export class WebGPURenderer implements IRenderer {
         this.device.queue.submit([encoder.finish()]);
     }
 
+    /**
+     * 销毁
+     */
     destroy() {
         this.uniformBuffer?.destroy?.();
         this.texture?.destroy?.();

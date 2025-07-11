@@ -1,4 +1,4 @@
-import { Filter } from './types/filter';
+import { Filter, FilterType } from './types/filter';
 import { ILayer } from './types/layer';
 
-export { Filter, ILayer }
+export { Filter, FilterType, ILayer }

@@ -1,27 +1,58 @@
 import IFilter from './Type';
 
+import mosaic  from '../shader/mosaic.wgsl?raw';
+import cartoon from '../shader/cartoon.wgsl?raw';
+import wave    from '../shader/wave.wgsl?raw';
+
+import { FilterType } from '@src-shared';
+
+const Shader: Record<string, string> = {
+    'mosaic': mosaic,
+    'cartoon': cartoon,
+    'wave': wave
+};
+
 export default class FilterInst implements IFilter{
     name = 'FilterInstance';
 
-    private device!: GPUDevice;
-    private format!: GPUTextureFormat;
-    private pipeline!: GPURenderPipeline;
-    private bindGroup!: GPUBindGroup;
-    private sampler!: GPUSampler;
-    private inputTexture!: GPUTexture;
+    private device!:        GPUDevice;
+    private format!:        GPUTextureFormat;
+    private pipeline!:      GPURenderPipeline;
+    private bindGroup!:     GPUBindGroup;
+    private sampler!:       GPUSampler;
+    private inputTexture!:  GPUTexture;
     private outputTexture!: GPUTexture;
     private uniformBuffer!: GPUBuffer;
 
+    private type!: FilterType;
     private code!: string;
 
-    constructor(device: GPUDevice, format: GPUTextureFormat, code: string){
-        this.device = device;
-        this.format = format;
-        this.code = code;
-        console.error('FAAAAAAAAAAAAAA', this.code)
+    constructor(type: FilterType){
+        this.type = type;
+        this.code = Shader[type];
+        
+        if(!this.code){
+            console.error('[ FilterInstance ] : Do not provide shader code', type)
+        }
     }
 
-    async init(){
+    getFilterType(): FilterType{
+        return this.type;
+    }
+
+    async init(device: GPUDevice, format: GPUTextureFormat){
+
+        this.device = device;
+        this.format = format;
+
+        if(!this.device){
+            console.error(this.name, ' device is null');
+            return;
+        }
+        if(!this.format){
+            console.error(this.name, ' format is null');
+            return;
+        }
 
         const module = this.device.createShaderModule({ code: this.code });
 
@@ -65,12 +96,12 @@ export default class FilterInst implements IFilter{
             this.outputTexture?.destroy();
             
             this.outputTexture = this.device.createTexture({
-            size,
-            format: this.format,
-            usage:  GPUTextureUsage.RENDER_ATTACHMENT |
-                    GPUTextureUsage.TEXTURE_BINDING |
-                    GPUTextureUsage.COPY_SRC
-        });
+                size,
+                format: this.format,
+                usage:  GPUTextureUsage.RENDER_ATTACHMENT |
+                        GPUTextureUsage.TEXTURE_BINDING |
+                        GPUTextureUsage.COPY_SRC
+            });
         }
         
 
@@ -95,6 +126,11 @@ export default class FilterInst implements IFilter{
     }
 
     render(encoder: GPUCommandEncoder){
+        if(!this.bindGroup || !this.outputTexture){
+            console.error(this.name, ' render failed');
+            return;
+        }
+
         const pass = encoder.beginRenderPass({
             colorAttachments: [
                 {

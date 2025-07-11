@@ -1,3 +1,4 @@
+import { IFilter } from '@src-shared';
 import type { IRenderer } from '../renderer/IRenderer';
 
 export type PlayerEvent = 
@@ -23,6 +24,8 @@ export interface IPlayer {
      * @param source 视频源，可以是 URL 字符串或 ReadableStream<Uint8Array>
      */
     load(source: string | ReadableStream<Uint8Array>): Promise<void>;
+
+    setFilters(filters: IFilter[]): void;
 
     /**
      * 播放视频

@@ -1,6 +1,7 @@
 import type { IPlayer, PlayerEvent } from './IPlayer';
 import type { IRenderer } from '../renderer/IRenderer';
 import { MP4Clip } from '@webav/av-cliper';
+import { IFilter } from '@src-shared';
 
 export class WebAVPlayer implements IPlayer {
   private clip?: MP4Clip;
@@ -38,6 +39,12 @@ export class WebAVPlayer implements IPlayer {
       this.seek(0);
       this.emit("ready");
     }
+  }
+
+  setFilters(filters: IFilter[]): void {
+    console.error('[ WebAVPlayer ] : setFilters ', filters, this.renderer)
+    if(!this.renderer) return;
+    this.renderer.setFilters(filters);
   }
 
   play(): void {

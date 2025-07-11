@@ -13,6 +13,7 @@
 import { defineOptions, defineProps, defineEmits, onMounted, ref, defineExpose, onBeforeUnmount } from 'vue';
 import { VideoPlayer } from '@avcore';
 import throttle from 'lodash/throttle';
+import { IFilter } from 'src/modules/av-core/renderer/Filter/Type';
 
 defineOptions({ name: 'VideoPreview' });
 const props = defineProps({
@@ -163,6 +164,13 @@ function stop(){
     player.value.stop();
 }
 
+function setFilters(filters: IFilter[]){
+    console.error('========== 设置滤镜', filters, player.value);
+    if(!player.value) return;
+    console.error('========== +++++++++');
+    player.value.setFilters(filters);
+}
+
 onBeforeUnmount(() => {
     if (player.value) {
         player.value.destroy();
@@ -172,6 +180,7 @@ onBeforeUnmount(() => {
 defineExpose({
     play,
     pause,
-    stop
+    stop,
+    setFilters
 });
 </script>
