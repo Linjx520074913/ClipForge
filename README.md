@@ -14,3 +14,8 @@ Since TypeScript cannot handle type information for `.vue` imports, they are shi
 2. Reload the VS Code window by running `Developer: Reload Window` from the command palette.
 
 You can learn more about Take Over mode [here](https://github.com/johnsoncodehk/volar/discussions/471).
+
+全局禁用红色波浪线，在 .vscode settings.json 中添加
+"volar.useWorkspaceTsdk": false,
+"volar.takeOverMode.enabled": false,
+"typescript.validate.enable": false

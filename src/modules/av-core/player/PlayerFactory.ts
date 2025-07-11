@@ -7,7 +7,6 @@ export function createPlayer(
     renderer: IRenderer
 ): IPlayer{
     let player: IPlayer;
-    console.error('@@@@@@@@@@', type)
     switch(type){
         case 'webav':
             player = new WebAVPlayer();

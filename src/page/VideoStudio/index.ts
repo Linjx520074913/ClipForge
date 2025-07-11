@@ -17,67 +17,9 @@ import {
     TimeLine
 } from '@src/components/index'
 
-interface IMediaSource {
-    id: string;                                   // 唯一标识符
-    type: "video" | "audio" | "image" | "text";   // 视频、音频、图片、文本
-    uri: string;                                  // 本地路径,网络 URL，Blob URL
-    text?: string;                                // 当 type == text 时该字段有效
-}
+import { ILayer } from '@src-shared';
 
-interface ILayer{
-    id: string;
-    type: 'video' | 'audio' | 'image' | 'text';
-    source: IMediaSource;
-    zIndex: number;
-    active: boolean;
-}
-
-const layers: Ref<ILayer[]> = ref([
-    // {
-    //     id: 'layer-001',
-    //     type: 'video',
-    //     source: {
-    //         id: 'video-001',
-    //         type: 'video',
-    //         uri: '/test2.mp4'
-    //     },
-    //     zIndex: 10,
-    //     active: false
-    // },
-    // {
-    //     id: 'layer-002',
-    //     type: 'video',
-    //     source: {
-    //         id: 'video-001',
-    //         type: 'video',
-    //         uri: '/test4.mp4'
-    //     },
-    //     zIndex: 2,
-    //     active: false
-    // },
-    // {
-    //     id: 'layer-003',
-    //     type: 'image',
-    //     source: {
-    //         id: 'image-01',
-    //         type: 'image',
-    //         uri: '/tauri.svg'
-    //     },
-    //     zIndex: 11,
-    //     active: false
-    // },
-    // {
-    //     id: 'layer-004',
-    //     type: 'text',
-    //     source: {
-    //         id: 'text-01',
-    //         type: 'text',
-    //         uri: '',
-    //         text: 'HelloWorld'
-    //     },
-    //     zIndex: 12
-    // }
-]);
+const layers: Ref<ILayer[]> = ref([]);
 
 export function useVideoStudio(){
     // 视频编辑器初始化状态
@@ -143,14 +85,10 @@ export function useVideoStudio(){
         canvasContainerRef.value!.style.width = `${targetW}px`;
         canvasContainerRef.value!.style.height = `${targetH}px`;
 
-
         if(mediaRef.value){
             (mediaRef.value as any).onParentResize();
         }
         
-        // (mediaplayerRef.value as any).resize(targetW, targetH);
-        // console.error('##########', mediaplayerRef as any, targetW, targetH)
-        // console.error('!!!!!!!', targetW, targetH)
     }
 
     function addResizeObserver(){
@@ -202,15 +140,62 @@ export function useDrag(){
 
     const draggingEnter = ref(false);
 
-    function onDragStart(e: DragEvent){
-        console.error('useGlobalDragState start')
-        globalDragging.value = true;
+    // 遮罩层
+    const coverRef = ref<HTMLDivElement | null>(null);
+
+    // 拖拽元素携带的数据
+    const draggintData = ref<ILayer>(null);
+
+    // 拖拽元素在父容器中的尺寸
+    let tw, th;
+
+    /**
+     * 更新遮罩层样式
+     */
+    function updateCoverStyle(){
+        if(!coverRef.value) return;
+
+        if(!draggintData.value){
+            console.error("没有拖拽元素数据");
+            return;
+        }
+
+        // 获取父容器的宽高
+        const parent = coverRef.value.parentElement as HTMLElement;
         
+        // 保持拖拽元素的比例，在父容器中找到最大的尺寸
+        const ratio = draggintData.value.source.width / draggintData.value.source.height;
+
+        tw = parent.clientWidth;
+        th = tw / ratio;
+
+        if(th > parent.clientHeight1){
+            th = parent.clientHeight;
+            tw = th * ratio;
+        }
+
+        coverRef.value.style.width = tw + "px";
+        coverRef.value.style.height = th + "px";
+    }
+
+    function onDragStart(e: DragEvent){
+        globalDragging.value = true;
+
+        const data = e.dataTransfer?.getData('application/json');
+        if(!data) return;
+
+        const layer: ILayer = JSON.parse(data);
+        draggintData.value = layer;
+
+        if(layer.source.width == 0 || layer.source.height == 0){
+            console.error('拖拽元素未设置宽高属性');
+        }
     }
 
     function onDragEnd(e: DragEvent){
         console.error('useGlobalDragState end')
         globalDragging.value = false;
+        draggintData.value = null;
     }
 
     function addGlobalDragEvent(){
@@ -225,6 +210,8 @@ export function useDrag(){
 
     function onDragEnter(e: DragEvent){
         draggingEnter.value = true;
+        
+        updateCoverStyle();
     }
 
     function onDrop(e: DragEvent){
@@ -233,9 +220,14 @@ export function useDrag(){
         const data = e.dataTransfer?.getData('application/json');
         if(!data) return;
 
+        console.error('@@@@@@@@@@', coverRef.value)
+
         try {
             const layer: ILayer = JSON.parse(data);
-            console.log('接收到拖拽数据:', layer);
+            layer.size.w = tw;
+            layer.size.h = th;
+            layer.pos.x  = 0;
+            layer.pos.y  = 0;
             // 添加到 layers 中
             layers.value.push(layer);
         } catch (e) {
@@ -248,13 +240,15 @@ export function useDrag(){
     }
     
     return{
+        coverRef,
         globalDragging,
         draggingEnter,
         onDragEnter,
         onDrop,
         onDragLeave,
         addGlobalDragEvent,
-        removeGlobalDragEvent
+        removeGlobalDragEvent,
+        updateCoverStyle
     }
 }
 
@@ -271,5 +265,6 @@ export {
     MediaPlayer,
     VideoPreview,
     TransformableLayer,
+    TimeLinemableLayer,
     TimeLine
 }

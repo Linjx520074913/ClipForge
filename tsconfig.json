@@ -7,13 +7,13 @@
         "skipLibCheck": true,
 
         /* Bundler mode */
-        "moduleResolution": "bundler",
+        "moduleResolution": "node",
         "allowImportingTsExtensions": true,
         "resolveJsonModule": true,
         "isolatedModules": true,
         "noEmit": true,
         "jsx": "preserve",
-        "types": ["node"],
+        "types": ["node", "vue", "vite/client"],
 
         /* Linting */
         "strict": true,
@@ -29,7 +29,7 @@
             "@router/*":         ["src/router/*"],
             "@store/*":          ["src/store/*"],
             "@src/page/*":       ["src/page/*"],
-            "@src-shared/*":     ["../src-shared/*"],
+            "@src-shared/*":     ["../src-shared/*"]
         }
     },
     "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/assets/data/mock-router-graph.json"],

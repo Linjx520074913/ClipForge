@@ -3,12 +3,15 @@
         :style="{ zIndex: zIndex }" >
         <div ref="wrapperRef" class="relative select-none">
             <!-- 内容插槽 -->
-            <slot name="content"/>
+            <!-- <slot name="content"/> -->
+             <div class="w-[100px] h-[100px] bg-red-400">
+
+             </div>
 
             <!-- 四角控制点，插入到 body 中，这样超出预览区才可以显示 -->
             <Teleport :to="to">
                 <div
-                    class="absolute ring-2 ring-purple pointer-events-none" v-if="selected" :style="anchorStyle" ref="anchorRef">
+                    class="absolute ring-2 ring-purple pointer-events-none" v-show="selected" :style="anchorStyle" ref="anchorRef">
                     <div 
                         v-for="(p, index) in cornerAnchors" :key="index"
                         :class="['absolute w-[10px] h-[10px] bg-white border border-gray-400 rounded-full pointer-events-auto', anchorCls[p]]"
@@ -46,8 +49,10 @@ import { useResize, useMove, useRotate, updateAnchorStyle } from './index';
 
 defineOptions({ name: 'TransformableLayer' });
 const props = defineProps({
-    width: { type: Number, default: 300 },
-    height: { type: Number, default: 300 },
+    size: {
+        w: { type: Number, default: 0 },
+        h: { type: Number, default: 0 },
+    },
     zIndex: { type: Number, default: 1 },
     selected: { type: Boolean, default: false },
     to: { type: String, default: 'body' }

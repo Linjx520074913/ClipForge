@@ -7,8 +7,8 @@ export class VideoPlayer{
 
     private renderer: WebGPURenderer;
 
-    constructor(canvas: HTMLCanvasElement){
-        this.renderer = new WebGPURenderer(canvas);
+    constructor(canvas: HTMLCanvasElement, size: { w: number, h: number}){
+        this.renderer = new WebGPURenderer(canvas, size);
         this.player = createPlayer('webav', this.renderer);
     }
 

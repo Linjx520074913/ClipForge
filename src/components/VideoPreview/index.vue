@@ -1,12 +1,12 @@
 <template>
-    <div 
-        class='bg-black relative'
-        :style="{ width: width + 'px', height: height + 'px' }"
-        @mousedown="emit('mousedown', $event)"
+    <div
+        ref="rootRef"
+        class='bg-red-300 relative'
+        @mousedown.stop.prevent="emit('mousedown', $event)"
     >
-            <!-- 预览区域 -->
-            <canvas ref="previewCanvasRef" class='w-full h-full'
-                @click="isFocusd = true"/>
+        <!-- 预览区域 -->
+        <canvas ref="previewCanvasRef"
+            @click="isFocusd = true"/>
     </div>
 </template>
 
@@ -17,8 +17,10 @@ import throttle from 'lodash/throttle';
 
 defineOptions({ name: 'VideoPreview' });
 const props = defineProps({
-    width: { type: Number, default: 300 },
-    height: { type: Number, default: 300 },
+    size:{
+        w: { type: Number, default: 100 },
+        h: { type: Number, default: 100 }
+    },
     src: { type: String, default: ''}
 })
 
@@ -26,6 +28,8 @@ const emit = defineEmits(['ready', 'play', 'pause', 'stop', 'ended', 'error', 'm
 
 const previewCanvasRef = ref<HTMLCanvasElement | null>(null);
 let player = ref<VideoPlayer | null>(null);
+
+const rootRef = ref<HTMLDivElement | null>(null);
 
 const percent = ref(0);
 
@@ -151,9 +155,12 @@ function resize(width: number, height: number){
 
 onMounted(async () => {
     if (!previewCanvasRef.value) return;
+
+    rootRef.value.style.width = `${props.size.w}px`;
+    rootRef.value.style.height = `${props.size.h}px`;
     
     try {
-        player.value = new VideoPlayer(previewCanvasRef.value);
+        player.value = new VideoPlayer(previewCanvasRef.value, props.size);
         
         // 注册播放器事件
         player.value.on('ready', () => {

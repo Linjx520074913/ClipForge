@@ -18,10 +18,10 @@ export class WebGPURenderer implements IRenderer {
     private size: { w: number; h: number };
     private frameSize: { w: number; h: number };
 
-    constructor(canvas: HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement, size: { w: number, h: number}) {
         this.canvas = canvas;
-        this.size = { w: this.canvas.width, h: this.canvas.height };
-        console.error('++++++', this.size)
+        this.size = size;
+        console.error('[ WebGPURenderer ] : ', this.size, canvas.clientWidth)
         this.frameSize = { w: 0, h: 0 };
         this.initWebGPU(canvas);
     }

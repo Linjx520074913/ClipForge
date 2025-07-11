@@ -9,7 +9,7 @@
                         class="absolute w-[158px] h-[34px] rounded-[5px] shadow-[0_3px_10px_rgba(0,0,0,0.12)] top-2 left-1/2 -translate-x-1/2"
                         @update:ratio="handleRatioUpdate"/>
                 <!-- 预览区域,根据比例重置过大小 -->
-                <div class="canvas-container border border-red-800 relative overflow-hidden" ref="canvasContainerRef"
+                <div class="canvas-container bg-black relative overflow-hidden" ref="canvasContainerRef"
                     @dragover.prevent
                     @drop="onDrop"
                     @dragenter="onDragEnter"
@@ -26,8 +26,12 @@
                             ref="layersRef"
                             >
                             <template #content>
-                                <!-- <video v-if="layer.type == 'video'" :src="layer.source.uri" @mousedown="layer.active = true"/> -->
-                                <VideoPreview ref="videoRef" v-if="layer.type == 'video'" :src="layer.source.uri"  @mousedown="console.error('fff');layer.active = true"/>
+                                <VideoPreview 
+                                    ref="videoRef" 
+                                    v-if="layer.type == 'video'" 
+                                    :src="layer.source.uri"  
+                                    @mousedown="layer.active = true;"
+                                    :size="layer.size"/>
                                 <img class="object-contain w-full h-full" 
                                     v-if="layer.type == 'image'" 
                                     :src="layer.source.uri" 
@@ -39,7 +43,10 @@
                         </TransformableLayer>
 
                         <!-- 拖拽进入的遮罩效果层 -->
-                        <div v-if="draggingEnter" class="w-full h-full absolute left-0 top-0 bg-purple opacity-80 z-30 dash-border"/>
+                        <div
+                            ref="coverRef" 
+                            v-show="draggingEnter" 
+                            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-purple opacity-80 z-30 dash-border"/>
                     </div>
                     
                 </div>
@@ -94,6 +101,7 @@ const { playing } = useTimeline();
 
 
 const { 
+    coverRef,
     globalDragging,
     draggingEnter,
     onDragEnter,

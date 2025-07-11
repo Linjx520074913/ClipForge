@@ -33,6 +33,7 @@ function updateAnchorStyle(root: Ref<HTMLElement | null>, props: any, style: Ref
         height: `${rect.height}px`,
         zIndex: props.zIndex
     };
+
 }
 
 export { updateAnchorStyle }
