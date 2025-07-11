@@ -1,5 +1,5 @@
 <template>
-    <div class='absolute bg-blue-400' ref="rootRef" @mousedown="startMove"
+    <div class='absolute' ref="rootRef" @mousedown="startMove"
         :style="{ zIndex: zIndex }">
         <div ref="wrapperRef" class="relative select-none test">
             <!-- 内容插槽 -->
@@ -14,7 +14,7 @@
                         :class="['absolute w-[10px] h-[10px] bg-white border border-gray-400 rounded-full pointer-events-auto', anchorCls[p]]"
                         @mousedown.stop.prevent="startResize(p, $event)"
                     />
-                    <div @mousedown.stop.prevent="startRotate" ref="rotateRef" class="material-symbols-outlined absolute top-full mt-[10px] left-1/2 pointer-events-auto cursor-grab active:cursor-grabbing">forward_media</div>
+                    <div @mousedown.stop.prevent="startRotate" ref="rotateRef" class="material-symbols-outlined absolute text-white top-full mt-[10px] left-1/2 pointer-events-auto cursor-grab active:cursor-grabbing">forward_media</div>
                 </div>
             </Teleport>
         </div>
@@ -49,6 +49,10 @@ const props = defineProps({
     size: {
         w: { type: Number, default: 0 },
         h: { type: Number, default: 0 },
+    },
+    pos: {
+        x: { type: Number, default: 0 },
+        y: { type: Number, default: 0 },
     },
     zIndex: { type: Number, default: 1 },
     selected: { type: Boolean, default: false },
@@ -111,6 +115,9 @@ onMounted(async() => {
     }
     rootRef.value!.style.width = `${props.size.w}px`;
     rootRef.value!.style.height = `${props.size.h}px`;
+
+    rootRef.value!.style.left = `${props.pos.x}px`;
+    rootRef.value!.style.top = `${props.pos.y}px`;
 
     updateAnchorStyle(rootRef, props, anchorStyle);
 

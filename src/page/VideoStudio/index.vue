@@ -26,6 +26,7 @@
                             :to="'.stage-canvas'"
                             ref="layersRef"
                             :size="layer.size"
+                            :pos="layer.pos"
                             >
                             <template #content>
                                 <VideoPreview 

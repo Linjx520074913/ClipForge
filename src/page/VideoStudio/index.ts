@@ -149,6 +149,9 @@ export function useDrag(){
     // 拖拽元素在父容器中的尺寸
     let tw, th;
 
+    // 拖拽元素在父容器中的位置
+    let tx, ty;
+
     /**
      * 更新遮罩层样式
      */
@@ -174,8 +177,15 @@ export function useDrag(){
             tw = th * ratio;
         }
 
+        tx = (parent.clientWidth - tw) / 2;
+        ty = (parent.clientHeight - th) / 2;
+
         coverRef.value.style.width = tw + "px";
         coverRef.value.style.height = th + "px";
+
+        console.error('============ UpdateCoverStye', tx, ty)
+
+
     }
 
     function onDragStart(e: DragEvent){
@@ -220,14 +230,12 @@ export function useDrag(){
         const data = e.dataTransfer?.getData('application/json');
         if(!data) return;
 
-        console.error('@@@@@@@@@@', coverRef.value)
-
         try {
             const layer: ILayer = JSON.parse(data);
             layer.size.w = tw;
             layer.size.h = th;
-            layer.pos.x  = 0;
-            layer.pos.y  = 0;
+            layer.pos.x  = tx;
+            layer.pos.y  = ty;
             // 添加到 layers 中
             layers.value.push(layer);
         } catch (e) {
