@@ -2,13 +2,15 @@ import type { IRenderer } from './IRenderer';
 import mosaic from './shader/mosaic.wgsl?raw';
 import raw from './shader/raw.wgsl?raw';
 
+import { FilterPipeline } from './Filter/FilterPipeline';
+import  MosaicFilter  from './Filter/MosaicFilter';
+import WaveFilter from './Filter/WaveFilter';
 export class WebGPURenderer implements IRenderer {
     private canvas: HTMLCanvasElement;
     private ctx: GPUCanvasContext | null = null;
 
     private device: GPUDevice | null = null;
 
-    private texture: GPUTexture | null = null;
     private sampler: GPUSampler | null = null;
     private uniformBuffer: GPUBuffer | null = null;
     private pipeline: GPURenderPipeline | null = null;
@@ -17,6 +19,9 @@ export class WebGPURenderer implements IRenderer {
 
     private size: { w: number; h: number };
     private frameSize: { w: number; h: number };
+
+    private texture: GPUTexture | null = null;            // 存视频帧初始纹理
+    private filterPipeline: FilterPipeline | null = null; // 滤镜管线
 
     constructor(canvas: HTMLCanvasElement, size: { w: number, h: number}) {
         this.canvas = canvas;
@@ -50,6 +55,10 @@ export class WebGPURenderer implements IRenderer {
             format: this.format,
             alphaMode: "opaque",
         });
+
+        this.filterPipeline = new FilterPipeline(this.device, this.format);
+        this.filterPipeline.addFilter(new MosaicFilter(this.device, this.format));
+        this.filterPipeline.addFilter(new WaveFilter(this.device, this.format));
     }
 
     private async initTexture(width: number, heigth: number) {
@@ -107,16 +116,10 @@ export class WebGPURenderer implements IRenderer {
             });
         }
 
-        if (!this.bindGroup || !this.texture) {
-            this.bindGroup = this.device.createBindGroup({
-                layout: this.pipeline.getBindGroupLayout(0),
-                entries: [
-                { binding: 0, resource: this.sampler },
-                { binding: 1, resource: this.texture.createView() },
-                { binding: 2, resource: { buffer: this.uniformBuffer } },
-                ],
-            });
-        }
+    }
+
+    setFilter(filter: IFilter): void {
+        
     }
 
     setOuterSize(outerWidth: number, outerHeight: number) {
@@ -171,6 +174,12 @@ export class WebGPURenderer implements IRenderer {
     }
 
     async render(video: VideoFrame): Promise<void> {
+
+        if(!this.device || !this.ctx || !this.filterPipeline){
+            console.error('[ WebGPURenderer ] : render error');
+            return;
+        }
+
         const renderWidth = video.displayWidth;
         const renderHeight = video.displayHeight;
         this.resize(renderWidth, renderHeight);
@@ -205,6 +214,18 @@ export class WebGPURenderer implements IRenderer {
             0,
             new Float32Array([renderWidth, renderHeight])
         );
+
+        // 经过滤镜管线处理，得到最终输出纹理
+        const outputTexture = await this.filterPipeline.render(this.texture!);
+
+        this.bindGroup = this.device.createBindGroup({
+            layout: this.pipeline.getBindGroupLayout(0),
+            entries: [
+                { binding: 0, resource: this.sampler },
+                { binding: 1, resource: outputTexture.createView() },
+                { binding: 2, resource: { buffer: this.uniformBuffer } },
+            ],
+        });
 
         // 开始渲染
         const encoder = this.device.createCommandEncoder();

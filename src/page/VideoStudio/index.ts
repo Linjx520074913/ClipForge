@@ -97,7 +97,7 @@ export function useVideoStudio(){
                 for (const entry of entries) {
                     const { width, height } = entry.contentRect
                     // containerSize.value = { width, height }
-                    console.error('📏 canvas 尺寸变了：', width, height)
+                    // console.error('📏 canvas 尺寸变了：', width, height)
                     resizeCanvasContainer(ratio)
                 }
             })

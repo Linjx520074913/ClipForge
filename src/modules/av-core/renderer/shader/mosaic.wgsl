@@ -14,7 +14,7 @@ fn vs_main(@builtin(vertex_index) idx: u32) -> @builtin(position) vec4f {
 @fragment
 fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     let uv = pos.xy / imageSize;
-    let pixelSize = vec2(8.0, 8.0);
+    let pixelSize = vec2(16.0, 16.0);
 
     // 计算马赛克采样点
     let blockUV = floor(uv * imageSize / pixelSize) * pixelSize / imageSize;
