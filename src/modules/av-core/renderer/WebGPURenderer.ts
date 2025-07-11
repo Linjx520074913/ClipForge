@@ -1,10 +1,12 @@
 import type { IRenderer } from './IRenderer';
 import mosaic from './shader/mosaic.wgsl?raw';
 import raw from './shader/raw.wgsl?raw';
+import wave from './shader/wave.wgsl?raw';
 
 import { FilterPipeline } from './Filter/FilterPipeline';
-import  MosaicFilter  from './Filter/MosaicFilter';
-import WaveFilter from './Filter/WaveFilter';
+
+import FilterInst from './Filter/FilterInst';
+
 export class WebGPURenderer implements IRenderer {
     private canvas: HTMLCanvasElement;
     private ctx: GPUCanvasContext | null = null;
@@ -57,8 +59,8 @@ export class WebGPURenderer implements IRenderer {
         });
 
         this.filterPipeline = new FilterPipeline(this.device, this.format);
-        this.filterPipeline.addFilter(new MosaicFilter(this.device, this.format));
-        this.filterPipeline.addFilter(new WaveFilter(this.device, this.format));
+        this.filterPipeline.addFilter(new FilterInst(this.device, this.format, mosaic));
+        this.filterPipeline.addFilter(new FilterInst(this.device, this.format, wave));
     }
 
     private async initTexture(width: number, heigth: number) {

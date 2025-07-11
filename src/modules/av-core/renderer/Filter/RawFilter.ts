@@ -51,13 +51,22 @@ export default class RawFilter implements IFilter{
         this.inputTexture = input;
         const size = [input.width, input.height];
 
-        this.outputTexture = this.device.createTexture({
-            size,
-            format: this.format,
-            usage:  GPUTextureUsage.RENDER_ATTACHMENT |
-                    GPUTextureUsage.TEXTURE_BINDING |
-                    GPUTextureUsage.COPY_SRC
-        });
+        const needResize = !this.outputTexture ||
+                            this.outputTexture.width != input.width ||
+                            this.outputTexture.height!= input.height;
+
+        if(needResize){
+            console.error('=f==========needSize');
+            this.outputTexture?.destroy();
+            
+            this.outputTexture = this.device.createTexture({
+                size,
+                format: this.format,
+                usage:  GPUTextureUsage.RENDER_ATTACHMENT |
+                        GPUTextureUsage.TEXTURE_BINDING |
+                        GPUTextureUsage.COPY_SRC
+            });
+        }
 
         this.bindGroup = this.device.createBindGroup({
             layout: this.pipeline.getBindGroupLayout(0),

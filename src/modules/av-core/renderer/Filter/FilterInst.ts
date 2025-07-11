@@ -1,8 +1,7 @@
 import IFilter from './Type';
-import code from '../shader/wave.wgsl?raw';
 
-export default class Mosaic implements IFilter{
-    name = 'Mosaic';
+export default class FilterInst implements IFilter{
+    name = 'FilterInstance';
 
     private device!: GPUDevice;
     private format!: GPUTextureFormat;
@@ -13,11 +12,18 @@ export default class Mosaic implements IFilter{
     private outputTexture!: GPUTexture;
     private uniformBuffer!: GPUBuffer;
 
-    async init(device: GPUDevice, format: GPUTextureFormat){
+    private code!: string;
+
+    constructor(device: GPUDevice, format: GPUTextureFormat, code: string){
         this.device = device;
         this.format = format;
+        this.code = code;
+        console.error('FAAAAAAAAAAAAAA', this.code)
+    }
 
-        const module = device.createShaderModule({ code: code });
+    async init(){
+
+        const module = this.device.createShaderModule({ code: this.code });
 
         this.pipeline = this.device.createRenderPipeline({
             layout: "auto",
@@ -41,7 +47,7 @@ export default class Mosaic implements IFilter{
         });
 
         // TODO: 这里的 size 要根据参数的数量来设置
-        this.uniformBuffer = device.createBuffer({
+        this.uniformBuffer = this.device.createBuffer({
             size: 8,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
         });
@@ -54,6 +60,7 @@ export default class Mosaic implements IFilter{
         const needResize = !this.outputTexture ||
                             this.outputTexture.width != input.width ||
                             this.outputTexture.height!= input.height;
+
         if(needResize){
             this.outputTexture?.destroy();
             
@@ -65,6 +72,7 @@ export default class Mosaic implements IFilter{
                     GPUTextureUsage.COPY_SRC
         });
         }
+        
 
         this.bindGroup = this.device.createBindGroup({
             layout: this.pipeline.getBindGroupLayout(0),

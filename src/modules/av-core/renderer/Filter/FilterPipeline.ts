@@ -5,6 +5,8 @@ export class FilterPipeline{
     private device:  GPUDevice;
     private format:  GPUTextureFormat;
 
+    private curInput: GPUTexture;
+
     constructor(device: GPUDevice, format: GPUTextureFormat){
         this.device = device;
         this.format = format;
@@ -15,7 +17,7 @@ export class FilterPipeline{
      * @param filter 
      */
     async addFilter(filter: IFilter){
-        await filter.init(this.device, this.format);
+        await filter.init();
         this.filters.push(filter);
     }
 
@@ -37,15 +39,15 @@ export class FilterPipeline{
 
         const encoder = this.device.createCommandEncoder();
         
-        let curInput = input;
+        this.curInput = input;
         for(const filter of this.filters){
-            filter.setInput(curInput);
+            filter.setInput(this.curInput);
             filter.render(encoder);
-            curInput = filter.getOutput();
+            this.curInput = filter.getOutput();
         } 
 
         this.device.queue.submit([encoder.finish()]);
-        return curInput;
+        return this.curInput;
     }
 
     destroy(){

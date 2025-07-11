@@ -3,12 +3,14 @@
  */
 export interface IFilter{
     name: string;
+
+    code: string;
     /**
      * 初始化管线、shader、bindGroup 等
      * @param device 
      * @param format 
      */
-    init(device: GPUDevice, format: GPUTextureFormat): Promise<void>;
+    init(device: GPUDevice, format: GPUTextureFormat, code: string): Promise<void>;
     
     /**
      * 设置输入纹理

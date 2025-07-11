@@ -14,6 +14,8 @@ export default class Mosaic implements IFilter{
     private uniformBuffer!: GPUBuffer;
 
     async init(device: GPUDevice, format: GPUTextureFormat){
+
+        console.error('#######@@@@@@@', typeof code)
         this.device = device;
         this.format = format;
 
@@ -51,13 +53,22 @@ export default class Mosaic implements IFilter{
         this.inputTexture = input;
         const size = [input.width, input.height];
 
-        this.outputTexture = this.device.createTexture({
+        const needResize = !this.outputTexture ||
+                            this.outputTexture.width != input.width ||
+                            this.outputTexture.height!= input.height;
+
+        if(needResize){
+            this.outputTexture?.destroy();
+
+            this.outputTexture = this.device.createTexture({
             size,
             format: this.format,
             usage:  GPUTextureUsage.RENDER_ATTACHMENT |
                     GPUTextureUsage.TEXTURE_BINDING |
                     GPUTextureUsage.COPY_SRC
         });
+        }
+        
 
         this.bindGroup = this.device.createBindGroup({
             layout: this.pipeline.getBindGroupLayout(0),
@@ -68,8 +79,7 @@ export default class Mosaic implements IFilter{
             ]
         });
 
-        //TOD0: 测试
-        this.device.queue.writeBuffer(this.uniformBuffer, 0, new Float32Array([1920, 1080]));
+        this.device.queue.writeBuffer(this.uniformBuffer, 0, new Float32Array([input.width, input.height]));
     }
 
     getOutput(){
