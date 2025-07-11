@@ -2,7 +2,6 @@
     <div
         ref="rootRef"
         class='bg-red-300 relative'
-        @mousedown.stop.prevent="emit('mousedown', $event)"
     >
         <!-- 预览区域 -->
         <canvas ref="previewCanvasRef"
@@ -91,67 +90,6 @@ function formatTime(time: number) {
     return `${hh}:${mm}:${ss}.${mmm}`;
 }
 
-function handleDown(e: MouseEvent) {
-    seekable.value = true;
-    isDragging.value = true;
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('mouseup', handleUp);
-    player.value.pause();
-}
-
-const throttledSeek = throttle((ratio: number) => {
-    if (!isDragging.value) return;
-    player.value?.seek(player.value.getDurationUs() * ratio);
-}, 100);
-
-function handleMove(e: MouseEvent){
-    if(!seekable.value) return;
-
-    const bar = document.getElementById('progress-bar') as HTMLDivElement;
-    const rect = bar.getBoundingClientRect();
-
-    if (
-        e.clientX < rect.left ||
-        e.clientX > rect.right
-    ) {
-        handleUp(e);
-        return;
-    }
-
-    const clickX = e.clientX - rect.left;
-    const ratio = Math.max(0, Math.min(clickX / rect.width, 1));
-    
-    percent.value = ratio * 100;
-    throttledSeek(ratio);
-}
-
-function handleUp(e: MouseEvent) {
-    seekable.value = false;
-    isDragging.value = false;
-    window.removeEventListener('mousemove', handleMove);
-    window.removeEventListener('mouseup', handleUp);
-    
-    const finalRatio = percent.value / 100;
-    player.value?.seek(player.value.getDurationUs() * finalRatio);
-    
-    setTimeout(() => {
-        player.value?.play();
-    }, 50);
-}
-
-/**
- * 拖选框尺寸变化
- */
-function onBoxResize(size: { width: number, height: number}){
-    console.error('onBoxResize', size, previewCanvasRef.value.style.width)
-    previewCanvasRef.value.style.width = `${size.width}px`;
-    previewCanvasRef.value.style.height = `${size.height}px`;
-}
-
-function resize(width: number, height: number){
-    if (!previewCanvasRef.value || !player.value) return;
-    player.value.setOuterSize(width, height);
-}
 
 onMounted(async () => {
     if (!previewCanvasRef.value) return;
@@ -232,7 +170,6 @@ onBeforeUnmount(() => {
 });
 
 defineExpose({
-    resize,
     play,
     pause,
     stop

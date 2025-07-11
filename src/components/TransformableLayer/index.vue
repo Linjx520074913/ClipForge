@@ -1,13 +1,10 @@
 <template>
-    <div class='absolute' ref="rootRef" @mousedown="startMove"
-        :style="{ zIndex: zIndex }" >
-        <div ref="wrapperRef" class="relative select-none">
+    <div class='absolute bg-blue-400' ref="rootRef" @mousedown="startMove"
+        :style="{ zIndex: zIndex }">
+        <div ref="wrapperRef" class="relative select-none test">
             <!-- 内容插槽 -->
-            <!-- <slot name="content"/> -->
-             <div class="w-[100px] h-[100px] bg-red-400">
-
-             </div>
-
+            <slot name="content"/>
+            
             <!-- 四角控制点，插入到 body 中，这样超出预览区才可以显示 -->
             <Teleport :to="to">
                 <div
@@ -68,7 +65,7 @@ const anchorRef = ref<HTMLDivElement | null>(null);
 
 const anchorStyle = ref({ left: '0px', top: '0px', width: '0px', height: '0px', zIndex: 1});
 
-let { cornerAnchors, anchorCls, startResize } = useResize(rootRef);
+let { cornerAnchors, anchorCls, startResize } = useResize(props, rootRef, anchorStyle);
 
 let { startMove } = useMove(props, emit, rootRef, anchorStyle)
 
@@ -94,9 +91,8 @@ function getContentElement(){
 
 function handleClickOutside(event: MouseEvent) {
     if (!rootRef.value || !rotateRef.value) return;
-
-    const slotEl = rootRef.value.firstElementChild?.firstElementChild as HTMLElement;
-    if(slotEl != event.target && event.target != rotateRef.value){
+    
+    if(!rootRef.value.contains(event.target) && event.target != rotateRef.value){
         emit('update:selected', false);
     }
 }
@@ -109,23 +105,15 @@ onMounted(async() => {
     
     if (!rootRef.value) return;
 
-    // 选出 slot 实际渲染的第一个元素
-    const slotEl = rootRef.value.firstElementChild as HTMLElement;
-    if (!slotEl) return;
+    if(props.size.w == 0 || props.size.h == 0){
+        console.error('TransformableLayer 父组件应该设置其尺寸');
+        return;
+    }
+    rootRef.value!.style.width = `${props.size.w}px`;
+    rootRef.value!.style.height = `${props.size.h}px`;
 
-    observer = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-            const { width, height } = entry.contentRect;
-            // 初始化元素尺寸
-            // 如果不设置的话，在移动到预览区域的右边的时候，会挤压这个组件
-            rootRef.value!.style.width = `${width}px`;
-            rootRef.value!.style.height = `${height}px`;
-            
-            updateAnchorStyle(rootRef, props, anchorStyle);
-        }
-    });
+    updateAnchorStyle(rootRef, props, anchorStyle);
 
-    observer.observe(slotEl);
     document.addEventListener('mousedown', handleClickOutside);
 });
 

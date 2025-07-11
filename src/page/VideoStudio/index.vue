@@ -18,12 +18,14 @@
                     <!-- 这一层 div 是用来显示拖拽的时候的效果的 -->
                     <div :class="['w-full h-full relative', globalDragging? 'pointer-events-none' : '']">
                         <!-- 生成 layer 层, layer 中包含 Video/Audio/Text/Image 等 -->
-                        <TransformableLayer v-for="(layer, index) in layers" :key="index" 
+                        <TransformableLayer
+                            v-for="(layer, index) in layers" :key="index" 
                             v-if="canvasContainerRef"
                             v-model:selected="layer.active"
                             :zIndex="layer.zIndex"
                             :to="'.stage-canvas'"
                             ref="layersRef"
+                            :size="layer.size"
                             >
                             <template #content>
                                 <VideoPreview 
