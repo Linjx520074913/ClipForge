@@ -16,13 +16,13 @@ export default defineConfig(async () => ({
     ],
     resolve:{
         alias: {
-            '@api':            path.resolve(__dirname, "src/api"),
+            '@frontend/api':            path.resolve(__dirname, "src/api"),
             '@assets':         path.resolve(__dirname, "src/assets"),
             '@avcore':         path.resolve(__dirname, "src/modules/av-core"),
             '@router':         path.resolve(__dirname, "src/router"),
             '@store':          path.resolve(__dirname, "src/store"),
-            '@src/page':       path.resolve(__dirname, "src/page"),
-            '@src/components': path.resolve(__dirname, "src/components"),
+            '@frontend/page':       path.resolve(__dirname, "src/page"),
+            '@frontend/components': path.resolve(__dirname, "src/components"),
             '@src-shared':     path.resolve(__dirname, "../src-shared"),
         }
     },

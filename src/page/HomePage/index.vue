@@ -20,21 +20,21 @@
  * 1、分割线可以拖动改变左右区域尺寸
  */
 import { defineOptions } from 'vue';
-import { Header } from '@src/components/index';
+import { Header } from '@frontend/components/index';
 import VideoStudio from '../VideoStudio/index.vue';
 
 import {
     SlidingPanel,
     VideoStudioToolbar
-} from '@src/components/index';
-import { AspecRatioItem } from '@src/components/VideoStudioToolbar';
-import { PanelItem } from '@src/components/SlidingPanel';
+} from '@frontend/components/index';
+import { AspecRatioItem } from '@frontend/components/VideoStudioToolbar';
+import { PanelItem } from '@frontend/components/SlidingPanel';
 import {
     AssetPanel,
     MediaPanel,
     TemplPanel,
     TypesPanel
-} from '@src/page/SliderBarLeft/index';
+} from '@frontend/page/SliderBarLeft/index';
 
 defineOptions({ name: 'HomePage' });
 

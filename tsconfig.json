@@ -22,14 +22,14 @@
         "noFallthroughCasesInSwitch": true,
         "baseUrl": ".",
         "paths":{
-            "@api/*":            ["src/api/*"],
-            "@assets/*":         ["src/assets/*"],
-            "@avcore/*":         ["src/module/avcore/*"],
-            "@src/components/*": ["src/components/*"],
-            "@router/*":         ["src/router/*"],
-            "@store/*":          ["src/store/*"],
-            "@src/page/*":       ["src/page/*"],
-            "@src-shared/*":     ["../src-shared/*"]
+            "@frontend/api/*":        ["src/api/*"          ],
+            "@frontend/assets*":      ["src/assets/*"       ],
+            "@frontend/avcore/*":     ["src/module/avcore/*"],
+            "@frontend/components/*": ["src/components/*"   ],
+            "@frontend/router*":      ["src/router/*"       ],
+            "@frontend/store*":       ["src/store/*"        ],
+            "@frontend/page/*":       ["src/page/*"         ],
+            "@src-shared/*":          ["../src-shared/*"    ]
         }
     },
     "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/assets/data/mock-router-graph.json"],

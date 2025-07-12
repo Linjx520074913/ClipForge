@@ -18,7 +18,7 @@
  * 2、滤镜列表可以多选，选中返回列表
  */
 import { defineOptions, defineEmits, onMounted, ref } from 'vue';
-import { AXIOS } from '@api';
+import { AXIOS } from '@frontend/api';
 import { Filter } from '@src-shared';
 defineOptions({ name: 'FilterPanel' });
 const emit = defineEmits(['onChildEvent']);

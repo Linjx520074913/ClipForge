@@ -1,5 +1,5 @@
 {
-  "name": "src-express",
+  "name": "src-backend",
   "version": "0.0.0",
   "scripts": {
     "build": "ts-node ./scripts/build.ts",

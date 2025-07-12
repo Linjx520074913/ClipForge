@@ -9,7 +9,7 @@
  * TODO
  * 1、所有交互添加提示，比如 按钮
  */
-import { HomePage } from '@src/page';
+import { HomePage } from '@frontend/page';
 </script>
 
 <style>

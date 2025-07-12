@@ -1,12 +1,12 @@
 import { ref, Ref } from "vue";
-import { AspecRatioItem } from '@src/components/VideoStudioToolbar';
-import { PanelItem } from '@src/components/SlidingPanel';
+import { AspecRatioItem } from '@frontend/components/VideoStudioToolbar';
+import { PanelItem } from '@frontend/components/SlidingPanel';
 import { 
     AudioPanel,
     ColorPanel,
     EffectPanel,
     FilterPanel
-} from '@src/page/SliderBarRight/index';
+} from '@frontend/page/SliderBarRight/index';
 
 import {
     SlidingPanel,
@@ -15,7 +15,7 @@ import {
     VideoPreview,
     TransformableLayer,
     TimeLine
-} from '@src/components/index'
+} from '@frontend/components/index'
 
 import { ILayer } from '@src-shared';
 
