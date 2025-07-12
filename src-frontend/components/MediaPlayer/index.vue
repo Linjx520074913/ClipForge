@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import { defineOptions, defineProps, defineEmits, onMounted, ref, defineExpose, onBeforeUnmount } from 'vue';
-import { VideoPlayer } from '@avcore';
+import { VideoPlayer } from '@frontend/avcore';
 import throttle from 'lodash/throttle';
 
 defineOptions({ name: 'MediaPlayer' });

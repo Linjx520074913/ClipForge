@@ -22,16 +22,16 @@
         "noFallthroughCasesInSwitch": true,
         "baseUrl": ".",
         "paths":{
-            "@frontend/api/*":        ["src/api/*"          ],
-            "@frontend/assets*":      ["src/assets/*"       ],
-            "@frontend/avcore/*":     ["src/module/avcore/*"],
-            "@frontend/components/*": ["src/components/*"   ],
-            "@frontend/router*":      ["src/router/*"       ],
-            "@frontend/store*":       ["src/store/*"        ],
-            "@frontend/page/*":       ["src/page/*"         ],
+            "@frontend/api/*":        ["src-frontend/api/*"          ],
+            "@frontend/assets*":      ["src-frontend/assets/*"       ],
+            "@frontend/avcore/*":     ["src-frontend/module/avcore/*"],
+            "@frontend/components/*": ["src-frontend/components/*"   ],
+            "@frontend/router*":      ["src-frontend/router/*"       ],
+            "@frontend/store*":       ["src-frontend/store/*"        ],
+            "@frontend/page/*":       ["src-frontend/page/*"         ],
             "@src-shared/*":          ["../src-shared/*"    ]
         }
     },
-    "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/assets/data/mock-router-graph.json"],
+    "include": ["src-frontend/**/*.ts", "src-frontend/**/*.d.ts", "src-frontend/**/*.tsx", "src-frontend/**/*.vue", "src-frontend/assets/data/mock-router-graph.json"],
     "references": [{ "path": "./tsconfig.node.json" }]
 }

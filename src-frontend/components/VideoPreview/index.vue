@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import { defineOptions, defineProps, defineEmits, onMounted, ref, defineExpose, onBeforeUnmount } from 'vue';
-import { VideoPlayer } from '@avcore';
+import { VideoPlayer } from '@frontend/avcore';
 import throttle from 'lodash/throttle';
 import { IFilter } from 'src/modules/av-core/renderer/Filter/Type';
 
