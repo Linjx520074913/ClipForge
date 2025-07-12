@@ -75,7 +75,7 @@ const videoLayers: Ref<ILayer[]> = ref([
         source: {
             id:   'video-001',
             type: 'video',
-            uri:  '/test.mp4',
+            uri:  '/sample_1.mp4',
             width: 1920,
             height:1080
         },

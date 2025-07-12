@@ -51,7 +51,6 @@
 // ]
 import { defineOptions, defineProps, defineEmits, useAttrs, ref, withDefaults, computed, watch } from 'vue';
 import { PanelItem } from './index';
-import MediaVault from '@src/page/LeftSliderBar/MediaVault/index.vue'
 
 defineOptions({ name: 'SlidingPanel' });
 const props = withDefaults(defineProps<{
