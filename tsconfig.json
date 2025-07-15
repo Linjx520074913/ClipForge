@@ -22,6 +22,7 @@
         "noFallthroughCasesInSwitch": true,
         "baseUrl": ".",
         "paths":{
+            "@frontend/test/*":       ["src-frontend/test/*"         ],
             "@frontend/api/*":        ["src-frontend/api/*"          ],
             "@frontend/assets*":      ["src-frontend/assets/*"       ],
             "@frontend/avcore/*":     ["src-frontend/module/avcore/*"],
@@ -33,6 +34,6 @@
             "clip-engine":            ["src-clip-engine"             ]
         }
     },
-    "include": ["src-frontend/**/*.ts", "src-frontend/**/*.d.ts", "src-frontend/**/*.tsx", "src-frontend/**/*.vue", "src-frontend/assets/data/mock-router-graph.json"],
+    "include": ["global.d.ts", "src-frontend/**/*.ts", "src-frontend/**/*.d.ts", "src-frontend/**/*.tsx", "src-frontend/**/*.vue", "src-frontend/assets/data/mock-router-graph.json"],
     "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -16,6 +16,7 @@ export default defineConfig(async () => ({
     ],
     resolve:{
         alias: {
+            '@frontend/test':           path.resolve(__dirname, "src-frontend/test"),
             '@frontend/api':            path.resolve(__dirname, "src-frontend/api"),
             '@frontend/assets':         path.resolve(__dirname, "src-frontend/assets"),
             '@frontend/avcore':         path.resolve(__dirname, "src-frontend/modules/av-core"),
