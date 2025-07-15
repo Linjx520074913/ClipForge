@@ -29,7 +29,8 @@
             "@frontend/router*":      ["src-frontend/router/*"       ],
             "@frontend/store*":       ["src-frontend/store/*"        ],
             "@frontend/page/*":       ["src-frontend/page/*"         ],
-            "@src-shared/*":          ["../src-shared/*"    ]
+            "@src-shared/*":          ["../src-shared/*"             ],
+            "clip-engine":            ["src-clip-engine"             ]
         }
     },
     "include": ["src-frontend/**/*.ts", "src-frontend/**/*.d.ts", "src-frontend/**/*.tsx", "src-frontend/**/*.vue", "src-frontend/assets/data/mock-router-graph.json"],
