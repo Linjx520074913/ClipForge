@@ -15,8 +15,12 @@ export default class FilterNode {
 
     private shaderCode!: string;              // 着色器代码
 
-    constructor(shaderCode: string) {
+    name: string = '';                // 节点名
+
+
+    constructor(shaderCode: string, name: string = '') {
         this.shaderCode = shaderCode;
+        this.name = name;
     }
 
     /**

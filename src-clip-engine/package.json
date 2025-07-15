@@ -1,6 +1,10 @@
 {
-    "name": "clip-engine",
-    "version": "0.0.1",
-    "private": true,
-    "type": "module"
+  "name": "clip-engine",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@webgpu/types": "^0.1.47"
+  }
 }
