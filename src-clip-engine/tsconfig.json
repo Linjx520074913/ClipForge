@@ -1,14 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "lib": ["DOM", "ES2020"],      // ✅ 关键：必须含 DOM 才有 GPUDevice
-    "moduleResolution": "Node",
-    "strict": true,
+    "target": "ES2022",
+    "module": "NodeNext",                   // ✅ 必须匹配 moduleResolution
+    "moduleResolution": "NodeNext",         // ✅ 必须匹配 module
+    "lib": ["DOM", "ES2022"],
     "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist"
   },
-  "include": ["core", "global.d.ts"]
+  "include": ["core", "global.d.ts", "test"]
 }

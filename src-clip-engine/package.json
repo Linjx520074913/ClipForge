@@ -4,7 +4,13 @@
   "private": true,
   "type": "module",
   "devDependencies": {
-    "typescript": "^5.3.3",
-    "@webgpu/types": "^0.1.47"
+    "@types/jest": "^30.0.0",
+    "@webgpu/types": "^0.1.47",
+    "jest": "^30.0.4",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.3.3"
+  },
+  "scripts": {
+    "test": "npx jest"
   }
 }
