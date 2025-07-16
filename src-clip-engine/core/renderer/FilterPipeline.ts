@@ -1,4 +1,4 @@
-import FilterNode from './FilterNode';
+import { FilterNode } from './FilterNode';
 
 export class FilterPipeline{
     private filterNodes:     FilterNode[] = [];
@@ -20,6 +20,7 @@ export class FilterPipeline{
         // 不重复添加相同名字的节点
         const exists = this.filterNodes.some(f => f.name === node.name);
         if(!exists){
+            console.error('!!!!!!!!!!!!!!!!!!!', this.device)
             await node.init(this.device, this.format);
             this.filterNodes.push(node);
         }

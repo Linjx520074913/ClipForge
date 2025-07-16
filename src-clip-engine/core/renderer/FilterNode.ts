@@ -1,8 +1,8 @@
 /**
  * 滤镜管线中的一个处理阶段/节点的意思，和 FilterPipeline 结构匹配度高，也符合视频处理和渲染管线的通用叫法。
  */
-export default class FilterNode {
-    private inputTexture?: GPUTexture;         // 输入纹理
+export class FilterNode {
+    private inputTexture?:  GPUTexture;         // 输入纹理
     private outputTexture?: GPUTexture;        // 输出纹理
 
     private device?:        GPUDevice;         // GPU 设备
@@ -29,6 +29,7 @@ export default class FilterNode {
      * @param format
      */
     async init(device: GPUDevice, format: GPUTextureFormat) : Promise<void>{
+        
         if (!device) {
             console.error("[ FilterNode ] device is null");
             return;
@@ -44,7 +45,7 @@ export default class FilterNode {
 
         this.device = device;
         this.format = format;
-
+        
         const module = this.device.createShaderModule({ code: this.shaderCode });
 
         this.pipeline = this.device.createRenderPipeline({
@@ -74,37 +75,37 @@ export default class FilterNode {
      * @param params 
      */
     applyParams(params: Record<string, number>){
-        if(!this.sampler || !this.device || !this.inputTexture){
-            console.error("[ FilterNode ] applyParams failed");
-            return;
-        }
+        // if(!this.sampler || !this.device || !this.inputTexture){
+        //     console.error("[ FilterNode ] applyParams failed");
+        //     return;
+        // }
 
-        const values = Object.values(params);
-        const floatArray = new Float32Array(values);
+        // const values = Object.values(params);
+        // const floatArray = new Float32Array(values);
 
-        // buffer 大小改变时需要重新创建
-        const needResize = !this.uniformBuffer || this.bufferSize != floatArray.byteLength;
+        // // buffer 大小改变时需要重新创建
+        // const needResize = !this.uniformBuffer || this.bufferSize != floatArray.byteLength;
 
-        if(needResize){
-            this.uniformBuffer?.destroy();
-            this.uniformBuffer = this.device?.createBuffer({
-                size: floatArray.byteLength,
-                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-            });
-            this.bufferSize = floatArray.byteLength;
-        }
+        // if(needResize){
+        //     this.uniformBuffer?.destroy();
+        //     this.uniformBuffer = this.device?.createBuffer({
+        //         size: floatArray.byteLength,
+        //         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+        //     });
+        //     this.bufferSize = floatArray.byteLength;
+        // }
 
-        this.device?.queue.writeBuffer(this.uniformBuffer, 0, floatArray);
+        // this.device?.queue.writeBuffer(this.uniformBuffer, 0, floatArray);
 
         // 确保使用最新的 uniformBuffer
-        this.bindGroup = this.device.createBindGroup({
-            layout: this.pipeline.getBindGroupLayout(0),
-            entries: [
-                { binding: 0, resource: this.sampler },
-                { binding: 1, resource: this.inputTexture.createView() },
-                { binding: 2, resource: { buffer: this.uniformBuffer } }
-            ]
-        });
+        // this.bindGroup = this.device.createBindGroup({
+        //     layout: this.pipeline.getBindGroupLayout(0),
+        //     entries: [
+        //         { binding: 0, resource: this.sampler },
+        //         { binding: 1, resource: this.inputTexture.createView() },
+        //         // { binding: 2, resource: { buffer: this.uniformBuffer } }
+        //     ]
+        // });
     }
 
     /**
@@ -149,12 +150,27 @@ export default class FilterNode {
      * @returns 
      */
     render(encoder: GPUCommandEncoder){
-        if(!this.bindGroup || !this.outputTexture || !this.pipeline || !encoder){
+        // if(!this.bindGroup){
+        //     throw new Error(
+        //       "[ FilterNode ] bindGroup is null, no params applyed"
+        //     );
+        // }
+        this.bindGroup = this.device.createBindGroup({
+            layout: this.pipeline.getBindGroupLayout(0),
+            entries: [
+                { binding: 0, resource: this.sampler },
+                { binding: 1, resource: this.inputTexture.createView() },
+                // { binding: 2, resource: { buffer: this.uniformBuffer } }
+            ]
+        });
+        if(!this.outputTexture || !this.pipeline || !encoder){
             console.error('[ FilterNode ] render failed');
             return;
         }
 
         try{
+            
+
             const pass = encoder.beginRenderPass({
                 colorAttachments: [
                     {
