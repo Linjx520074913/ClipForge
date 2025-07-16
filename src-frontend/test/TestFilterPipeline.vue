@@ -55,7 +55,13 @@ onMounted(async () => {
     const filter = new FilterNode(CartoonShaderCode, 'cartoon');
     
     track0.filterPipeline?.addFilterNode(filter);
-    filter.applyParams();
+    const paramPack: ShaderParamPack = {
+        binding: 2,
+        entries: {
+            strength: { value: 0.4, type: 'f32' }
+        }
+    };
+    filter.applyParams(paramPack);
     track0.render(videoFrame);
 
     

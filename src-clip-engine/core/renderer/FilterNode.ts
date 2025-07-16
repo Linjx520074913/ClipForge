@@ -87,15 +87,7 @@ export class FilterNode {
      * 应用参数
      * @param params 
      */
-    applyParams(){
-        const paramPack: ShaderParamPack = {
-            binding: 2,
-            entries: {
-                strength: { value: 0.4, type: 'f32' }
-            }
-        };
-
-       
+    applyParams(paramPack: ShaderParamPack){
         if(!this.sampler){
             console.error("[ FilterNode ] applyParams failed: sampler is null");
             return;
