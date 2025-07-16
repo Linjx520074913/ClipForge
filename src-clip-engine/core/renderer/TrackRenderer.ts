@@ -20,6 +20,8 @@ export class TrackRenderer {
 
     filterPipeline?: FilterPipeline;
 
+    private rendering: boolean = false;
+
     constructor(name: string, canvas: HTMLCanvasElement) {
         this.name = name;
         this.canvas = canvas;
@@ -108,6 +110,13 @@ export class TrackRenderer {
     }
 
     async render(video: VideoFrame){
+        if(this.rendering){
+            console.warn("[ TrackRenderer ] Skipped render: already rendering");
+            return;
+        }
+
+        this.rendering = true;
+
         if(!this.device || !this.ctx || !this.filterPipeline){
             throw new Error("[ TrackRenderer ] render failed");
         }
@@ -133,9 +142,8 @@ export class TrackRenderer {
                 frame.close();
             }
 
-            if(this.outputTexture) {
-                this.outputTexture.destroy();
-            }
+            // 保存旧的输出纹理引用，稍后销毁
+            const oldOutputTexture = this.outputTexture;
 
             // 经过滤镜管线处理，得到最终输出纹理
             this.outputTexture = await this.filterPipeline.render(this.texture!);
@@ -171,11 +179,20 @@ export class TrackRenderer {
             pass.draw(6);
             pass.end();
 
+            // 提交命令缓冲区
             this.device.queue.submit([encoder.finish()]);
+
+            // 使用onSubmittedWorkDone确保命令完成后再销毁旧纹理
+            if(oldOutputTexture && oldOutputTexture !== this.outputTexture) {
+                this.device.queue.onSubmittedWorkDone().then(() => {
+                    oldOutputTexture.destroy();
+                });
+            }
         }catch(error){
             throw error; // 或者根
         }finally{
             this.bindGroup = null;
+            this.rendering = false;
         }
     }
 

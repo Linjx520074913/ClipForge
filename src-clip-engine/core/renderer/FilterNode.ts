@@ -90,10 +90,6 @@ export class FilterNode {
      * @param params 
      */
     applyParams(paramPack: ShaderParamPack){
-        if(!this.sampler){
-            console.error("[ FilterNode ] applyParams failed: sampler is null");
-            return;
-        }
         if(!this.device){
             console.error("[ FilterNode ] applyParams failed: device is null");
             return;
@@ -143,12 +139,21 @@ export class FilterNode {
 
         const needResize = !this.uniformBuffer || this.bufferSize != byteLength;
         if(needResize){
-            this.uniformBuffer?.destroy();
+            // 保存旧的uniform buffer引用
+            const oldUniformBuffer = this.uniformBuffer;
+            
             this.uniformBuffer = this.device?.createBuffer({
                 size: byteLength,
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
             });
             this.bufferSize = byteLength;
+
+            // 延迟销毁旧的uniform buffer
+            if(oldUniformBuffer) {
+                Promise.resolve().then(() => {
+                    oldUniformBuffer.destroy();
+                });
+            }
         }
 
         this.device?.queue.writeBuffer(this.uniformBuffer, 0, floatArray);
@@ -168,8 +173,8 @@ export class FilterNode {
                                 this.outputTexture.height!= input.height;
     
             if(needResize){
-                console.error('FFFFFFFFFFFFAAAAAAAAA', this.outputTexture)
-                this.outputTexture?.destroy();
+                // 保存旧纹理引用，稍后销毁
+                const oldOutputTexture = this.outputTexture;
                 
                 this.outputTexture = this.device.createTexture({
                     size,
@@ -178,6 +183,14 @@ export class FilterNode {
                             GPUTextureUsage.TEXTURE_BINDING |
                             GPUTextureUsage.COPY_SRC
                 });
+
+                // 延迟销毁旧纹理，确保当前渲染命令完成
+                if(oldOutputTexture) {
+                    // 使用微任务队列延迟销毁，确保当前同步代码执行完成
+                    Promise.resolve().then(() => {
+                        oldOutputTexture.destroy();
+                    });
+                }
             }
         }catch(error){
             console.error(`[ FilterNode ] setInputTexture failed: ${error}`);
@@ -204,7 +217,17 @@ export class FilterNode {
     render(encoder: GPUCommandEncoder){
 
         if(!this.outputTexture || !this.pipeline || !encoder){
-            console.error('[ FilterNode ] render failed');
+            console.error('[ FilterNode ] render failed: missing required components');
+            return;
+        }
+
+        if(!this.paramsPack) {
+            console.error('[ FilterNode ] render failed: paramsPack is not initialized');
+            return;
+        }
+
+        if(!this.uniformBuffer) {
+            console.error('[ FilterNode ] render failed: uniformBuffer is not initialized');
             return;
         }
 
