@@ -138,7 +138,6 @@ export class TrackRenderer {
             }
 
             // 经过滤镜管线处理，得到最终输出纹理
-            console.error('FFFFFFFFFFFFF',this.texture)
             this.outputTexture = await this.filterPipeline.render(this.texture!);
 
             if(!this.ctx.getCurrentTexture()){

@@ -1,5 +1,10 @@
+struct Params{
+    strength: f32
+};
+
 @group(0) @binding(0) var mySampler: sampler;
 @group(0) @binding(1) var myTexture: texture_2d<f32>;
+@group(0) @binding(2) var<uniform> params: Params;
 
 fn quantize(color: vec3f, levels: f32) -> vec3f {
     return floor(color * levels) / levels;

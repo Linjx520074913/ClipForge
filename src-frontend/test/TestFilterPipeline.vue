@@ -29,7 +29,6 @@ import { ClipEngine, FilterNode, TrackRenderer } from 'clip-engine';
 import CartoonShaderCode from './cartoon.wgsl?raw';
 
 
-
 const imgRef = ref<HTMLImageElement | null>(null);
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 
@@ -56,10 +55,7 @@ onMounted(async () => {
     const filter = new FilterNode(CartoonShaderCode, 'cartoon');
     
     track0.filterPipeline?.addFilterNode(filter);
-    filter.applyParams({
-        w: 100,
-        h: 100
-    })
+    filter.applyParams();
     track0.render(videoFrame);
 
     

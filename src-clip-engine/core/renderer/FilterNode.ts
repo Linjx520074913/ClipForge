@@ -1,4 +1,17 @@
 /**
+ * 所有参数统一打包进一个结构体，使用一次 uniformBuffer，绑定到 @binding(n)
+ */
+type ShaderParamPack = {
+    binding: number;   // 对应 WGSL 中 struct 的 binding，比如 @binding(2)
+    entries:{
+        [paramName: string]:{
+            value: number | number[];
+            type: 'f32' | 'vec2' | 'vec4';
+        };
+    };
+};
+
+/**
  * 滤镜管线中的一个处理阶段/节点的意思，和 FilterPipeline 结构匹配度高，也符合视频处理和渲染管线的通用叫法。
  */
 export class FilterNode {
@@ -74,38 +87,75 @@ export class FilterNode {
      * 应用参数
      * @param params 
      */
-    applyParams(params: Record<string, number>){
-        // if(!this.sampler || !this.device || !this.inputTexture){
-        //     console.error("[ FilterNode ] applyParams failed");
-        //     return;
-        // }
+    applyParams(){
+        const paramPack: ShaderParamPack = {
+            binding: 2,
+            entries: {
+                strength: { value: 0.4, type: 'f32' }
+            }
+        };
 
-        // const values = Object.values(params);
-        // const floatArray = new Float32Array(values);
+       
+        if(!this.sampler){
+            console.error("[ FilterNode ] applyParams failed: sampler is null");
+            return;
+        }
+        if(!this.device){
+            console.error("[ FilterNode ] applyParams failed: device is null");
+            return;
+        }
 
-        // // buffer 大小改变时需要重新创建
-        // const needResize = !this.uniformBuffer || this.bufferSize != floatArray.byteLength;
+        const { binding, entries } = paramPack;
 
-        // if(needResize){
-        //     this.uniformBuffer?.destroy();
-        //     this.uniformBuffer = this.device?.createBuffer({
-        //         size: floatArray.byteLength,
-        //         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-        //     });
-        //     this.bufferSize = floatArray.byteLength;
-        // }
+        const orderedValues: number[] = [];
 
-        // this.device?.queue.writeBuffer(this.uniformBuffer, 0, floatArray);
+        for(const key of Object.keys(entries)){
+            const { value, type } = entries[key];
 
-        // 确保使用最新的 uniformBuffer
-        // this.bindGroup = this.device.createBindGroup({
-        //     layout: this.pipeline.getBindGroupLayout(0),
-        //     entries: [
-        //         { binding: 0, resource: this.sampler },
-        //         { binding: 1, resource: this.inputTexture.createView() },
-        //         // { binding: 2, resource: { buffer: this.uniformBuffer } }
-        //     ]
-        // });
+            switch(type){
+                case 'f32':
+                    orderedValues.push(value as number);
+                    break;
+                case 'vec2':
+                    {
+                        const arr = value as number[];
+                        if(arr.length != 2){
+                            console.error("[ FilterNode ] applyParams failed: vec2 type must have 2 values");
+                            return;
+                        }
+                        orderedValues.push(...arr);
+                    }
+                    break;
+                case 'vec4':
+                    {
+                        const arr = value as number[];
+                        if(arr.length != 4){
+                            console.error("[ FilterNode ] applyParams failed: vec4 type must have 4 values");
+                            return;
+                        }
+                        orderedValues.push(...arr);
+                    }
+                    break;
+                default:
+                    console.error(`[ FilterNode ] applyParams failed: unknown type: ${type}`);
+                    break;
+            }
+        }
+
+        const floatArray = new Float32Array(orderedValues);
+        const byteLength = floatArray.byteLength;
+
+        const needResize = !this.uniformBuffer || this.bufferSize != byteLength;
+        if(needResize){
+            this.uniformBuffer?.destroy();
+            this.uniformBuffer = this.device?.createBuffer({
+                size: byteLength,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+            });
+            this.bufferSize = byteLength;
+        }
+
+        this.device?.queue.writeBuffer(this.uniformBuffer, 0, floatArray);
     }
 
     /**
@@ -150,23 +200,20 @@ export class FilterNode {
      * @returns 
      */
     render(encoder: GPUCommandEncoder){
-        // if(!this.bindGroup){
-        //     throw new Error(
-        //       "[ FilterNode ] bindGroup is null, no params applyed"
-        //     );
-        // }
-        this.bindGroup = this.device.createBindGroup({
-            layout: this.pipeline.getBindGroupLayout(0),
-            entries: [
-                { binding: 0, resource: this.sampler },
-                { binding: 1, resource: this.inputTexture.createView() },
-                // { binding: 2, resource: { buffer: this.uniformBuffer } }
-            ]
-        });
+
         if(!this.outputTexture || !this.pipeline || !encoder){
             console.error('[ FilterNode ] render failed');
             return;
         }
+
+        this.bindGroup = this.device.createBindGroup({
+            layout: this.pipeline?.getBindGroupLayout(0),
+            entries:[
+                { binding: 0, resource: this.sampler },
+                { binding: 1, resource: this.inputTexture?.createView() },
+                { binding: 2, resource: { buffer: this.uniformBuffer} }
+            ]
+        });
 
         try{
             
