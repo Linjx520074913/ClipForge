@@ -1,0 +1,6 @@
+{
+    "binding": 2,
+    "entries": {
+        "strength": { "value": 0.4, "type": "f32" }
+    }
+}

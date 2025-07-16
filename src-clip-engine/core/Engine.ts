@@ -20,23 +20,27 @@ export class ClipEngine{
     }
 
     /**
-     * 初始化 webgpu
+     * 初始化 webgpu,必须在组件实例化之后调用
      */
     private async initWebGPU(): Promise<void>{
-        const adapter = await navigator.gpu.requestAdapter({
-          powerPreference: "high-performance",
-        });
-        
-        if(!adapter){
-            throw new Error("[ ClipEngine ] WebGPU adapter not found");
+        try{
+            const adapter = await navigator.gpu.requestAdapter({
+                powerPreference: "high-performance",
+            });
+            
+            if(!adapter){
+                throw new Error("[ ClipEngine ] WebGPU adapter not found");
+            }
+    
+            this.device = await adapter.requestDevice();
+            if(!this.device){
+                throw new Error("[ ClipEngine ] WebGPU device not found");
+            }
+    
+            this.format = navigator.gpu.getPreferredCanvasFormat();
+        }catch(error){
+            throw new Error(`[ ClipEngine ] WebGPU init failed: ${error}`);
         }
-
-        this.device = await adapter.requestDevice();
-        if(!this.device){
-            throw new Error("[ ClipEngine ] WebGPU device not found");
-        }
-
-        this.format = navigator.gpu.getPreferredCanvasFormat();
     }
 
     addTrackRenderer(renderer: TrackRenderer): void{

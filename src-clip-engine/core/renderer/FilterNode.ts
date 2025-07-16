@@ -30,6 +30,8 @@ export class FilterNode {
 
     name: string = '';                // 节点名
 
+    private paramsPack: ShaderParamPack;
+
 
     constructor(shaderCode: string, name: string = '') {
         this.shaderCode = shaderCode;
@@ -97,6 +99,8 @@ export class FilterNode {
             return;
         }
 
+        this.paramsPack = paramPack;
+
         const { binding, entries } = paramPack;
 
         const orderedValues: number[] = [];
@@ -155,24 +159,30 @@ export class FilterNode {
      * @param texture
      */
     setInputTexture(input: GPUTexture) {
-        this.inputTexture = input;
-        const size = [input.width, input.height];
-
-        const needResize = !this.outputTexture ||
-                            this.outputTexture.width != input.width ||
-                            this.outputTexture.height!= input.height;
-
-        if(needResize){
-            this.outputTexture?.destroy();
-            
-            this.outputTexture = this.device.createTexture({
-                size,
-                format: this.format,
-                usage:  GPUTextureUsage.RENDER_ATTACHMENT |
-                        GPUTextureUsage.TEXTURE_BINDING |
-                        GPUTextureUsage.COPY_SRC
-            });
+        try{
+            this.inputTexture = input;
+            const size = [input.width, input.height];
+    
+            const needResize = !this.outputTexture ||
+                                this.outputTexture.width != input.width ||
+                                this.outputTexture.height!= input.height;
+    
+            if(needResize){
+                console.error('FFFFFFFFFFFFAAAAAAAAA', this.outputTexture)
+                this.outputTexture?.destroy();
+                
+                this.outputTexture = this.device.createTexture({
+                    size,
+                    format: this.format,
+                    usage:  GPUTextureUsage.RENDER_ATTACHMENT |
+                            GPUTextureUsage.TEXTURE_BINDING |
+                            GPUTextureUsage.COPY_SRC
+                });
+            }
+        }catch(error){
+            console.error(`[ FilterNode ] setInputTexture failed: ${error}`);
         }
+        
     }
 
     /**
@@ -198,17 +208,15 @@ export class FilterNode {
             return;
         }
 
-        this.bindGroup = this.device.createBindGroup({
-            layout: this.pipeline?.getBindGroupLayout(0),
-            entries:[
-                { binding: 0, resource: this.sampler },
-                { binding: 1, resource: this.inputTexture?.createView() },
-                { binding: 2, resource: { buffer: this.uniformBuffer} }
-            ]
-        });
-
         try{
-            
+            this.bindGroup = this.device.createBindGroup({
+                layout: this.pipeline?.getBindGroupLayout(0),
+                entries:[
+                    { binding: 0, resource: this.sampler },
+                    { binding: 1, resource: this.inputTexture?.createView() },
+                    { binding: this.paramsPack.binding, resource: { buffer: this.uniformBuffer} }
+                ]
+            });
 
             const pass = encoder.beginRenderPass({
                 colorAttachments: [
@@ -227,6 +235,8 @@ export class FilterNode {
             pass.end();
         }catch(error){
             console.error('[ FilterNode ] render error ', error);
+        }finally{
+            this.bindGroup = null;
         }
         
     }
