@@ -1,7 +1,7 @@
 <template>
     <div>
         <!-- <HomePage class="w-full h-screen bg-white-100 select-none"/> -->
-        <TestFilterPipeline/>
+        <TestClipEngine/>
     </div>
 </template>
 
@@ -11,7 +11,7 @@
  * 1、所有交互添加提示，比如 按钮
  */
 import { HomePage } from '@frontend/page';
-import { TestFilterPipeline } from '@frontend/test';
+import { TestClipEngine } from '@frontend/test';
 </script>
 
 <style>

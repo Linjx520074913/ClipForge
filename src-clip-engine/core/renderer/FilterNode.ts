@@ -1,3 +1,5 @@
+import { WebGPUResourceBase } from "./WebGPUResourceBase";
+
 /**
  * 所有参数统一打包进一个结构体，使用一次 uniformBuffer，绑定到 @binding(n)
  */
@@ -14,42 +16,31 @@ type ShaderParamPack = {
 /**
  * 滤镜管线中的一个处理阶段/节点的意思，和 FilterPipeline 结构匹配度高，也符合视频处理和渲染管线的通用叫法。
  */
-export class FilterNode {
+export class FilterNode extends WebGPUResourceBase {
     private inputTexture?:  GPUTexture;         // 输入纹理
     private outputTexture?: GPUTexture;        // 输出纹理
-
-    private device?:        GPUDevice;         // GPU 设备
-    private format?:        GPUTextureFormat;  // 纹理格式
     private pipeline?:      GPURenderPipeline; // 渲染管线
-    private bindGroup!:     GPUBindGroup;
-    private sampler!:       GPUSampler;
-    private uniformBuffer!: GPUBuffer;
+    private bindGroup?:     GPUBindGroup;
+    private sampler?:       GPUSampler;
+    private uniformBuffer?: GPUBuffer;
     private bufferSize:     number = 0;
-
     private shaderCode!: string;              // 着色器代码
+    name: string = '';
+    private paramsPack?: ShaderParamPack;
 
-    name: string = '';                // 节点名
-
-    private paramsPack: ShaderParamPack;
-
-
-    constructor(shaderCode: string, name: string = '') {
+    constructor(shaderCode: string, name: string = '', device?: GPUDevice, format?: GPUTextureFormat) {
+        super(device, format);
         this.shaderCode = shaderCode;
         this.name = name;
     }
 
-    /**
-     * 初始化
-     * @param device
-     * @param format
-     */
     async init(device: GPUDevice, format: GPUTextureFormat) : Promise<void>{
-        
-        if (!device) {
+        this.setDeviceAndFormat(device, format);
+        if (!this.device) {
             console.error("[ FilterNode ] device is null");
             return;
         }
-        if (!format) {
+        if (!this.format) {
             console.error("[ FilterNode ] format is null");
             return;
         }
@@ -57,12 +48,7 @@ export class FilterNode {
             console.error("[ FilterNode ] shaderCode is null");
             return;
         }
-
-        this.device = device;
-        this.format = format;
-        
         const module = this.device.createShaderModule({ code: this.shaderCode });
-
         this.pipeline = this.device.createRenderPipeline({
             layout: "auto",
             vertex: {
@@ -78,32 +64,22 @@ export class FilterNode {
                 topology: "triangle-list",
             },
         });
-
         this.sampler = this.device.createSampler({
             magFilter: 'linear',
             minFilter: 'linear'
         });
     }
 
-    /**
-     * 应用参数
-     * @param params 
-     */
     applyParams(paramPack: ShaderParamPack){
         if(!this.device){
             console.error("[ FilterNode ] applyParams failed: device is null");
             return;
         }
-
         this.paramsPack = paramPack;
-
         const { binding, entries } = paramPack;
-
         const orderedValues: number[] = [];
-
         for(const key of Object.keys(entries)){
             const { value, type } = entries[key];
-
             switch(type){
                 case 'f32':
                     orderedValues.push(value as number);
@@ -133,75 +109,48 @@ export class FilterNode {
                     break;
             }
         }
-
         const floatArray = new Float32Array(orderedValues);
         const byteLength = floatArray.byteLength;
-
         const needResize = !this.uniformBuffer || this.bufferSize != byteLength;
         if(needResize){
-            // 保存旧的uniform buffer引用
             const oldUniformBuffer = this.uniformBuffer;
-            
             this.uniformBuffer = this.device?.createBuffer({
                 size: byteLength,
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
             });
             this.bufferSize = byteLength;
-
-            // 延迟销毁旧的uniform buffer
             if(oldUniformBuffer) {
-                Promise.resolve().then(() => {
-                    oldUniformBuffer.destroy();
-                });
+                this.delayDestroy(oldUniformBuffer);
             }
         }
-
-        this.device?.queue.writeBuffer(this.uniformBuffer, 0, floatArray);
+        this.device?.queue.writeBuffer(this.uniformBuffer!, 0, floatArray);
     }
 
-    /**
-     * 设置输入纹理
-     * @param texture
-     */
     setInputTexture(input: GPUTexture) {
         try{
             this.inputTexture = input;
             const size = [input.width, input.height];
-    
             const needResize = !this.outputTexture ||
                                 this.outputTexture.width != input.width ||
                                 this.outputTexture.height!= input.height;
-    
             if(needResize){
-                // 保存旧纹理引用，稍后销毁
                 const oldOutputTexture = this.outputTexture;
-                
-                this.outputTexture = this.device.createTexture({
+                this.outputTexture = this.device!.createTexture({
                     size,
-                    format: this.format,
+                    format: this.format!,
                     usage:  GPUTextureUsage.RENDER_ATTACHMENT |
                             GPUTextureUsage.TEXTURE_BINDING |
                             GPUTextureUsage.COPY_SRC
                 });
-
-                // 延迟销毁旧纹理，确保当前渲染命令完成
                 if(oldOutputTexture) {
-                    // 使用微任务队列延迟销毁，确保当前同步代码执行完成
-                    Promise.resolve().then(() => {
-                        oldOutputTexture.destroy();
-                    });
+                    this.delayDestroy(oldOutputTexture);
                 }
             }
         }catch(error){
             console.error(`[ FilterNode ] setInputTexture failed: ${error}`);
         }
-        
     }
 
-    /**
-     * 获取输出纹理
-     * @returns 输出纹理
-     */
     getOutputTexture(): GPUTexture {
         if (!this.outputTexture) {
             throw new Error("[ FilterNode ] outputTexture is null");
@@ -209,38 +158,31 @@ export class FilterNode {
         return this.outputTexture;
     }
 
-    /**
-     * 渲染
-     * @param encoder
-     * @returns 
-     */
     render(encoder: GPUCommandEncoder){
-
         if(!this.outputTexture || !this.pipeline || !encoder){
             console.error('[ FilterNode ] render failed: missing required components');
             return;
         }
-
         if(!this.paramsPack) {
             console.error('[ FilterNode ] render failed: paramsPack is not initialized');
             return;
         }
-
         if(!this.uniformBuffer) {
             console.error('[ FilterNode ] render failed: uniformBuffer is not initialized');
             return;
         }
-
         try{
-            this.bindGroup = this.device.createBindGroup({
-                layout: this.pipeline?.getBindGroupLayout(0),
+            if (this.bindGroup) {
+                this.bindGroup = undefined;
+            }
+            this.bindGroup = this.device!.createBindGroup({
+                layout: this.pipeline?.getBindGroupLayout(0)!,
                 entries:[
-                    { binding: 0, resource: this.sampler },
-                    { binding: 1, resource: this.inputTexture?.createView() },
+                    { binding:0, resource: this.sampler! },
+                    { binding:1, resource: this.inputTexture?.createView()! },
                     { binding: this.paramsPack.binding, resource: { buffer: this.uniformBuffer} }
                 ]
             });
-
             const pass = encoder.beginRenderPass({
                 colorAttachments: [
                     {
@@ -251,25 +193,28 @@ export class FilterNode {
                     },
                 ],
             });
-    
-            pass.setPipeline(this.pipeline);
-            pass.setBindGroup(0, this.bindGroup);
+            pass.setPipeline(this.pipeline!);
+            pass.setBindGroup(0, this.bindGroup!);
             pass.draw(6);
             pass.end();
         }catch(error){
-            console.error('[ FilterNode ] render error ', error);
-        }finally{
-            this.bindGroup = null;
+            console.error(`[ FilterNode ] render failed: ${error}`);
         }
-        
     }
 
-    /**
-     * 销毁
-     */
     destroy(){
-        this.uniformBuffer?.destroy();
-        this.outputTexture?.destroy();
-        this.bindGroup = undefined as any;
+        console.log(`[ FilterNode ] Destroying ${this.name}...`);
+        this.safeDestroy(this.outputTexture);
+        this.outputTexture = undefined;
+        this.safeDestroy(this.uniformBuffer);
+        this.uniformBuffer = undefined;
+        this.sampler = undefined;
+        this.pipeline = undefined;
+        this.bindGroup = undefined;
+        this.inputTexture = undefined;
+        this.device = undefined;
+        this.format = undefined;
+        this.paramsPack = undefined;
+        console.log(`[ FilterNode ] ${this.name} destroyed`);
     }
 }

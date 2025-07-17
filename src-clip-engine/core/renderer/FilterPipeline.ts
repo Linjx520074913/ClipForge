@@ -71,11 +71,20 @@ export class FilterPipeline{
      * 销毁资源
      */
     destroy(): void{
-        this.filterNodes.forEach((f) => f.destroy());
+        console.log("[ FilterPipeline ] Destroying...");
+        
+        // 销毁所有滤镜节点
+        this.filterNodes.forEach((node) => {
+            node.destroy();
+        });
         this.filterNodes = [];
+        
+        // 销毁输出纹理
         if (this.outputTexture) {
             this.outputTexture.destroy();
-            this.outputTexture = undefined!;
+            this.outputTexture = undefined;
         }
+        
+        console.log("[ FilterPipeline ] Destroyed");
     }
 }
