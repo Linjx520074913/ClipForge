@@ -1,14 +1,26 @@
-import { EffectChain } from "./EffectChain";
-import { GPUContext } from "./GPUContext";
-import { RendererUnit } from "./RendererUnit";
+import { EffectChain } from "../EffectChain";
+import { GPUContext } from "../GPUContext";
+import { RendererUnit } from "../RendererUnit";
 
 import RawShaderCode from './RawShader.wgsl?raw';
+
+/**
+ *  'video'：视频轨，处理视频片段和转场、滤镜。
+    'audio'：音频轨，处理音乐、对话等。
+    'image'：静态图像轨，例如照片或海报。
+    'text'：文字轨，用于片头片尾、动效字幕等。
+    'subtitle'：独立字幕轨（如 SRT），可用于外挂字幕解析。
+ */
+type TrackType = 'video' | 'audio' | 'image' | 'text' | 'subtitle'
+
 /**
  * 轨道渲染器，把统一轨道上的内容渲染到 canvas 上
+ * 轨道基类	BaseTrack	所有轨道继承通用行为
  */
-export class TrackRenderer{
+export class BaseTrack{
 
     private name: string;
+    private type: TrackType;
 
     private canvas: HTMLCanvasElement;
     private canvasCtx: GPUCanvasContext;

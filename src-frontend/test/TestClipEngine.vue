@@ -45,7 +45,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 
-import { ClipEngine, TrackRenderer } from 'clip-engine';
+import { ClipEngine, VideoTrack } from 'clip-engine';
 
 // 添加 VideoFrame 类型声明
 declare global {
@@ -137,7 +137,7 @@ onMounted(async () => {
 
         engine = await ClipEngine.create();
 
-        track = new TrackRenderer('video-track-0', engine.getContext(), canvasRef.value);
+        track = new VideoTrack('video-track-0', engine.getContext(), canvasRef.value);
         engine.addTrack(track);
         
         await engine.render(videoFrame);

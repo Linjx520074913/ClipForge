@@ -128,43 +128,49 @@ export class RendererUnit{
      */
     process(input: GPUTexture, output: GPUTexture){
         this.checkException();
-        const entries: GPUBindGroupEntry[] = [
-            { binding: 0, resource: this.ctx.sampler },
-            { binding: 1, resource: input.createView() },
-        ];
-        if(this.uniformBuffer){
-            entries.push({ binding: 2, resource: { buffer: this.uniformBuffer }});
+        try{
+            const entries: GPUBindGroupEntry[] = [
+                { binding: 0, resource: this.ctx.sampler },
+                { binding: 1, resource: input.createView() },
+            ];
+            if(this.uniformBuffer){
+                entries.push({ binding: 2, resource: { buffer: this.uniformBuffer }});
+            }
+
+            this.bindGroup = this.ctx.device.createBindGroup({
+                layout: this.pipeline.getBindGroupLayout(0),
+                entries
+            });
+
+            /**
+             * 每帧渲染流程
+            -> create commandEncoder
+                -> beginRenderPass
+                    -> setPipeline setBindGroup draw
+                -> endPass
+            -> submit to GPU queue
+            */
+            const commandEncoder = this.ctx.device.createCommandEncoder();
+            const renderPass = commandEncoder.beginRenderPass({
+                colorAttachments: [
+                    {
+                        view: output.createView(),
+                        loadOp:  "clear",
+                        storeOp: "store",
+                        clearValue: { r: 0, g: 0, b: 0, a: 1 },
+                    }
+                ]
+            });
+            renderPass.setPipeline(this.pipeline);
+            renderPass.setBindGroup(0, this.bindGroup);
+            renderPass.draw(6, 1, 0, 0);
+            renderPass.end();
+
+            this.ctx.device.queue.submit([commandEncoder.finish()]);
+        }catch(error){
+            console.error('[ RendererUnit ] ', error)
         }
-        this.bindGroup = this.ctx.device.createBindGroup({
-            layout: this.pipeline.getBindGroupLayout(0),
-            entries
-        });
-
-        /**
-         * 每帧渲染流程
-        -> create commandEncoder
-            -> beginRenderPass
-                -> setPipeline setBindGroup draw
-            -> endPass
-        -> submit to GPU queue
-        */
-        const commandEncoder = this.ctx.device.createCommandEncoder();
-        const renderPass = commandEncoder.beginRenderPass({
-            colorAttachments: [
-                {
-                    view: output.createView(),
-                    loadOp:  "clear",
-                    storeOp: "store",
-                    clearValue: { r: 0, g: 0, b: 0, a: 1 },
-                }
-            ]
-        });
-        renderPass.setPipeline(this.pipeline);
-        renderPass.setBindGroup(0, this.bindGroup);
-        renderPass.draw(6, 1, 0, 0);
-        renderPass.end();
-
-        this.ctx.device.queue.submit([commandEncoder.finish()]);
+        
     }
 
     destroy(){

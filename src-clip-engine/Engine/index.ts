@@ -1,7 +1,7 @@
 import { ClipEngine } from "./ClipEngine";
-import { TrackRenderer } from "./TrackRenderer";
+import { VideoTrack } from "./Track/VideoTrack";
 
 export{
     ClipEngine,
-    TrackRenderer
+    VideoTrack
 }
