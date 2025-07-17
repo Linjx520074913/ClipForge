@@ -142,9 +142,6 @@ export class TrackRenderer {
                 frame.close();
             }
 
-            // 保存旧的输出纹理引用，稍后销毁
-            const oldOutputTexture = this.outputTexture;
-
             // 经过滤镜管线处理，得到最终输出纹理
             this.outputTexture = await this.filterPipeline.render(this.texture!);
 
@@ -181,13 +178,6 @@ export class TrackRenderer {
 
             // 提交命令缓冲区
             this.device.queue.submit([encoder.finish()]);
-
-            // 使用onSubmittedWorkDone确保命令完成后再销毁旧纹理
-            if(oldOutputTexture && oldOutputTexture !== this.outputTexture) {
-                this.device.queue.onSubmittedWorkDone().then(() => {
-                    oldOutputTexture.destroy();
-                });
-            }
         }catch(error){
             throw error; // 或者根
         }finally{

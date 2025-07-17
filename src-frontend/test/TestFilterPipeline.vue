@@ -110,13 +110,7 @@ async function onParamsChange(params: any){
 }
 
 onMounted(async () => {
-    const loadedFilters = await loadFilters();
-    filters.value = loadedFilters;
-   
-    if(!imgRef.value) {
-        console.error('Image ref is null');
-        return;
-    }
+    filters.value = await loadFilters();
     
     const bitmap = await createImageBitmap(imgRef.value);
     if (canvasRef.value && imgRef.value) {
@@ -125,7 +119,7 @@ onMounted(async () => {
     }
     
     // 转换为 VideoFrame
-    videoFrame = new (window as any).VideoFrame(bitmap, {
+    videoFrame = new VideoFrame(bitmap, {
         timestamp: performance.now(),
         duration: 0 // 无持续时间
     });
@@ -133,11 +127,6 @@ onMounted(async () => {
     CartoonShaderCode = await (await fetch('/shader/cartoon/cartoon.wgsl')).text();
     CartoonParams = JSON.parse(await (await fetch('/shader/cartoon/params.json')).text());
     await engine.init();
-
-    if(!canvasRef.value) {
-        console.error('Canvas ref is null');
-        return;
-    }
 
     track = new TrackRenderer('video-track-0', canvasRef.value);
     engine.addTrackRenderer(track);
@@ -151,9 +140,7 @@ onMounted(async () => {
     
     // 执行初始渲染
     try {
-        console.log('Performing initial render...');
         await track.render(videoFrame);
-        console.log('Initial render completed successfully');
     } catch(error) {
         console.error('Initial render error:', error);
     }

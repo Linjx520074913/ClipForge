@@ -139,21 +139,12 @@ export class FilterNode {
 
         const needResize = !this.uniformBuffer || this.bufferSize != byteLength;
         if(needResize){
-            // 保存旧的uniform buffer引用
-            const oldUniformBuffer = this.uniformBuffer;
             
             this.uniformBuffer = this.device?.createBuffer({
                 size: byteLength,
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
             });
             this.bufferSize = byteLength;
-
-            // 延迟销毁旧的uniform buffer
-            if(oldUniformBuffer) {
-                Promise.resolve().then(() => {
-                    oldUniformBuffer.destroy();
-                });
-            }
         }
 
         this.device?.queue.writeBuffer(this.uniformBuffer, 0, floatArray);
@@ -173,9 +164,6 @@ export class FilterNode {
                                 this.outputTexture.height!= input.height;
     
             if(needResize){
-                // 保存旧纹理引用，稍后销毁
-                const oldOutputTexture = this.outputTexture;
-                
                 this.outputTexture = this.device.createTexture({
                     size,
                     format: this.format,
@@ -183,14 +171,6 @@ export class FilterNode {
                             GPUTextureUsage.TEXTURE_BINDING |
                             GPUTextureUsage.COPY_SRC
                 });
-
-                // 延迟销毁旧纹理，确保当前渲染命令完成
-                if(oldOutputTexture) {
-                    // 使用微任务队列延迟销毁，确保当前同步代码执行完成
-                    Promise.resolve().then(() => {
-                        oldOutputTexture.destroy();
-                    });
-                }
             }
         }catch(error){
             console.error(`[ FilterNode ] setInputTexture failed: ${error}`);
