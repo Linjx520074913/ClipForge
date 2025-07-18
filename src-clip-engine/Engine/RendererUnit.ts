@@ -18,14 +18,17 @@ type ShaderParamPack = {
  */
 export class RendererUnit{
 
+    private name: string;
+
     private ctx: GPUContext;
 
     private pipeline:      GPURenderPipeline;
     private bindGroup:     GPUBindGroup;
     private uniformBuffer: GPUBuffer;
 
-    constructor(ctx: GPUContext){
+    constructor(ctx: GPUContext, name: string = ""){
         this.ctx = ctx;
+        this.name = name;
     }
 
     /**

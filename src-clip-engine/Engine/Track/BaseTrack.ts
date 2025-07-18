@@ -1,5 +1,6 @@
 import { EffectChain } from "../EffectChain";
 import { GPUContext } from "../GPUContext";
+import { GPUTexturePool } from "../GPUTexturePool";
 import { RendererUnit } from "../RendererUnit";
 
 import RawShaderCode from './RawShader.wgsl?raw';
@@ -28,6 +29,10 @@ export class BaseTrack{
 
     private mainRenderUnit: RendererUnit;
 
+    private texturePool: GPUTexturePool;
+
+    private rendering: boolean = false;
+
     constructor(name: string, gpuContext: GPUContext, canvas: HTMLCanvasElement){
         this.name = name;
         this.canvas = canvas;
@@ -41,15 +46,30 @@ export class BaseTrack{
 
         this.effectChain = new EffectChain(gpuContext);
         
-        this.mainRenderUnit = new RendererUnit(gpuContext);
+        this.mainRenderUnit = new RendererUnit(gpuContext, "main");
         this.mainRenderUnit.initialize(RawShaderCode);
         this.mainRenderUnit.applyParameters();
+
+        this.texturePool = new GPUTexturePool(gpuContext);
     }
 
     render(input: GPUTexture){
         if(!input) throw new Error('[ TrackRenderer ] input is empty');
-        let output = this.canvasCtx.getCurrentTexture();
-        this.mainRenderUnit.process(input, output);
+        
+        if(this.rendering) return;
+        
+        this.rendering = true;
+
+        const effectChainOutputTex = this.texturePool.getReusableTexture(input.width, input.height);
+        this.effectChain.process(input, effectChainOutputTex);
+        
+        // 把 effectChain 输出的纹理渲染到 canvas 上
+        this.mainRenderUnit.process(effectChainOutputTex, this.canvasCtx.getCurrentTexture());
+        this.rendering = false;
+    }
+
+    getEffectChain(){
+        return this.effectChain;
     }
 
     destroy(){

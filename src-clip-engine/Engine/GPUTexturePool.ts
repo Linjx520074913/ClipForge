@@ -20,7 +20,7 @@ export class GPUTexturePool{
             texture = this.ctx.device.createTexture({
                 size: [width, height],
                 format: this.ctx.format,
-                usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
+                usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
             });
             this.pool.set(key, texture);
         }

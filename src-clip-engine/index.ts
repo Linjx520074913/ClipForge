@@ -7,8 +7,9 @@
 //     TrackRenderer
 // }
 
-import { ClipEngine, VideoTrack } from "./Engine/index";
+import { ClipEngine, VideoTrack, RendererUnit } from "./Engine/index";
 export{
     ClipEngine,
-    VideoTrack
+    VideoTrack,
+    RendererUnit
 }

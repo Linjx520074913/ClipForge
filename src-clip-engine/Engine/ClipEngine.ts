@@ -30,12 +30,20 @@ export class ClipEngine{
         this.tracks.push(track);
     }
 
+    removeTrack(name: string){
+        const idx = this.tracks.findIndex(t => t.name === name);
+        if(idx >= 0){
+            this.tracks[idx].destroy();
+            this.tracks.splice(idx, 1);
+        }
+    }
+
     render(input: VideoFrame){
         // VideoFrame -> GPUTexture
         const texture = this.ctx.device.createTexture({
             size: [input.displayWidth, input.displayHeight],
-            format: 'rgba8unorm',
-            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
+            format: this.ctx.format,
+            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
         });
         
         this.ctx.device.queue.copyExternalImageToTexture(
