@@ -4,10 +4,10 @@
 export type ShaderParamPack = {
     binding: number;                          // 对应 WGSL 中 struct 的 binding，比如 @binding(2)
     entries:{
-            [paramName: string]:{
-                value: number | number[];
-                type: 'f32' | 'vec2' | 'vec4';
-            };
+        [paramName: string]:{
+            value: number | number[];
+            type: 'f32' | 'vec2' | 'vec4';
+        };
     };
 };
 

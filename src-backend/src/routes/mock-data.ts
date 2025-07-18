@@ -1,28 +1,36 @@
-import { Filter } from '@src-shared';
+import fs from 'fs';
+import path from 'path';
+
+import { ShaderParamPack, ShaderDescription } from 'clip-engine';
+
+import MosaicParams from '../data/shader/mosaic/params.json';
+
+import CartoonParams from "../data/shader/cartoon/params.json";
+
+export function loadShader(relativePath: string): string {
+    const fullPath = path.join(process.cwd(), relativePath);
+    console.error("FAAAAAAA", fullPath);
+    return fs.readFileSync(fullPath, 'utf-8');
+}
 
 export function useMockData(){
-    const filter_list: Filter[] = [
+    // TODO: 修改为自动查找文件夹下的文件
+    const shaders: ShaderDescription[] = [
         {
-            id: 'filter-001',
-            type: 'mosaic',
-            enabled: false,
-            label: '马赛克',
-            params: [
-                { name: 'pixel_size', label: '像素大小', value: 8, min: 0, max: 2, step: 0.01 }
-            ]
+            name: '马赛克',
+            code: loadShader('src/data/shader/mosaic/mosaic.wgsl'),
+            params: MosaicParams,
+            actived: false
         },
         {
-            id: 'filter-002',
-            type: 'wave',
-            enabled: false,
-            label: '波浪',
-            params: [
-                { name: 'u_brightness', value: 1.2, min: 0, max: 2, step: 0.01 }
-            ]
+            name: '卡通',
+            code: loadShader('src/data/shader/cartoon/cartoon.wgsl'),
+            params: CartoonParams,
+            actived: false
         }
     ];
-    
-    return{
-        filter_list
+
+    return {
+        shaders
     }
 }

@@ -1,19 +1,14 @@
 import { effect, ref } from 'vue';
 import TestClipEngine from "./TestClipEngine.vue";
-import { ClipEngine, VideoTrack, RendererUnit } from 'clip-engine';
+import { ClipEngine, VideoTrack, RendererUnit, ShaderParamPack, ShaderDescription } from 'clip-engine';
+
+import { AXIOS } from '@frontend/api';
 
 export{
     TestClipEngine
 }
 
 export function useTestClipEngine(){
-
-    interface ShaderDescriptor{
-        name: string,
-        code: string,
-        params: any,
-        actived: boolean
-    };
 
     const imageRef  = ref<HTMLImageElement | null>(null);
     const canvasRef = ref<HTMLCanvasElement | null>(null);
@@ -28,30 +23,23 @@ export function useTestClipEngine(){
     let activedShaderMap = ref<Map<string, ShaderDescriptor>>(new Map());
 
     async function fetchShaders(){
-        const list = [
-            { 
-                name: 'cartoon',
-                codeURL: './shader/cartoon/cartoon.wgsl',
-                code: '',
-                paramsURL: '/shader/cartoon/params.json',
-                params: { }
-            },
-            { 
-                name: 'mosaic',
-                codeURL: './shader/mosaic/mosaic.wgsl',
-                code: '',
-                paramsURL: '/shader/mosaic/params.json',
-                params: { }
-            }
-        ]
-        for(const f of list){
-            const code = await (await fetch(f.codeURL)).text();
-            const params = JSON.parse(await (await fetch(f.paramsURL)).text());
-            shaders.value.push({ name: f.name, code, params, actived: false })
+        try{
+            // 获取服务器端滤镜列表
+            const res = await AXIOS.request({
+                method: 'GET',
+                url: '/api/filter/query',
+                headers:{
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            shaders.value = res.data;
+            console.error('Filter List:', res.data);
+        }catch(e){
+            console.error(e)
         }
     }
 
-    async function activeShader(desc: ShaderDescriptor){
+    async function activeShader(desc: ShaderDescription){
         if(desc.actived){
             // 移除 shader
             activedShaderMap.value.delete(desc.name);

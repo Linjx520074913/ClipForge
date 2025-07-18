@@ -1,15 +1,12 @@
-// import { FilterNode, FilterPipeline, TrackRenderer, ClipEngine } from './core';
-
-// export{
-//     ClipEngine,
-//     FilterNode,
-//     FilterPipeline,
-//     TrackRenderer
-// }
-
 import { ClipEngine, VideoTrack, RendererUnit } from "./Engine/index";
+import type { ShaderParamPack, ShaderDescription } from "./Engine/index";
 export{
     ClipEngine,
     VideoTrack,
     RendererUnit
+}
+
+export type{
+    ShaderParamPack,
+    ShaderDescription
 }

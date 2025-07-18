@@ -9,8 +9,9 @@
         "skipLibCheck": true,                     
         "forceConsistentCasingInFileNames": true,
         "paths": {
-            "@src/*": ["src/*"],
-            "@src-shared/*":["../src-shared/*"]
+            "@src/*":                 ["src/*"                       ],
+            "@src-shared/*":          ["../src-shared/*"             ],
+            "clip-engine":            ["../src-clip-engine"             ]
         },
         "useUnknownInCatchVariables": false
     },
