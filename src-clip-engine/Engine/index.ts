@@ -4,10 +4,13 @@ import { RendererUnit } from './RendererUnit';
 
 import type { ShaderParamPack, ShaderDescription } from "./Type";
 
+import { MP4Player } from './Player/index';
+
 export{
     ClipEngine,
     VideoTrack,
-    RendererUnit
+    RendererUnit,
+    MP4Player
 }
 
 export type{

@@ -1,7 +1,7 @@
 <template>
     <div>
-        <!-- <HomePage class="w-full h-screen bg-white-100 select-none"/> -->
-        <TestClipEngine/>
+        <HomePage class="w-full h-screen bg-white-100 select-none"/>
+        <!-- <TestClipEngine/> -->
     </div>
 </template>
 

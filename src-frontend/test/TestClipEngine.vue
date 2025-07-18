@@ -19,7 +19,7 @@
                         </div>
                         <div v-if="s.actived" 
                             v-for="(param, key) in s.params.entries" :key="key" :class="['flex flex-col p-1', s.actived? 'border border-gray-400' : '']">
-                            <label class="text-sm">{{ key }}</label>
+                            <label class="text-sm">{{ param.label }}</label>
                             <input
                                 v-if="param.type === 'f32'"
                                 type="range"

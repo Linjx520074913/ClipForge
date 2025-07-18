@@ -47,12 +47,12 @@ import { useResize, useMove, useRotate, updateAnchorStyle } from './index';
 defineOptions({ name: 'TransformableLayer' });
 const props = defineProps({
     size: {
-        w: { type: Number, default: 0 },
-        h: { type: Number, default: 0 },
+        w: { type: Number, default: 200 },
+        h: { type: Number, default: 200 },
     },
     pos: {
-        x: { type: Number, default: 0 },
-        y: { type: Number, default: 0 },
+        x: { type: Number, default: 100 },
+        y: { type: Number, default: 100 },
     },
     zIndex: { type: Number, default: 1 },
     selected: { type: Boolean, default: false },

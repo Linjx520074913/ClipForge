@@ -14,12 +14,28 @@ import {
     MediaPlayer,
     VideoPreview,
     TransformableLayer,
-    TimeLine
+    TimeLine,
+    VideoPlayer
 } from '@frontend/components/index'
 
 import { ILayer } from '@src-shared';
+import { ClipEngine } from "clip-engine";
 
 const layers: Ref<ILayer[]> = ref([]);
+
+export function useClipEngine(){
+    
+    let engine: ClipEngine | null = null;
+
+    async function initClipEngine(){
+        engine = await ClipEngine.create();
+    }
+
+    return{
+        engine,
+        initClipEngine
+    }
+}
 
 export function useVideoStudio(){
     // 视频编辑器初始化状态
@@ -274,5 +290,6 @@ export {
     VideoPreview,
     TransformableLayer,
     TimeLinemableLayer,
-    TimeLine
+    TimeLine,
+    VideoPlayer
 }

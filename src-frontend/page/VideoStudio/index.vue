@@ -45,6 +45,15 @@
                             </template>
                         </TransformableLayer>
 
+                        <TransformableLayer
+                            size="{w: 100, h: 100}"
+                            pos="{x:100, y: 100}"
+                            selected="true">
+                            <template #content>
+                                <VideoPlayer size="{w: 100,h:100}"/>
+                            </template>
+                        </TransformableLayer>
+
                         <!-- 拖拽进入的遮罩效果层 -->
                         <div
                             ref="coverRef" 
@@ -77,7 +86,9 @@ import {
     MediaPlayer,
     TransformableLayer,
     TimeLine,
+    VideoPlayer,
     VideoPreview,
+    useClipEngine,
 } from './index';
 
 import { ILayer } from '@src-shared';
@@ -100,6 +111,11 @@ let {
     addResizeObserver,
     removeResizeObserver
 } = useVideoStudio();
+
+// let {
+//     engine,
+//     initClipEngine
+// } = useClipEngine();
 
 const { playing } = useTimeline();
 
@@ -150,6 +166,7 @@ watch(() => playing, (val: Ref<boolean>) => {
 
 onMounted(() => { 
     init.value = true;
+    // initClipEngine();
     addResizeObserver();
     addGlobalDragEvent();
 });

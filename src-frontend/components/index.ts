@@ -8,7 +8,9 @@ import SlidingPanel  from './SlidingPanel/index.vue';
 
 import TransformableLayer from "./TransformableLayer/index.vue";
 
-export { MediaPlayer, VideoPreview }
+import VideoPlayer from './VideoPlayer/index.vue';
+
+export { MediaPlayer, VideoPreview, VideoPlayer }
 export { TimeLine }
 
 export {

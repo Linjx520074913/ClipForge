@@ -9,7 +9,6 @@ import CartoonParams from "../data/shader/cartoon/params.json";
 
 export function loadShader(relativePath: string): string {
     const fullPath = path.join(process.cwd(), relativePath);
-    console.error("FAAAAAAA", fullPath);
     return fs.readFileSync(fullPath, 'utf-8');
 }
 
