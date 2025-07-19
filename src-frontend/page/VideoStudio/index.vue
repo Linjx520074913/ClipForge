@@ -62,7 +62,8 @@
         <div class="resize w-[7px] h-full"></div>
         <!-- 右侧面板 -->
         <SlidingPanel class="h-full" :items="rightSlidingItems" :expanded="true"
-            @onChildEvent="handleRightSlidingPanelEvent"/>
+            @onChildEvent="handleRightSlidingPanelEvent"
+            @onUpdateShader="onUpdateShader"/>
     </div>
     
 </template>
@@ -81,7 +82,7 @@ import {
     useClipEngine,
 } from './index';
 
-import { ClipEngine } from 'clip-engine';
+import { ClipEngine, VideoTrack } from 'clip-engine';
 
 import { ILayer } from '@src-shared';
 import { ShaderDescription } from 'clip-engine';
@@ -146,6 +147,13 @@ function handleRightSlidingPanelEvent(desc: ShaderDescription[]){
     }
 
     preShaderDescs = [...desc];
+}
+
+function onUpdateShader(s: ShaderDescription){
+    console.error('########onupdateShader')
+    videoRef.value.forEach((instance: any, i: any) => {
+        instance.updateEffect(s);
+    })
 }
 
 

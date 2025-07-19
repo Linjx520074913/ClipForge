@@ -30,7 +30,9 @@
                     >menu_open</span>
                 </div>
                 <!-- drawer 内容区域 -->
-                <component class="w-full h-full" :is="activedItem.component" @onChildEvent="(payload) => emit('onChildEvent', payload)"/>
+                <component class="w-full h-full" :is="activedItem.component" 
+                    @onChildEvent="(payload) => emit('onChildEvent', payload)"
+                    @onUpdateShader="(desc) => emit('onUpdateShader', desc)"/>
             </div>
         </div>
     </div>
@@ -51,6 +53,7 @@
 // ]
 import { defineOptions, defineProps, defineEmits, useAttrs, ref, withDefaults, computed, watch } from 'vue';
 import { PanelItem } from './index';
+import { ShaderDescription } from 'clip-engine';
 
 defineOptions({ name: 'SlidingPanel' });
 const props = withDefaults(defineProps<{
@@ -64,6 +67,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
     (e: 'update:expanded', val: boolean): void,  // 面板是否展开
     (e: 'onChildEvent', payload: any): void,      // 子组件事件
+    (e: 'onUpdateShader', val: ShaderDescription): void,
 }>();
 
 // 高亮块样式

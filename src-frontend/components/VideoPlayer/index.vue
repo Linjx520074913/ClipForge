@@ -53,12 +53,15 @@ function stop(){
 }
 
 function addEffect(desc: ShaderDescription){
-    console.error('############## addEffect', videoTrack, (videoTrack as VideoTrack).getEffectChain());
     (videoTrack as VideoTrack).getEffectChain().addNode(desc);
 }
 
 function removeEffect(desc: ShaderDescription){
     (videoTrack as VideoTrack).getEffectChain().removeNode(desc.name);
+}
+
+function updateEffect(desc: ShaderDescription){
+    (videoTrack as VideoTrack).getEffectChain().getNode(desc.name)?.applyParameters(desc.params);
 }
 
 onMounted(async () => {
@@ -90,6 +93,7 @@ defineExpose({
     pause,
     stop,
     addEffect,
-    removeEffect
+    removeEffect,
+    updateEffect
 })
 </script>

@@ -50,6 +50,7 @@ export class RendererUnit{
      * @returns 
      */
     applyParameters(param: ShaderParamPack | undefined){
+        console.error('+============= applyParams', param)
         if(!param) return;
         
         const { binding, entries } = param;
