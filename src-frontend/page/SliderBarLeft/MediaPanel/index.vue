@@ -39,7 +39,7 @@
 
 <script setup lang="ts">
 import { defineOptions, ref, Ref } from 'vue';
-import { ILayer } from '@src-shared';
+import { ILayer } from 'clip-engine';
 defineOptions({ name: 'MediaPanel' });
 
 const selectAll = ref(false);

@@ -82,9 +82,8 @@ import {
     useClipEngine,
 } from './index';
 
-import { ClipEngine, VideoTrack } from 'clip-engine';
+import { ClipEngine, VideoTrack, ILayer } from 'clip-engine';
 
-import { ILayer } from '@src-shared';
 import { ShaderDescription } from 'clip-engine';
 
 import { defineOptions, ref, onMounted, onBeforeUnmount, watch, Ref } from 'vue';

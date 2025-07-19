@@ -16,8 +16,7 @@ import {
     VideoPlayer
 } from '@frontend/components/index'
 
-import { ILayer } from '@src-shared';
-import { ClipEngine } from "clip-engine";
+import { ClipEngine, ILayer } from "clip-engine";
 
 const layers: Ref<ILayer[]> = ref([]);
 

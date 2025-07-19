@@ -1,5 +1,5 @@
 import { ClipEngine, VideoTrack, RendererUnit, MP4Player } from "./Engine/index";
-import type { ShaderParamPack, ShaderDescription } from "./Engine/index";
+import type { ShaderParamPack, ShaderDescription, ILayer } from "./Engine/index";
 export{
     ClipEngine,
     VideoTrack,
@@ -9,5 +9,6 @@ export{
 
 export type{
     ShaderParamPack,
-    ShaderDescription
+    ShaderDescription,
+    ILayer
 }

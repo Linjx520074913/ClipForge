@@ -24,7 +24,6 @@ export default defineConfig(async () => ({
             '@frontend/store':          path.resolve(__dirname, "src-frontend/store"),
             '@frontend/page':           path.resolve(__dirname, "src-frontend/page"),
             '@frontend/components':     path.resolve(__dirname, "src-frontend/components"),
-            '@src-shared':              path.resolve(__dirname, "../src-shared"),
             'clip-engine':              path.resolve(__dirname, "src-clip-engine/"),
         }
     },
