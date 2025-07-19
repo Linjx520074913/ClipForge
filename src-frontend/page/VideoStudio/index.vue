@@ -29,11 +29,11 @@
                             :pos="layer.pos"
                             >
                             <template #content>
-                                <VideoPreview 
+                                <VideoPlayer 
                                     ref="videoRef" 
-                                    v-if="layer.type == 'video'" 
-                                    :src="layer.source.uri"  
-                                    @mousedown="layer.active = true;"
+                                    v-if="layer.type == 'video'"
+                                    :src="layer.source.uri" 
+                                    @mousedown="layer.active = true"
                                     :size="layer.size"/>
                                 <img class="object-contain w-full h-full" 
                                     v-if="layer.type == 'image'" 
@@ -42,15 +42,6 @@
                                     draggable="false"/>
                                 <!-- TODO: 文字的拉伸有问题 -->
                                 <div v-if="layer.type == 'text'" @mousedown="layer.active = true">{{ layer.source.text }} </div>
-                            </template>
-                        </TransformableLayer>
-
-                        <TransformableLayer
-                            size="{w: 100, h: 100}"
-                            pos="{x:100, y: 100}"
-                            selected="true">
-                            <template #content>
-                                <VideoPlayer size="{w: 100,h:100}"/>
                             </template>
                         </TransformableLayer>
 
@@ -87,7 +78,6 @@ import {
     TransformableLayer,
     TimeLine,
     VideoPlayer,
-    VideoPreview,
     useClipEngine,
 } from './index';
 
@@ -111,11 +101,6 @@ let {
     addResizeObserver,
     removeResizeObserver
 } = useVideoStudio();
-
-// let {
-//     engine,
-//     initClipEngine
-// } = useClipEngine();
 
 const { playing } = useTimeline();
 

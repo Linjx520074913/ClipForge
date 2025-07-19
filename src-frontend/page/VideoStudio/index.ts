@@ -12,7 +12,6 @@ import {
     SlidingPanel,
     VideoStudioToolbar,
     MediaPlayer,
-    VideoPreview,
     TransformableLayer,
     TimeLine,
     VideoPlayer
@@ -254,6 +253,7 @@ export function useDrag(){
             layer.pos.y  = ty;
             // 添加到 layers 中
             layers.value.push(layer);
+            console.error('===============', layer)
         } catch (e) {
             console.error('数据解析失败', e);
         }
@@ -287,7 +287,6 @@ export {
     SlidingPanel,
     VideoStudioToolbar,
     MediaPlayer,
-    VideoPreview,
     TransformableLayer,
     TimeLinemableLayer,
     TimeLine,
