@@ -12,15 +12,15 @@ export class GPUTexturePool{
         this.ctx = ctx;
     }
 
-    getReusableTexture(width: number, height: number): GPUTexture{
-        const key = `${width}x${height}`;
+    getReusableTexture(width: number, height: number, id: string): GPUTexture{
+        const key = `${width}x${height}_${id}`;
 
         let texture = this.pool.get(key);
         if(!texture){
             texture = this.ctx.device.createTexture({
                 size: [width, height],
                 format: this.ctx.format,
-                usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
+                usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
             });
             this.pool.set(key, texture);
         }

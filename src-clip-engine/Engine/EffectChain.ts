@@ -1,6 +1,7 @@
 import { GPUContext } from './GPUContext';
 import { RendererUnit } from "./RendererUnit";
 import { GPUTexturePool } from "./GPUTexturePool";
+import { ShaderDescription } from './Type';
 
 export class EffectChain{
 
@@ -17,7 +18,19 @@ export class EffectChain{
      * 添加滤镜节点
      * @param node 
      */
-    addNode(node: RendererUnit): void{
+    // addNode(node: RendererUnit): void{
+    //     const exist = this.units.some(u => u.name === node.name);
+    //     if(!exist){
+    //         this.units.push(node);
+    //     }
+    // }
+
+    addNode(desc: ShaderDescription): void{
+       
+        const node = new RendererUnit(this.ctx, desc.name);
+        node.initialize(desc.code);
+        node.applyParameters(desc.params); 
+        
         const exist = this.units.some(u => u.name === node.name);
         if(!exist){
             this.units.push(node);

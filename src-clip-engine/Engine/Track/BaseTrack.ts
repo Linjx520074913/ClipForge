@@ -1,9 +1,12 @@
+import { randomUUID } from "crypto";
 import { EffectChain } from "../EffectChain";
 import { GPUContext } from "../GPUContext";
 import { GPUTexturePool } from "../GPUTexturePool";
 import { RendererUnit } from "../RendererUnit";
 
 import RawShaderCode from './RawShader.wgsl?raw';
+
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  *  'video'：视频轨，处理视频片段和转场、滤镜。
@@ -23,6 +26,8 @@ export class BaseTrack{
     private name: string;
     private type: TrackType;
 
+    private gputContext: GPUContext;
+
     private canvas: HTMLCanvasElement;
     private canvasCtx: GPUCanvasContext;
     private effectChain: EffectChain;
@@ -33,7 +38,11 @@ export class BaseTrack{
 
     private rendering: boolean = false;
 
+    private id: string;
+
     constructor(name: string, gpuContext: GPUContext, canvas: HTMLCanvasElement){
+        this.gputContext = gpuContext;
+        this.id = uuidv4();
         this.name = name;
         this.canvas = canvas;
         this.canvasCtx = this.canvas.getContext('webgpu');
@@ -53,15 +62,30 @@ export class BaseTrack{
         this.texturePool = new GPUTexturePool(gpuContext);
     }
 
-    render(input: GPUTexture){
+    render(input: GPUTexture | VideoFrame){
         if(!input) throw new Error('[ TrackRenderer ] input is empty');
         
         if(this.rendering) return;
         
         this.rendering = true;
 
-        const effectChainOutputTex = this.texturePool.getReusableTexture(input.width, input.height);
-        this.effectChain.process(input, effectChainOutputTex);
+        const isVideoFrame = input instanceof VideoFrame;
+
+        const w = isVideoFrame? input.displayWidth: input.width;
+        const h = isVideoFrame? input.displayHeight:input.height;
+
+        const effectChainOutputTex = this.texturePool.getReusableTexture(w, h);
+        if(isVideoFrame){
+            const texture = this.texturePool.getReusableTexture(w, h, this.id);
+            this.gputContext.device.queue.copyExternalImageToTexture(
+                { source: input },
+                { texture },
+                [ w, h ]
+            );
+            this.effectChain.process(texture, effectChainOutputTex);
+        }else{
+            this.effectChain.process(input, effectChainOutputTex);
+        }
         
         // 把 effectChain 输出的纹理渲染到 canvas 上
         this.mainRenderUnit.process(effectChainOutputTex, this.canvasCtx.getCurrentTexture());

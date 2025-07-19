@@ -1,4 +1,4 @@
-import { ClipEngine, VideoTrack, MP4Player } from 'clip-engine';
+import { ClipEngine, VideoTrack, MP4Player,  } from 'clip-engine';
 
 export function useMP4(){
     const player = new MP4Player();

@@ -56,8 +56,8 @@ export function useVideoStudio(){
 
     // 右侧侧边栏菜单
     const rightSlidingItems: PanelItem[] = [
-        { id: 0, label: '音频', icon: 'volume_up',      tooltip: 'test', component: AudioPanel },
-        { id: 1, label: '滤镜', icon: 'filter_vintage', tooltip: 'test', component: FilterPanel },
+        { id: 0, label: '滤镜', icon: 'filter_vintage', tooltip: 'test', component: FilterPanel },
+        { id: 1, label: '音频', icon: 'volume_up',      tooltip: 'test', component: AudioPanel },
         { id: 2, label: '效果', icon: 'contrast',       tooltip: 'test', component: EffectPanel },
         { id: 3, label: '颜色', icon: 'palette',        tooltip: 'test', component: ColorPanel } ,
     ];

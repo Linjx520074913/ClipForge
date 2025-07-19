@@ -6,7 +6,7 @@
             ]"
             @click="activeFilter(index)">
             <img class="w-full flex-1">
-            <p>{{ filter.label }}</p>
+            <p>{{ filter.name }}</p>
         </div>
     </div>
 </template>
@@ -19,14 +19,14 @@
  */
 import { defineOptions, defineEmits, onMounted, ref } from 'vue';
 import { AXIOS } from '@frontend/api';
-import { Filter } from '@src-shared';
+import { ShaderDescription } from 'clip-engine';
 defineOptions({ name: 'FilterPanel' });
 const emit = defineEmits(['onChildEvent']);
 
 /**
  * 滤镜列表
  */
-const filter_list = ref<Filter>([]);
+const filter_list = ref<ShaderDescription>([]);
 
 const activeFilters: Filter[] = [];
 

@@ -34,7 +34,8 @@
                                     v-if="layer.type == 'video'"
                                     :src="layer.source.uri" 
                                     @mousedown="layer.active = true"
-                                    :size="layer.size"/>
+                                    :size="layer.size"
+                                    :engine="engine"/>
                                 <img class="object-contain w-full h-full" 
                                     v-if="layer.type == 'image'" 
                                     :src="layer.source.uri" 
@@ -80,8 +81,10 @@ import {
     useClipEngine,
 } from './index';
 
+import { ClipEngine } from 'clip-engine';
+
 import { ILayer } from '@src-shared';
-import { IFilter } from 'src/modules/av-core/renderer/Filter/Type';
+import { ShaderDescription } from 'clip-engine';
 
 import { defineOptions, ref, onMounted, onBeforeUnmount, watch, Ref } from 'vue';
 defineOptions({ name: 'VideoStudio' });
@@ -115,14 +118,34 @@ const {
     removeGlobalDragEvent
 } = useDrag();
 
-function handleRightSlidingPanelEvent(filters: IFilter[]){
-    
-    console.error('右侧面板事件:', filters);
+let engine: ClipEngine | null = null;
 
-    // 所有视频组件实例
-    videoRef.value.forEach((instance: any, i: any) => {
-        instance.setFilters(filters);
-    })
+let preShaderDescs: ShaderDescription[] = [];
+
+function diffFilters(prev: ShaderDescription[], next: ShaderDescription[]) {
+    const added = next.filter(n => !prev.some(p => p.name === n.name));
+    const removed = prev.filter(p => !next.some(n => n.name === p.name));
+    return { added, removed };
+}
+
+function handleRightSlidingPanelEvent(desc: ShaderDescription[]){
+    
+    const { added, removed } = diffFilters(preShaderDescs, desc);
+
+    if (added.length) {
+        console.log('新增 filters:', added[0]);
+        videoRef.value.forEach((instance: any, i: any) => {
+            instance.addEffect(added[0]);
+        });
+    }
+    if (removed.length) {
+        console.log('移除 filters:', removed);
+        videoRef.value.forEach((instance: any, i: any) => {
+            instance.removeEffect(removed[0]);
+        });
+    }
+
+    preShaderDescs = [...desc];
 }
 
 
@@ -148,9 +171,11 @@ watch(() => playing, (val: Ref<boolean>) => {
     
 }, { deep: true, immediate: true });
 
-onMounted(() => { 
+onMounted(async () => { 
     init.value = true;
     // initClipEngine();
+    engine = await ClipEngine.create();
+    console.error('################', engine);
     addResizeObserver();
     addGlobalDragEvent();
 });
