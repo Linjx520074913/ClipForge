@@ -11,7 +11,6 @@ import {
 import {
     SlidingPanel,
     VideoStudioToolbar,
-    MediaPlayer,
     TransformableLayer,
     TimeLine,
     VideoPlayer
@@ -286,7 +285,6 @@ export function useTimeline(){
 export {
     SlidingPanel,
     VideoStudioToolbar,
-    MediaPlayer,
     TransformableLayer,
     TimeLinemableLayer,
     TimeLine,

@@ -74,7 +74,6 @@ import {
     useDrag,
     SlidingPanel,
     VideoStudioToolbar,
-    MediaPlayer,
     TransformableLayer,
     TimeLine,
     VideoPlayer,
