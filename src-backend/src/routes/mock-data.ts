@@ -7,6 +7,8 @@ import MosaicParams from '../data/shader/mosaic/params.json';
 
 import CartoonParams from "../data/shader/cartoon/params.json";
 
+import OldFilmParams from "../data/shader/oldfilm/params.json";
+
 export function loadShader(relativePath: string): string {
     const fullPath = path.join(process.cwd(), relativePath);
     return fs.readFileSync(fullPath, 'utf-8');
@@ -25,6 +27,12 @@ export function useMockData(){
             name: '卡通',
             code: loadShader('src/data/shader/cartoon/cartoon.wgsl'),
             params: CartoonParams,
+            actived: false
+        },
+        {
+            name: '老电影',
+            code: loadShader('src/data/shader/oldfilm/oldfilm.wgsl'),
+            params: OldFilmParams,
             actived: false
         }
     ];

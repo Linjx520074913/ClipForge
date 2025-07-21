@@ -82,7 +82,12 @@ export class EffectChain{
             for(let i = 0; i < this.units.length; i++){
                 const isLast = i === this.units.length - 1;
                 const target = isLast ? output: pong;
-    
+                
+                // 如果包含该字段，每帧都更新参数
+                if(this.units[i].params.entries.hasOwnProperty('seed')){
+                    this.units[i].params.entries["seed"].value = Math.random();
+                    this.units[i].applyParameters(this.units[i].params);
+                }
                 this.units[i].process(ping, target);
     
                 const temp = ping;

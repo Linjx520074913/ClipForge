@@ -13,6 +13,8 @@ export class RendererUnit{
     private pipeline:      GPURenderPipeline;
     private bindGroup:     GPUBindGroup;
     private uniformBuffer: GPUBuffer;
+    
+    params:        ShaderParamPack;
 
     constructor(ctx: GPUContext, name: string = ""){
         this.ctx = ctx;
@@ -50,7 +52,8 @@ export class RendererUnit{
      * @returns 
      */
     applyParameters(param: ShaderParamPack | undefined){
-        console.error('+============= applyParams', param)
+        this.params = param;
+
         if(!param) return;
         
         const { binding, entries } = param;
@@ -92,6 +95,9 @@ export class RendererUnit{
                     break;
             }
         }
+        if(uniformValues.length == 0){
+            return;
+        }
 
         const floatArray = new Float32Array(uniformValues)
         if(!this.uniformBuffer){
@@ -125,6 +131,7 @@ export class RendererUnit{
                 { binding: 0, resource: this.ctx.sampler },
                 { binding: 1, resource: input.createView() },
             ];
+            
             if(this.uniformBuffer){
                 entries.push({ binding: 2, resource: { buffer: this.uniformBuffer }});
             }

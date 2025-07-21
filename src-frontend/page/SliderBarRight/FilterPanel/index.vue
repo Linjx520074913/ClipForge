@@ -1,7 +1,7 @@
 <template>
     <div class="grid grid-cols-1 gap-1 p-2 overflow-y-scroll h-full">
         <div v-for="(filter, index) in filter_list" :key="index"
-            :class="['flex flex-col justify-center items-center w-full h-[150px] border cursor-pointer rounded-lg overflow-hidden px-2 py-1',
+            :class="['flex flex-col justify-center items-center w-full min-h-[150px] border cursor-pointer rounded-lg overflow-hidden px-2 py-1',
                 filter.actived ? 'bg-purple' : 'hover:bg-[#E3E3E8]'
             ]"
             @click="activeFilter(index)">
