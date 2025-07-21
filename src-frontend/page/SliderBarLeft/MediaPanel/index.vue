@@ -89,6 +89,28 @@ const videoLayers: Ref<ILayer[]> = ref([
             x: 0,
             y: 0
         }
+    },
+    {
+        id:    'layer-003',
+        type:  'video',
+        label: '测试视频3',
+        source: {
+            id:   'video-003',
+            type: 'video',
+            uri:  '/sample_2.mp4',
+            width: 1920,
+            height:1080
+        },
+        zIndex: 2,
+        active: false,
+        size: {
+            w: 0,
+            h: 0
+        },
+        pos: {
+            x: 0,
+            y: 0
+        }
     }
 ]);
 
