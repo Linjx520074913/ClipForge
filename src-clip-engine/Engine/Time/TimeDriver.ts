@@ -9,20 +9,20 @@
  */
 
 type TimeDriverEvent = 'start' | 'pause' | 'stop' | 'tick' | 'ended';
-type EventCallback = (time?: number) => void;
+type EventCallback = (time: number) => void;
 
 export class TimeDriver{
 
     private listeners = new Map<TimeDriverEvent, Set<EventCallback>>();
-    private frameId: number;
+    private frameId: number | null = null;
 
     private startTime: number = 0;      // play 开始时刻对应的 performance.now()
     private lastTime: number  = 0;      // 上一次 requestAnimationFrame 的时间
-    curTime: number   = 0;      // 当前播放时间（秒）
+    curTime: number   = 0;              // 当前播放时间（秒）
 
-    duration: number;           // 总时长
-    playbackRate: number = 1;   // 播放速率
-    playing: boolean = false;   // 播放状态
+    duration: number;                   // 总时长
+    playbackRate: number = 1;           // 播放速率
+    playing: boolean = false;           // 播放状态
 
     constructor(duration: number){
         this.duration = duration;
@@ -48,7 +48,9 @@ export class TimeDriver{
     }
 
     on(event: TimeDriverEvent, cb: EventCallback){
-        if(!this.listeners.has(event)) this.listeners.set(event, new Set());
+        if(!this.listeners.has(event)){
+            this.listeners.set(event, new Set());
+        }
         this.listeners.get(event)!.add(cb);
     }
 
@@ -56,17 +58,21 @@ export class TimeDriver{
         this.listeners.get(event)?.delete(cb);
     }
 
-    private emit(event: TimeDriverEvent, time?: number){
-        this.listeners.get(event)?.forEach(cb => cb(time));
+    private emit(event: TimeDriverEvent, time: number){
+        this.listeners.get(event)?.forEach(cb => {
+            console.error('====', event, time)
+            cb(time)
+        });
     }
 
-    play(): void{
+    start(): void{
         if(this.playing) return;
         this.playing = true;
 
         const now = performance.now();
         this.startTime = now - this.curTime / this.playbackRate;
         this.lastTime = now;
+        console.error('#@#@# start', this.curTime)
         this.emit('start', this.curTime);
         this.frameId = requestAnimationFrame(this.tick);
     }

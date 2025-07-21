@@ -2,7 +2,7 @@
     <div class="flex flex-row w-full">
         <div class="flex flex-col flex-1 overflow-hidden min-w-[300px] rounded-[15px] shadow-sm border bg-white">
             <!-- 主渲染区域 -->
-            <div class="stage-canvas w-full h-[778px] relative border-b border-b-gray-300 grid place-items-center" 
+            <div class="stage-canvas w-full h-3/4 relative border-b border-b-gray-300 grid place-items-center" 
                 ref="stageCanvasRef">
                 <!-- 顶部工具条 -->
                 <VideoStudioToolbar 
@@ -56,7 +56,9 @@
                 </div>
             </div>
             <!-- 时间轴 -->
-            <TimeLine class="w-full" v-model:playing="playing" />
+            <TimeLine class="w-full" 
+                v-model:playing="playing"
+                :timeDriver="timeDriver"/>
         </div>
         <!-- 分割线 -->
         <div class="resize w-[7px] h-full"></div>
@@ -118,7 +120,8 @@ const {
     removeGlobalDragEvent
 } = useDrag();
 
-let engine: ClipEngine | null = null;
+let { engine, initClipEngine, timeDriver } = useClipEngine();
+
 
 let preShaderDescs: ShaderDescription[] = [];
 
@@ -157,32 +160,35 @@ function onUpdateShader(s: ShaderDescription){
 
 
 watch(() => playing, (val: Ref<boolean>) => {
-    if(!init.value) return;
+    if(!init.value || engine.value == null) return;
 
     // 所有视频组件实例
-    videoRef.value.forEach((instance: any, i: any) => {
-        console.error(instance, i);
-        if(val.value){
-            // 开始播放
-            // TODO: 
-            // 1、替换成 WebGPU 播放器
-            // 2、使用滤镜效果
+    // videoRef.value.forEach((instance: any, i: any) => {
+    //     console.error(instance, i);
+    //     if(val.value){
+    //         // 开始播放
+    //         // TODO: 
+    //         // 1、替换成 WebGPU 播放器
+    //         // 2、使用滤镜效果
             
-            instance.play();
-        }else{
-            // 暂停播放
-            // instance.pause();
-            instance.pause();
-        }
-    })
+    //         instance.play();
+    //     }else{
+    //         // 暂停播放
+    //         // instance.pause();
+    //         instance.pause();
+    //     }
+    // })
+    if(val.value){
+        engine.value.getTimeDriver().start();
+    }else{
+        engine.value.getTimeDriver().pause();
+    }
     
 }, { deep: true, immediate: true });
 
 onMounted(async () => { 
     init.value = true;
-    // initClipEngine();
-    engine = await ClipEngine.create();
-    console.error('################', engine);
+    await initClipEngine();
     addResizeObserver();
     addGlobalDragEvent();
 });

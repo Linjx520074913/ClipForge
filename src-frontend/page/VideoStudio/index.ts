@@ -17,19 +17,39 @@ import {
 } from '@frontend/components/index'
 
 import { ClipEngine, ILayer } from "clip-engine";
+import { TimeDriver } from "src-clip-engine/Engine/Time/TimeDriver";
 
 const layers: Ref<ILayer[]> = ref([]);
 
 export function useClipEngine(){
     
-    let engine: ClipEngine | null = null;
+    const engine = ref<ClipEngine | null>(null);
+    const timeDriver = ref<TimeDriver | null>(null);
 
     async function initClipEngine(){
-        engine = await ClipEngine.create();
+        engine.value = await ClipEngine.create();
+        timeDriver.value = engine.value.getTimeDriver();
+        timeDriver.value.on('start', (time?: number) => {
+            console.error('########### timeDriver start', time);
+        });
+        timeDriver.value.on('pause', (time?: number) => {
+            console.error('########### timeDriver pause', time);
+        });
+        timeDriver.value.on('stop', (time?: number) => {
+            console.error('########### timeDriver stop', time);
+        });
+        timeDriver.value.on('ended', (time?: number) => {
+            console.error('########### timeDriver ended', time);
+        });
+        timeDriver.value.on('tick', (time: number) => {
+            console.error('@@@@@@@@@@', timeDriver.value?.curTime);
+        });
+        
     }
 
     return{
         engine,
+        timeDriver,
         initClipEngine
     }
 }

@@ -5,12 +5,14 @@ import { RendererUnit } from './RendererUnit';
 import type { ShaderParamPack, ShaderDescription, ILayer } from "./Type";
 
 import { MP4Player } from './Player/index';
+import { TimeDriver } from "./Time/TimeDriver";
 
 export{
     ClipEngine,
     VideoTrack,
     RendererUnit,
-    MP4Player
+    MP4Player,
+    TimeDriver
 }
 
 export type{

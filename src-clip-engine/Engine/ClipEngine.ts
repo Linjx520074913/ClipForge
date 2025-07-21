@@ -1,6 +1,7 @@
 import { TrackRenderer } from './TrackRenderer';
 import { GPUContext } from './GPUContext';
 import { BaseTrack } from './Track/BaseTrack';
+import { TimeDriver } from './Time/TimeDriver';
 
 class TrackGraph{
 
@@ -10,11 +11,13 @@ export class ClipEngine{
 
     private ctx: GPUContext;
     // private trackGraph: TrackGraph;
+    private timeDriver: TimeDriver;
 
     private tracks: BaseTrack[] = [];
 
     private constructor(ctx: GPUContext){
         this.ctx = ctx;
+        this.timeDriver = new TimeDriver(999999999);
     }
 
     static async create(): Promise<ClipEngine>{
@@ -29,6 +32,8 @@ export class ClipEngine{
     addTrack(track: BaseTrack){
         this.tracks.push(track);
     }
+
+    getTimeDriver(){ return this.timeDriver; }
 
     removeTrack(name: string){
         const idx = this.tracks.findIndex(t => t.name === name);
