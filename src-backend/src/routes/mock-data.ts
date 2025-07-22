@@ -9,6 +9,8 @@ import CartoonParams from "../data/shader/cartoon/params.json";
 
 import OldFilmParams from "../data/shader/oldfilm/params.json";
 
+import VHSParams from "../data/shader/vhs/params.json";
+
 export function loadShader(relativePath: string): string {
     const fullPath = path.join(process.cwd(), relativePath);
     return fs.readFileSync(fullPath, 'utf-8');
@@ -33,6 +35,12 @@ export function useMockData(){
             name: '老电影',
             code: loadShader('src/data/shader/oldfilm/oldfilm.wgsl'),
             params: OldFilmParams,
+            actived: false
+        },
+        {
+            name: 'VHS',
+            code: loadShader('src/data/shader/vhs/vhs.wgsl'),
+            params: VHSParams,
             actived: false
         }
     ];

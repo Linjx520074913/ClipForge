@@ -10,7 +10,7 @@
             <div class="text-[12px]">{{ curTimeFormatted }} / 0:00:00</div>
         </div>
         <!-- 时间轴视图 -->
-        <div class="w-full h-full bg-red-200 relative flex p-[10px] test">
+        <div class="w-full h-full relative flex p-[10px] test">
             <!-- 时间尺子 -->
             <div class="w-full bg-green-200 h-[24px] absolute z-20"></div>
             <!-- 播放头 -->
@@ -20,8 +20,8 @@
                 @onSeek="(time) => emit('on-seek', time)"
                 @endSeek="(time) => emit('end-seek', time)"/>
             <!-- 轨道 -->
-            <div class="w-full h-full bg-gray-200 z-31">
-
+            <div class="w-full h-full z-31">
+                轨道
             </div>
         </div>
     </div>
