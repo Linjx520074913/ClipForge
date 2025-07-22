@@ -56,9 +56,9 @@
                 </div>
             </div>
             <!-- 时间轴 -->
-            <TimeLine class="w-full" 
+            <TimeLine class="w-full flex-1" 
                 v-model:playing="playing"
-                :timeDriver="timeDriver"/>
+                :curTime="curTime"/>
         </div>
         <!-- 分割线 -->
         <div class="resize w-[7px] h-full"></div>
@@ -120,7 +120,7 @@ const {
     removeGlobalDragEvent
 } = useDrag();
 
-let { engine, initClipEngine, timeDriver } = useClipEngine();
+let { engine, initClipEngine, timeDriver, curTime } = useClipEngine();
 
 
 let preShaderDescs: ShaderDescription[] = [];
@@ -159,25 +159,13 @@ function onUpdateShader(s: ShaderDescription){
 }
 
 
+/**
+ * 控制 TimeDriver 的播放状态
+ * @param playing 
+ */
 watch(() => playing, (val: Ref<boolean>) => {
     if(!init.value || engine.value == null) return;
 
-    // 所有视频组件实例
-    // videoRef.value.forEach((instance: any, i: any) => {
-    //     console.error(instance, i);
-    //     if(val.value){
-    //         // 开始播放
-    //         // TODO: 
-    //         // 1、替换成 WebGPU 播放器
-    //         // 2、使用滤镜效果
-            
-    //         instance.play();
-    //     }else{
-    //         // 暂停播放
-    //         // instance.pause();
-    //         instance.pause();
-    //     }
-    // })
     if(val.value){
         engine.value.getTimeDriver().start();
     }else{
@@ -188,7 +176,7 @@ watch(() => playing, (val: Ref<boolean>) => {
 
 onMounted(async () => { 
     init.value = true;
-    await initClipEngine();
+    await initClipEngine(videoRef);
     addResizeObserver();
     addGlobalDragEvent();
 });

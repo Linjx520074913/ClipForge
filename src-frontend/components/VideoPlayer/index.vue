@@ -14,7 +14,8 @@ import { defineOptions, defineEmits, onMounted, onBeforeUnmount, ref } from "vue
 import {
     useMP4,
     useClipEngine,
-    VideoTrack
+    VideoTrack,
+    useWebAV
 } from './index';
 import { ClipEngine, ShaderDescription } from "clip-engine";
 
@@ -31,26 +32,11 @@ const props = defineProps<{
     engine: { type: ClipEngine }
 }>();
 
-let { videoTrack, initClipEngine } = useClipEngine();
+let videoTrack: VideoTrack;
 
-let { player } = useMP4();
+let { loadMediaSource, seek, setVideoTrack } = useWebAV();
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
-
-function play(){
-    if(!player) return;
-    player.play();
-}
-
-function pause(){
-    if(!player) return;
-    player.pause();
-}
-
-function stop(){
-    if(!player) return;
-    player.stop();
-}
 
 function addEffect(desc: ShaderDescription){
     (videoTrack as VideoTrack).getEffectChain().addNode(desc);
@@ -65,33 +51,22 @@ function updateEffect(desc: ShaderDescription){
 }
 
 onMounted(async () => {
-    // engine = await initClipEngine();
     const id = uuidv4();
+    
     videoTrack = new VideoTrack(`video-track-${id}`, props.engine.getContext(), canvasRef.value);
-    // props.engine.addTrack(videoTrack);
-
-    // 监听 ready 事件，获取视频尺寸
-    player.on("ready", ({ width, height }) => {
-        
-        canvasRef.value.width = width;
-        canvasRef.value.height = height;
-    });
-
-    // 监听 updateFrame 事件，拿到每一帧 VideoFrame
-    player.on("updateFrame", (frame: VideoFrame) => {
-        videoTrack.render(frame);
-        // frame 不能长期保存，处理完应手动 close
-        frame.close();
-    });
+    setVideoTrack(videoTrack);
 
     // 加载视频
-    await player.load(props.src);
+    const { duration, width, height } =await loadMediaSource(props.src);
+    canvasRef.value.width = width;
+    canvasRef.value.height = height;
+
+    seek(0);
+    
 });
 
 defineExpose({
-    play,
-    pause,
-    stop,
+    seek,
     addEffect,
     removeEffect,
     updateEffect

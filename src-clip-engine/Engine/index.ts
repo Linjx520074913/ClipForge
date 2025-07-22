@@ -7,12 +7,15 @@ import type { ShaderParamPack, ShaderDescription, ILayer } from "./Type";
 import { MP4Player } from './Player/index';
 import { TimeDriver } from "./Time/TimeDriver";
 
+import { Utils } from './Utils';
+
 export{
     ClipEngine,
     VideoTrack,
     RendererUnit,
     MP4Player,
-    TimeDriver
+    TimeDriver,
+    Utils
 }
 
 export type{

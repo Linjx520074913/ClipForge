@@ -18,7 +18,7 @@ export class TimeDriver{
 
     private startTime: number = 0;      // play 开始时刻对应的 performance.now()
     private lastTime: number  = 0;      // 上一次 requestAnimationFrame 的时间
-    curTime: number   = 0;              // 当前播放时间（秒）
+    curTimeMs: number   = 0;              // 当前播放时间（秒）
 
     duration: number;                   // 总时长
     playbackRate: number = 1;           // 播放速率
@@ -30,8 +30,8 @@ export class TimeDriver{
 
     setDuration(d: number) { 
         this.duration = d;
-        if(this.curTime > d){
-            this.curTime = d;
+        if(this.curTimeMs > d){
+            this.curTimeMs = d;
         } 
     }
    
@@ -41,7 +41,7 @@ export class TimeDriver{
         if(this.playing){
             // 变速时调整基准时间，保持时间连续
             const now = performance.now();
-            this.startTime = now - this.curTime / rate;
+            this.startTime = now - this.curTimeMs / rate;
             this.lastTime = now;
         }
         this.playbackRate = rate;
@@ -60,7 +60,6 @@ export class TimeDriver{
 
     private emit(event: TimeDriverEvent, time: number){
         this.listeners.get(event)?.forEach(cb => {
-            console.error('====', event, time)
             cb(time)
         });
     }
@@ -70,10 +69,10 @@ export class TimeDriver{
         this.playing = true;
 
         const now = performance.now();
-        this.startTime = now - this.curTime / this.playbackRate;
+        this.startTime = now - this.curTimeMs / this.playbackRate;
         this.lastTime = now;
-        console.error('#@#@# start', this.curTime)
-        this.emit('start', this.curTime);
+        console.error('#@#@# start', this.curTimeMs)
+        this.emit('start', this.curTimeMs);
         this.frameId = requestAnimationFrame(this.tick);
     }
 
@@ -83,28 +82,32 @@ export class TimeDriver{
 
         if(this.frameId !== null) cancelAnimationFrame(this.frameId);
         this.frameId = null;
-        this.emit('pause', this.curTime);
+        this.emit('pause', this.curTimeMs);
     }
 
     stop(): void{
         this.pause();
-        this.curTime = 0;
-        this.emit('stop', this.curTime);
+        this.curTimeMs = 0;
+        this.emit('stop', this.curTimeMs);
     }
 
+    /**
+     * 
+     * @param time 单位（秒）
+     */
     seek(time: number){
-        this.curTime = Math.min(Math.max(time, 0), this.duration);
+        this.curTimeMs = Math.min(Math.max(time, 0), this.duration);
 
         const now = performance.now();
         // 重新计算基准时间，保证时间连续
-        this.startTime = now - this.curTime / this.playbackRate;
+        this.startTime = now - this.curTimeMs / this.playbackRate;
         this.lastTime = now;
-        this.emit('tick', this.curTime);
+        this.emit('tick', this.curTimeMs);
 
         // 边界检查，自动触发结束事件并暂停
-        if((this.curTime === 0 && this.playbackRate < 0) ||
-            (this.curTime === this.duration && this.playbackRate > 0)){
-            this.emit('ended', this.curTime);
+        if((this.curTimeMs === 0 && this.playbackRate < 0) ||
+            (this.curTimeMs === this.duration && this.playbackRate > 0)){
+            this.emit('ended', this.curTimeMs);
             this.pause();
         }
     }
@@ -115,28 +118,28 @@ export class TimeDriver{
         const now = performance.now();
         // 根据 playbackRate 正负推进或倒退时间
         const delta = (now - this.lastTime) * this.playbackRate;
-        this.curTime += delta;
+        this.curTimeMs += delta;
 
         this.lastTime = now;
 
         // 边界处理
-        if(this.curTime >= this.duration){
-            this.curTime = this.duration;
-            this.emit('tick', this.curTime);
-            this.emit('ended', this.curTime);
+        if(this.curTimeMs >= this.duration){
+            this.curTimeMs = this.duration;
+            this.emit('tick', this.curTimeMs);
+            this.emit('ended', this.curTimeMs);
             this.stop();
             return;
         }
 
-        if(this.curTime <= 0){
-            this.curTime = 0;
-            this.emit('tick', this.curTime);
-            this.emit('ended', this.curTime);
+        if(this.curTimeMs <= 0){
+            this.curTimeMs = 0;
+            this.emit('tick', this.curTimeMs);
+            this.emit('ended', this.curTimeMs);
             this.stop();
             return;
         }
 
-        this.emit('tick', this.curTime);
+        this.emit('tick', this.curTimeMs);
         this.frameId = requestAnimationFrame(this.tick);
     }
 }

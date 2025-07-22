@@ -9,11 +9,27 @@
             </span>
             <div class="text-[12px]">{{ curTimeFormatted }} / 0:00:00</div>
         </div>
+        <!-- 时间轴视图 -->
+        <div class="w-full h-full bg-red-200 relative">
+            <!-- 时间尺子 -->
+            <div class="w-full bg-green-200 h-[24px] absolute z-20"></div>
+            <!-- 轨道 -->
+            <div class="w-full h-full bg-blue-200 flex relative"
+                style="padding: 24px 20px 10px 20px">
+                <Playhead class="absolute"/>
+                <div class="w-full h-full bg-gray-200">
+
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { defineOptions, defineProps, defineEmits, ref, computed, watch } from 'vue';
+import { Utils } from 'clip-engine';
+
+import Playhead from './Playhead.vue';
 
 defineOptions({ name: 'TimeLine' });
 const props = defineProps({
@@ -23,23 +39,8 @@ const props = defineProps({
 });
 const emit = defineEmits(['update:playing']);
 
-function formatTime(durationMs: number): string {
-    const hours = Math.floor(durationMs / 3600000);
-    const minutes = Math.floor((durationMs % 3600000) / 60000);
-    const seconds = Math.floor((durationMs % 60000) / 1000);
-    const milliseconds = durationMs % 1000;
-
-    const pad = (num: number, size: number) => String(num).padStart(size, '0');
-
-    return `${pad(hours, 2)}:${pad(minutes, 2)}:${pad(seconds, 2)}:${pad(milliseconds, 3)}`;
-}
-
 const curTimeFormatted = computed(() => {
-    return formatTime(props.curTime);
+    return Utils.formatTime(props.curTime);
 });
-
-watch(() => props.curTime, (newVal, oldVal) => {
-    console.log(`curTime changed from ${oldVal} to ${newVal}`);
-}, { immediate: true });
 
 </script>   

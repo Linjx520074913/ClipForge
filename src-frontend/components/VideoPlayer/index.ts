@@ -1,28 +1,35 @@
+import { MP4Clip } from '@webav/av-cliper';
 import { ClipEngine, VideoTrack, MP4Player,  } from 'clip-engine';
 
-export function useMP4(){
-    const player = new MP4Player();
+export function useWebAV(){
+    let clip: MP4Clip;
+    let videoTrack: VideoTrack;
 
-    return{
-        player
-    }
-}
-
-
-export function useClipEngine(){
-    
-    let engine: ClipEngine | null = null;
-    let videoTrack: VideoTrack | null = null;
-
-    async function initClipEngine(): Promise<ClipEngine>{
-        const engine = await ClipEngine.create();
-        return engine;
+    function setVideoTrack(track: VideoTrack){
+        videoTrack = track;
     }
 
-    return{
-        engine,
-        videoTrack,
-        initClipEngine
+    async function loadMediaSource(source: string): Promise<void>{
+        const resp = await fetch(source);
+        clip = new MP4Clip(resp.body);
+        const { duration, width, height } = await clip.ready;
+        return { duration, width, height };
+    }
+
+    async function seek(us: number){
+        const { state, video } = await clip.tick(us);
+        
+        if(state === 'success' && video){
+            console.error('seedss', state, video)
+            videoTrack.render(video);
+            video.close();
+        }
+    }
+
+    return {
+        setVideoTrack,
+        loadMediaSource,
+        seek
     }
 }
 
