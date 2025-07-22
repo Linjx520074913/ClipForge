@@ -58,7 +58,8 @@
             <!-- 时间轴 -->
             <TimeLine class="w-full flex-1" 
                 v-model:playing="playing"
-                :curTime="curTime"/>
+                :curTime="curTime"
+                @onSeek="seek"/>
         </div>
         <!-- 分割线 -->
         <div class="resize w-[7px] h-full"></div>
@@ -120,7 +121,7 @@ const {
     removeGlobalDragEvent
 } = useDrag();
 
-let { engine, initClipEngine, timeDriver, curTime } = useClipEngine();
+let { engine, initClipEngine, timeDriver, curTime, seek } = useClipEngine();
 
 
 let preShaderDescs: ShaderDescription[] = [];

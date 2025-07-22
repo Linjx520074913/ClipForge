@@ -10,16 +10,18 @@
             <div class="text-[12px]">{{ curTimeFormatted }} / 0:00:00</div>
         </div>
         <!-- 时间轴视图 -->
-        <div class="w-full h-full bg-red-200 relative">
+        <div class="w-full h-full bg-red-200 relative flex p-[10px] test">
             <!-- 时间尺子 -->
             <div class="w-full bg-green-200 h-[24px] absolute z-20"></div>
+            <!-- 播放头 -->
+            <Playhead 
+                class="absolute z-30" :timeMs="props.curTime" 
+                @startSeek="(time) => { emit('start-seek', time); }"
+                @onSeek="(time) => emit('on-seek', time)"
+                @endSeek="(time) => emit('end-seek', time)"/>
             <!-- 轨道 -->
-            <div class="w-full h-full bg-blue-200 flex relative"
-                style="padding: 24px 20px 10px 20px">
-                <Playhead class="absolute"/>
-                <div class="w-full h-full bg-gray-200">
+            <div class="w-full h-full bg-gray-200 z-31">
 
-                </div>
             </div>
         </div>
     </div>
@@ -37,7 +39,7 @@ const props = defineProps({
     duration: { type: Number, default: 0 },
     playing: { type: Boolean, default: false }
 });
-const emit = defineEmits(['update:playing']);
+const emit = defineEmits(['update:playing', 'start-seek', 'on-seek', 'end-seek']);
 
 const curTimeFormatted = computed(() => {
     return Utils.formatTime(props.curTime);

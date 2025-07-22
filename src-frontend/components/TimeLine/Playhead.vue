@@ -1,9 +1,14 @@
 <template>
     <!-- 整个播放指针区域 -->
-    <div class="z-30 relative h-full w-[3px] bg-black rounded-xl -translate-y-[2px]">
+    <div 
+        ref="rootRef"
+        class="relative h-[90%] w-[3px] bg-black rounded-xl translate-y-[20px] shadow-[0_2px_6px_rgba(0,0,0,0.5)] cursor-grab active:cursor-grabbing"
+        :style="{ left: pos, willChange: 'left' }"
+        @mousedown="onMouseDown"
+    >
         <!-- 指针头部 SVG（尖尖） -->
         <svg
-            class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[90%] cursor-pointer transition-all duration-200 hover:scale-110"
+            class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[90%] transition-all duration-200 hover:scale-110"
             width="18"
             height="20"
             viewBox="0 0 18 20"
@@ -13,3 +18,18 @@
         </svg>
     </div>
 </template>
+
+<script setup lang="ts">
+import { computed, defineOptions } from 'vue';
+import { useMouse } from './Playhead';
+
+defineOptions({ name: 'Playhead' });
+const props = defineProps({
+    timeMs: { type: Number, default: 0 }
+});
+const emit = defineEmits(['update:time-ms', 'start-seek', 'end-seek', 'on-seek']);
+
+const { actived, rootRef, pos, onMouseDown } = useMouse(props, emit);
+
+
+</script>

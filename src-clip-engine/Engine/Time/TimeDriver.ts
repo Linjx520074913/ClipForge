@@ -93,10 +93,10 @@ export class TimeDriver{
 
     /**
      * 
-     * @param time 单位（秒）
+     * @param timeMs 单位（毫秒）
      */
-    seek(time: number){
-        this.curTimeMs = Math.min(Math.max(time, 0), this.duration);
+    seek(timeMs: number){
+        this.curTimeMs = Math.min(Math.max(timeMs, 0), this.duration);
 
         const now = performance.now();
         // 重新计算基准时间，保证时间连续

@@ -18,9 +18,7 @@ export function useWebAV(){
 
     async function seek(us: number){
         const { state, video } = await clip.tick(us);
-        
         if(state === 'success' && video){
-            console.error('seedss', state, video)
             videoTrack.render(video);
             video.close();
         }
@@ -30,6 +28,23 @@ export function useWebAV(){
         setVideoTrack,
         loadMediaSource,
         seek
+    }
+}
+
+export function useClipEngine(){
+    
+    let engine: ClipEngine | null = null;
+    let videoTrack: VideoTrack | null = null;
+
+    async function initClipEngine(): Promise<ClipEngine>{
+        const engine = await ClipEngine.create();
+        return engine;
+    }
+
+    return{
+        engine,
+        videoTrack,
+        initClipEngine
     }
 }
 

@@ -51,15 +51,21 @@ export function useClipEngine(){
         });
         timeDriver.value.on('tick', async (timeMs: number) => {
             curTime.value = timeMs;
+            console.error('================tick');
             videoRef.value.forEach(async (video: any, i: any) => {
                 video.seek(timeMs * 1000);
             });
         });
     }
 
+    function seek(timeMs: number){
+        timeDriver.value?.seek(timeMs);
+    }
+
     return{
         engine,
         curTime,
+        seek,
         timeDriver,
         initClipEngine
     }
