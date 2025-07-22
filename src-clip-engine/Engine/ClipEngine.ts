@@ -17,7 +17,7 @@ export class ClipEngine{
 
     private constructor(ctx: GPUContext){
         this.ctx = ctx;
-        this.timeDriver = new TimeDriver(999999999);
+        this.timeDriver = new TimeDriver(30000);
     }
 
     static async create(): Promise<ClipEngine>{
