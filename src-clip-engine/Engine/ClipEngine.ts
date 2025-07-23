@@ -14,6 +14,7 @@ export class ClipEngine{
     private timeDriver: TimeDriver;
 
     private eventBus: EventBus<EngineEvent>;
+    
 
     private tracks: BaseTrack[] = [];
 

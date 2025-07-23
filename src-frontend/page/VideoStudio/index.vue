@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { VideoStudio } from "../../store/dataStore";
+import { VideoStudio } from "../../store/videostudio";
 
 import { 
     useTimeline, 

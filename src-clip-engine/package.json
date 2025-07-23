@@ -12,5 +12,8 @@
   },
   "scripts": {
     "test": "npx jest"
+  },
+  "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15"
   }
 }
