@@ -9,16 +9,4 @@ export { TimeDriver } from "./Time/TimeDriver";
 
 export { Utils } from './Utils';
 
-export {
-    ProjectSchema,
-    TrackSchema,
-    ClipSchema,
-    ClipTrimSchema,
-    ClipSpeedSchema,
-    ClipEffectSchema,
-    TrackEffectSchema,
-    TransformationSchema,
-    ShaderParamPack,
-    ShaderParamEntry,
-    ShaderSpecSchema,
-} from "./Schema";
+export * from "./Schema";

@@ -1,5 +1,6 @@
 import { computed, ref } from "vue";
 import { ClipEngine, TimeDriver } from "clip-engine";
+import { Project } from './project';
 
 type onTimeTick = (timeMs: number) => void;
 
@@ -10,19 +11,32 @@ const VideoStudioRef = ref({
     },
     methods:{
         async initialize(tick: onTimeTick){
-            VideoStudio.data.clipEngine = await ClipEngine.create();
+            
+            function initProject(){
+                Project.methods.create('TestSample');
+                Project.methods.addVideoTrack();
+                Project.methods.addVideoTrack();
+                Project.methods.addAudioTrack();
+            }
 
-            const data = VideoStudio.data;
-            data.clipEngine.on('time:start', (timeMs: number) => {
-            });
-            data.clipEngine.on('time:pause', (timeMs: number) => {
-            });
-            data.clipEngine.on('time:stop', (timeMs: number) => {
-            });
-            data.clipEngine.on('time:tick', (timeMs: number) => {
-                data.curTimeMs = timeMs;
-                tick(timeMs);
-            });
+            async function initClipEngine(tick: onTimeTick){
+                VideoStudio.data.clipEngine = await ClipEngine.create();
+
+                const data = VideoStudio.data;
+                data.clipEngine.on('time:start', (timeMs: number) => {
+                });
+                data.clipEngine.on('time:pause', (timeMs: number) => {
+                });
+                data.clipEngine.on('time:stop', (timeMs: number) => {
+                });
+                data.clipEngine.on('time:tick', (timeMs: number) => {
+                    data.curTimeMs = timeMs;
+                    tick(timeMs);
+                });
+            }
+
+            initProject();
+            await initClipEngine(tick); 
         },
         start(){
             VideoStudio.data.clipEngine!.getTimeDriver().start();
