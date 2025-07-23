@@ -30,13 +30,11 @@ export const ShaderSpecSchema = z.object({
     enabled: z.boolean()
 });
 
-export type ShaderSpec = z.infer<typeof ShaderSpecSchema>;
-
 /**
  * 用法示例
- * import { ShaderSpec } from 'clip-engine';
+ * import { ShaderSpecSchema } from 'clip-engine';
  * 
- * const shader: ShaderSpec = {
+ * const shader: ShaderSpecSchema = {
  *  name: 'OldFilm',
  *  code: '...',
  *  enabled: true,

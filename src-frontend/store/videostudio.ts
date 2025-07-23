@@ -25,15 +25,12 @@ const VideoStudioRef = ref({
             });
         },
         start(){
-            console.error('======start');
             VideoStudio.data.clipEngine!.getTimeDriver().start();
         },
         pause(){
-            console.error('======pause');
             VideoStudio.data.clipEngine!.getTimeDriver().pause();
         },
         stop(){
-            console.error('======stop');
             VideoStudio.data.clipEngine!.getTimeDriver().stop();
         },
         async seek(timeMs: number){
