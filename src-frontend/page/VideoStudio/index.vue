@@ -35,7 +35,7 @@
                                     :src="layer.source.uri" 
                                     @mousedown="layer.active = true"
                                     :size="layer.size"
-                                    :engine="engine"/>
+                                    :engine="VideoStudio.data.clipEngine"/>
                                 <img class="object-contain w-full h-full" 
                                     v-if="layer.type == 'image'" 
                                     :src="layer.source.uri" 
@@ -58,8 +58,8 @@
             <!-- 时间轴 -->
             <TimeLine class="w-full flex-1" 
                 v-model:playing="playing"
-                :curTime="curTime"
-                @onSeek="seek"/>
+                :curTime="VideoStudio.data.curTimeMs"
+                @onSeek="VideoStudio.methods.seek"/>
         </div>
         <!-- 分割线 -->
         <div class="resize w-[7px] h-full"></div>
@@ -72,6 +72,7 @@
 </template>
 
 <script setup lang="ts">
+import { VideoStudio } from "../../store/dataStore";
 
 import { 
     useTimeline, 
@@ -85,9 +86,7 @@ import {
     useClipEngine,
 } from './index';
 
-import { ClipEngine, VideoTrack, ILayer } from 'clip-engine';
-
-import { ShaderDescription } from 'clip-engine';
+import { VideoTrack, ILayer, ShaderDescription } from 'clip-engine';
 
 import { defineOptions, ref, onMounted, onBeforeUnmount, watch, Ref } from 'vue';
 defineOptions({ name: 'VideoStudio' });
@@ -109,7 +108,6 @@ let {
 
 const { playing } = useTimeline();
 
-
 const { 
     coverRef,
     globalDragging,
@@ -120,9 +118,6 @@ const {
     addGlobalDragEvent, 
     removeGlobalDragEvent
 } = useDrag();
-
-let { engine, initClipEngine, timeDriver, curTime, seek } = useClipEngine();
-
 
 let preShaderDescs: ShaderDescription[] = [];
 
@@ -165,19 +160,24 @@ function onUpdateShader(s: ShaderDescription){
  * @param playing 
  */
 watch(() => playing, (val: Ref<boolean>) => {
-    if(!init.value || engine.value == null) return;
+    if(!init.value) return;
 
     if(val.value){
-        engine.value.getTimeDriver().start();
+        VideoStudio.methods.start();
     }else{
-        engine.value.getTimeDriver().pause();
+        VideoStudio.methods.pause();
     }
     
 }, { deep: true, immediate: true });
 
 onMounted(async () => { 
     init.value = true;
-    await initClipEngine(videoRef);
+    function onTick(timeMs: number){
+        videoRef.value.forEach(async (video: any, i: any) => {
+            video.seek(timeMs * 1000);
+        });
+    }
+    await VideoStudio.methods.initialize(onTick);
     addResizeObserver();
     addGlobalDragEvent();
 });

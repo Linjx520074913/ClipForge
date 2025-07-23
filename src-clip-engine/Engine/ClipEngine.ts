@@ -2,7 +2,7 @@ import { TrackRenderer } from './TrackRenderer';
 import { GPUContext } from './GPUContext';
 import { BaseTrack } from './Track/BaseTrack';
 import { TimeDriver } from './Time/TimeDriver';
-
+import { EngineEvent, EventBus } from './EventBus';
 class TrackGraph{
 
 }
@@ -13,11 +13,19 @@ export class ClipEngine{
     // private trackGraph: TrackGraph;
     private timeDriver: TimeDriver;
 
+    private eventBus: EventBus<EngineEvent>;
+
     private tracks: BaseTrack[] = [];
 
     private constructor(ctx: GPUContext){
         this.ctx = ctx;
         this.timeDriver = new TimeDriver(30000);
+        this.eventBus = new EventBus<EngineEvent>();
+
+        this.timeDriver.on('start', (time) => this.eventBus.emit('time:start', time));
+        this.timeDriver.on('pause', (time) => this.eventBus.emit('time:pause', time));
+        this.timeDriver.on('stop',  (time) => this.eventBus.emit('time:stop',  time));
+        this.timeDriver.on('tick',  (time) => this.eventBus.emit('time:tick',  time));
     }
 
     static async create(): Promise<ClipEngine>{
@@ -61,5 +69,13 @@ export class ClipEngine{
             this.tracks[i].render(texture);
         }
         texture.destroy();
+    }
+
+    on<K extends keyof EngineEvent>(event: K, callback: (payload: EngineEvent[K]) => void) {
+        this.eventBus.on(event, callback);
+    }
+
+    off<K extends keyof EngineEvent>(event: K, callback: (payload: EngineEvent[K]) => void) {
+        this.eventBus.off(event, callback);
     }
 }

@@ -21,55 +21,6 @@ import { TimeDriver } from "src-clip-engine/Engine/Time/TimeDriver";
 
 const layers: Ref<ILayer[]> = ref([]);
 
-export function useClipEngine(){
-    
-    const engine = ref<ClipEngine | null>(null);
-    const timeDriver = ref<TimeDriver | null>(null);
-    let videoRef = ref([]);
-
-    const curTime = ref(0);
-
-    async function initClipEngine(vf: ref[]){
-        videoRef = vf;
-        engine.value = await ClipEngine.create();
-        timeDriver.value = engine.value.getTimeDriver();
-        timeDriver.value.on('start', (time?: number) => {
-            console.error('########### timeDriver start', time);
-            curTime.value = time;
-        });
-        timeDriver.value.on('pause', (time?: number) => {
-            console.error('########### timeDriver pause', time);
-            curTime.value = time;
-        });
-        timeDriver.value.on('stop', (time?: number) => {
-            console.error('########### timeDriver stop', time);
-            curTime.value = time;
-        });
-        timeDriver.value.on('ended', (time?: number) => {
-            console.error('########### timeDriver ended', time);
-            curTime.value = time;
-        });
-        timeDriver.value.on('tick', async (timeMs: number) => {
-            curTime.value = timeMs;
-            videoRef.value.forEach(async (video: any, i: any) => {
-                video.seek(timeMs * 1000);
-            });
-        });
-    }
-
-    function seek(timeMs: number){
-        timeDriver.value?.seek(timeMs);
-    }
-
-    return{
-        engine,
-        curTime,
-        seek,
-        timeDriver,
-        initClipEngine
-    }
-}
-
 export function useVideoStudio(){
     // 视频编辑器初始化状态
     const init = ref(false);

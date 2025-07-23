@@ -52,7 +52,6 @@ function updateEffect(desc: ShaderDescription){
 
 onMounted(async () => {
     const id = uuidv4();
-    
     videoTrack = new VideoTrack(`video-track-${id}`, props.engine.getContext(), canvasRef.value);
     setVideoTrack(videoTrack);
 
