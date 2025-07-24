@@ -30,6 +30,7 @@
             "@frontend/router*":      ["src-frontend/router/*"       ],
             "@frontend/store*":       ["src-frontend/store/*"        ],
             "@frontend/page/*":       ["src-frontend/page/*"         ],
+            "@frontend/pages/*":      ["src-frontend/pages/*"        ],
             "clip-engine":            ["src-clip-engine"             ]
         }
     },

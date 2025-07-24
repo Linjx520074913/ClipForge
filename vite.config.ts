@@ -1,7 +1,9 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import path from "path";
-import string from 'vite-plugin-string'
+import string from 'vite-plugin-string';
+
+import AutoImport from 'unplugin-auto-import/vite';
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
@@ -12,6 +14,10 @@ export default defineConfig(async () => ({
         vue(),
         string({
             include: ['**/*.wgsl']
+        }),
+        AutoImport({
+            imports: ['vue'],      
+            dts: 'src/auto-imports.d.ts',
         })
     ],
     resolve:{
@@ -23,6 +29,7 @@ export default defineConfig(async () => ({
             '@frontend/router':         path.resolve(__dirname, "src-frontend/router"),
             '@frontend/store':          path.resolve(__dirname, "src-frontend/store"),
             '@frontend/page':           path.resolve(__dirname, "src-frontend/page"),
+            '@frontend/pages':          path.resolve(__dirname, "src-frontend/pages"),
             '@frontend/components':     path.resolve(__dirname, "src-frontend/components"),
             'clip-engine':              path.resolve(__dirname, "src-clip-engine/"),
         }
