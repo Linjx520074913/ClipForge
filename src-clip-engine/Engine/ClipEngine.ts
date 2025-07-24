@@ -3,6 +3,8 @@ import { GPUContext } from './GPUContext';
 import { BaseTrack } from './Track/BaseTrack';
 import { TimeDriver } from './Time/TimeDriver';
 import { EngineEvent, EventBus } from './EventBus';
+import { AssetManager } from './AssetManager';
+import { getAsset } from 'node:sea';
 class TrackGraph{
 
 }
@@ -13,6 +15,8 @@ export class ClipEngine{
     // private trackGraph: TrackGraph;
     private timeDriver: TimeDriver;
 
+    private assetManager: AssetManager;
+
     private eventBus: EventBus<EngineEvent>;
     
 
@@ -21,6 +25,7 @@ export class ClipEngine{
     private constructor(ctx: GPUContext){
         this.ctx = ctx;
         this.timeDriver = new TimeDriver(30000);
+        this.assetManager = new AssetManager();
         this.eventBus = new EventBus<EngineEvent>();
 
         this.timeDriver.on('start', (time) => this.eventBus.emit('time:start', time));
@@ -36,6 +41,10 @@ export class ClipEngine{
 
     getContext(): GPUContext{
         return this.ctx;
+    }
+
+    getAssetManager(): AssetManager {
+        return this.assetManager;
     }
 
     addTrack(track: BaseTrack){

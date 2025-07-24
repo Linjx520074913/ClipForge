@@ -10,3 +10,5 @@ export { TimeDriver } from "./Time/TimeDriver";
 export { Utils } from './Utils';
 
 export * from "./Schema";
+
+export * from './AssetManager';

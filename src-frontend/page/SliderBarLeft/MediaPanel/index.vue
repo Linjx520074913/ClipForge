@@ -19,104 +19,37 @@
         </div>
         <!-- 分割线 -->
         <div class="w-full h-[1px] bg-gray-200"/>
-        <!-- 测试视频 -->
-        <div v-for="(item, index) in videoLayers" :key="index" class="px-[12px]">
+
+        <div v-for="(asset, index) in assetManager?.list()" :key="index" class="px-[12px]">
             <div class="flex flex-col hover:bg-gray-200 p-2 rounded-[10px]">
                 <video
                     muted
-                    :src="item.source.uri"
+                    :src="asset.url"
                     class="w-full h-[150px] rounded-[10px] mb-1 cursor-grab active:cursor-grabbing"
                     @mouseenter="($event.target as HTMLVideoElement).play()"
                     @mouseleave="handleMouseLeave"
                     draggable="true"
-                    @dragstart="(e) => handleDragStart(e, item)"
-                    />
-                <p class="text-[13px] text-gray-500">{{ item.label }}</p>
+                    @dragstart="(e) => handleDragStart(e, asset)"
+                />
             </div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { defineOptions, ref, Ref } from 'vue';
-import { ILayer } from 'clip-engine';
+import { defineOptions, ref, Ref, toRef, computed } from 'vue';
+import { Asset } from 'clip-engine';
 defineOptions({ name: 'MediaPanel' });
+import { VideoStudio } from '@frontend/store/videostudio';
 
 const selectAll = ref(false);
 
+const assetManager = computed(() => { return VideoStudio.data.clipEngine?.getAssetManager(); });
 
-const videoLayers: Ref<ILayer[]> = ref([
-    {
-        id: 'layer-001',
-        type: 'video',
-        label: '测试视频1',
-        source: {
-            id:   'video-001',
-            type: 'video',
-            uri:  '/sample_0.mp4',
-            width: 1920,
-            height:1080
-        },
-        zIndex: 10,
-        active: false,
-        size: {
-            w: 0,
-            h: 0
-        },
-        pos: {
-            x: 0,
-            y: 0
-        }
-    },
-    {
-        id:    'layer-002',
-        type:  'video',
-        label: '测试视频2',
-        source: {
-            id:   'video-001',
-            type: 'video',
-            uri:  '/sample_1.mp4',
-            width: 1920,
-            height:1080
-        },
-        zIndex: 2,
-        active: false,
-        size: {
-            w: 0,
-            h: 0
-        },
-        pos: {
-            x: 0,
-            y: 0
-        }
-    },
-    {
-        id:    'layer-003',
-        type:  'video',
-        label: '测试视频3',
-        source: {
-            id:   'video-003',
-            type: 'video',
-            uri:  '/sample_2.mp4',
-            width: 1920,
-            height:1080
-        },
-        zIndex: 2,
-        active: false,
-        size: {
-            w: 0,
-            h: 0
-        },
-        pos: {
-            x: 0,
-            y: 0
-        }
-    }
-]);
-
-function handleDragStart(event: DragEvent, item: ILayer){
+function handleDragStart(event: DragEvent, asset: Asset){
+    console.error('=========', asset)
     // dataTransfer 不能传对象，要先序列化
-    event.dataTransfer?.setData('application/json', JSON.stringify(item));
+    event.dataTransfer?.setData('application/json', JSON.stringify(asset));
 }
 
 function handleMouseLeave(e: any){

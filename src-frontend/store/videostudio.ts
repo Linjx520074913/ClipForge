@@ -12,11 +12,43 @@ const VideoStudioRef = ref({
     methods:{
         async initialize(tick: onTimeTick){
             
+            /**
+             * 初始化资源
+             */
+            function initAssets(){
+                const assetManager = VideoStudio.data.clipEngine?.getAssetManager();
+                // TODO: 这里的 asset 信息需要先解析出来
+                assetManager?.register({
+                    id: 'asset-0',
+                    type: 'video',
+                    label: '狮子',
+                    url: '/sample_0.mp4',
+                    duration: 37000,
+                    width: 1920,
+                    height: 1080
+                });
+                assetManager?.register({
+                    id: 'asset-1',
+                    type: 'video',
+                    label: '兔子',
+                    url: '/sample_1.mp4',
+                    duration: 2000,
+                    width: 1920,
+                    height: 1080
+                });
+                assetManager?.register({
+                    id: 'asset-2',
+                    type: 'video',
+                    label: '雪',
+                    url: '/sample_2.mp4',
+                    duration: 2000,
+                    width: 1920,
+                    height: 1080
+                })
+            }
+
             function initProject(){
                 Project.methods.create('TestSample');
-                Project.methods.addVideoTrack();
-                Project.methods.addVideoTrack();
-                Project.methods.addAudioTrack();
             }
 
             async function initClipEngine(tick: onTimeTick){
@@ -36,7 +68,8 @@ const VideoStudioRef = ref({
             }
 
             initProject();
-            await initClipEngine(tick); 
+            await initClipEngine(tick);
+            initAssets();
         },
         start(){
             VideoStudio.data.clipEngine!.getTimeDriver().start();

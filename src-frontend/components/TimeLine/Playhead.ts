@@ -4,11 +4,9 @@ export function useMouse(props: any, emit: any){
     const actived = ref(false);
     const rootRef = ref();
 
-    // 一秒有多少像素
-    let pxPerSec = 30;
     // 当前时间对应的位置
     let pos = computed(() => {
-        return `${props.timeMs / 1000 * pxPerSec}px`;
+        return `${props.timeMs / 1000 * props.pxPerSec}px`;
     });
 
     function onMouseDown(e: MouseEvent){
@@ -29,7 +27,7 @@ export function useMouse(props: any, emit: any){
         const offsetX = e.clientX - parent.getBoundingClientRect().left - parent.scrollLeft;
         
         // 计算当前秒数
-        let time = (offsetX / pxPerSec) * 1000;
+        let time = (offsetX / props.pxPerSec) * 1000;
         time = time > 0 ? time : 0;
         emit('update:time-ms', time);
         emit('on-seek', time);

@@ -1,6 +1,6 @@
 <template>
-    <div class="flex flex-row w-full">
-        <div class="flex flex-col flex-1 overflow-hidden min-w-[300px] rounded-[15px] shadow-sm border bg-white">
+    <div class="flex flex-row w-full h-full">
+        <div class="flex flex-col flex-1 min-w-[300px] h-screen rounded-[15px] shadow-sm border bg-white">
             <!-- 主渲染区域 -->
             <div class="stage-canvas w-full h-3/4 relative border-b border-b-gray-300 grid place-items-center" 
                 ref="stageCanvasRef">
@@ -56,7 +56,7 @@
                 </div>
             </div>
             <!-- 时间轴 -->
-            <TimeLine class="w-full flex-1" 
+            <TimeLine class="w-full h-1/4" 
                 v-model:playing="playing"
                 :curTime="VideoStudio.data.curTimeMs"
                 @onSeek="VideoStudio.methods.seek"/>

@@ -1,7 +1,9 @@
 <template>
-    <div class="flex flex-col">
+    <div 
+        class="flex flex-col"
+    >
         <!-- 控制条 -->
-        <div class="w-full bg-gray-100 h-[40px] flex items-center justify-center">
+        <div class="w-full h-[40px] flex items-center justify-center">
             <!-- 播放暂停按钮 -->
             <span @click="emit('update:playing', !playing)"
                 class="material-icons text-[40px] cursor-pointer hover:scale-110 transition-all duration-250 hover:text-purple">
@@ -9,40 +11,71 @@
             </span>
             <div class="text-[12px]">{{ curTimeFormatted }} / 0:00:00</div>
         </div>
-        <!-- 时间轴视图 -->
-        <div class="w-full h-full relative flex p-[10px] test">
-            <!-- 时间尺子 -->
-            <div class="w-full bg-green-200 h-[24px] absolute z-20"></div>
-            <!-- 播放头 -->
-            <Playhead 
-                class="absolute z-30" :timeMs="props.curTime" 
-                @startSeek="(time) => { emit('start-seek', time); }"
-                @onSeek="(time) => emit('on-seek', time)"
-                @endSeek="(time) => emit('end-seek', time)"/>
-            <!-- 轨道 -->
-            <div class="w-full h-full z-31">
-                轨道
+        <div class="w-full h-[280px] px-[10px] flex flex-col mb-[10px] relative">
+            <div class="w-full min-h-[24px] mb-2 relative">
+                <!-- 时间尺子 -->
+                <canvas ref="rulerRef" class="w-full h-[24px]"/>
+                <!-- 播放头 -->
+                <Playhead 
+                    class="absolute z-40" 
+                    :timeMs="props.curTime"
+                    :pxPerSec="pxPerSec" 
+                    @startSeek="(time) => { emit('start-seek', time); }"
+                    @onSeek="(time) => emit('on-seek', time)"
+                    @endSeek="(time) => emit('end-seek', time)"/>
+            </div>
+            
+            <!-- 时间轴视图 -->
+            <div class="w-full h-[200px] flex-col flex justify-center space-y-1 overflow-y-scroll py-[10px]">
+                <!-- 轨道 -->
+                <div
+                    v-for="(track, index) in Project.data.project?.tracks" :key="index"
+                    class="w-full h-[52px] bg-[#F5F5FA] relative"
+                >
+                    <!-- 绘制 clip 片段 -->
+                    <div
+                        v-for="(clip, index) in track.clips"
+                        class="h-full bg-black absolute rounded-md"
+                        :style="{ 
+                            left: `${clip.startTime / 1000 * pxPerSec}px`, 
+                            width: `${clip.duration / 1000 * pxPerSec}px`, 
+                            willChange: 'left' 
+                        }"
+                    >
+                        <p>{{ clip.startTime}}</p>
+                        <p>{{ clip.duration}}</p>
+                    </div>
+                </div>
             </div>
         </div>
+        
     </div>
 </template>
 
 <script setup lang="ts">
-import { defineOptions, defineProps, defineEmits, ref, computed, watch } from 'vue';
+import { defineOptions, defineProps, defineEmits, ref, computed, watch, onMounted } from 'vue';
 import { Utils } from 'clip-engine';
 
 import Playhead from './Playhead.vue';
 
+import { Project } from '@frontend/store/project';
+import { useTimeline } from './index';
+
 defineOptions({ name: 'TimeLine' });
 const props = defineProps({
     curTime: { type: Number, default: 0 },
-    duration: { type: Number, default: 0 },
+    duration: { type: Number, default: 30000 },
     playing: { type: Boolean, default: false }
 });
 const emit = defineEmits(['update:playing', 'start-seek', 'on-seek', 'end-seek']);
 
 const curTimeFormatted = computed(() => {
     return Utils.formatTime(props.curTime);
+});
+const { rulerRef, pxPerSec, drawRuler } = useTimeline(props.duration);
+
+onMounted(() => {
+    drawRuler();
 });
 
 </script>   

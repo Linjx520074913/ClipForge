@@ -16,8 +16,9 @@ import {
     VideoPlayer
 } from '@frontend/components/index'
 
-import { ClipEngine, ILayer } from "clip-engine";
+import { Asset, ClipEngine, ILayer } from "clip-engine";
 import { TimeDriver } from "src-clip-engine/Engine/Time/TimeDriver";
+import { Project } from "@frontend/store/project";
 
 const layers: Ref<ILayer[]> = ref([]);
 
@@ -144,7 +145,7 @@ export function useDrag(){
     const coverRef = ref<HTMLDivElement | null>(null);
 
     // 拖拽元素携带的数据
-    const draggintData = ref<ILayer>(null);
+    const draggintData = ref<Asset>(null);
 
     // 拖拽元素在父容器中的尺寸
     let tw, th;
@@ -167,7 +168,7 @@ export function useDrag(){
         const parent = coverRef.value.parentElement as HTMLElement;
         
         // 保持拖拽元素的比例，在父容器中找到最大的尺寸
-        const ratio = draggintData.value.source.width / draggintData.value.source.height;
+        const ratio = draggintData.value.width / draggintData.value.height;
 
         tw = parent.clientWidth;
         th = tw / ratio;
@@ -194,10 +195,10 @@ export function useDrag(){
         const data = e.dataTransfer?.getData('application/json');
         if(!data) return;
 
-        const layer: ILayer = JSON.parse(data);
-        draggintData.value = layer;
+        const asset: Asset = JSON.parse(data);
+        draggintData.value = asset;
 
-        if(layer.source.width == 0 || layer.source.height == 0){
+        if(asset.width == 0 || asset.height == 0){
             console.error('拖拽元素未设置宽高属性');
         }
     }
@@ -230,18 +231,23 @@ export function useDrag(){
         const data = e.dataTransfer?.getData('application/json');
         if(!data) return;
 
-        try {
-            const layer: ILayer = JSON.parse(data);
-            layer.size.w = tw;
-            layer.size.h = th;
-            layer.pos.x  = tx;
-            layer.pos.y  = ty;
-            // 添加到 layers 中
-            layers.value.push(layer);
-            console.error('===============', layer)
-        } catch (e) {
-            console.error('数据解析失败', e);
-        }
+        // 添加轨道
+        const asset: Asset = JSON.parse(data);
+        
+        Project.methods.addVideoTrack(asset);
+        console.error("===============", Project.data.project);
+        // try {
+        //     const asset: Asset = JSON.parse(data);
+        //     layer.size.w = tw;
+        //     layer.size.h = th;
+        //     layer.pos.x  = tx;
+        //     layer.pos.y  = ty;
+        //     // 添加到 layers 中
+        //     layers.value.push(layer);
+        //     console.error('===============', layer)
+        // } catch (e) {
+        //     console.error('数据解析失败', e);
+        // }
     }
 
     function onDragLeave(e: DragEvent){
