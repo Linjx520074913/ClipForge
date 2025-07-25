@@ -29,7 +29,7 @@
             <div class="w-full h-[200px] flex-col flex justify-center space-y-1 overflow-y-scroll py-[10px]">
                 <!-- 轨道 -->
                 <div
-                    v-for="(track, index) in Project.data.project?.tracks" :key="index"
+                    v-for="(track, index) in VideoStudio.data.clipEngine?.project?.tracks" :key="index"
                     class="w-full h-[52px] bg-[#F5F5FA] relative"
                 >
                     <!-- 绘制 clip 片段 -->
@@ -58,8 +58,9 @@ import { Utils } from 'clip-engine';
 
 import Playhead from './Playhead.vue';
 
-import { Project } from '@frontend/store/project';
 import { useTimeline } from './index';
+
+import { VideoStudio } from '@frontend/store/videostudio';
 
 defineOptions({ name: 'TimeLine' });
 const props = defineProps({

@@ -12,3 +12,5 @@ export { Utils } from './Utils';
 export * from "./Schema";
 
 export * from './AssetManager';
+
+export * from './EventBus';

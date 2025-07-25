@@ -4,7 +4,10 @@ export const TransformationSchema = z.object({
     position: z.object({
         x: z.number(),                          // 水平位置（像素、百分比）
         y: z.number(),                          // 垂直位置（像素、百分比）
-        origin: z.enum(["top-left", "center"])  // 变换原点
+    }),
+    size: z.object({
+        w: z.number(),
+        h: z.number()
     }),
     scale: z.object({
         x: z.number(),                          // 水平缩放（1.0 = 100%）

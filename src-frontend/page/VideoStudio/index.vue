@@ -160,6 +160,7 @@ function onUpdateShader(s: ShaderDescription){
  * @param playing 
  */
 watch(() => playing, (val: Ref<boolean>) => {
+    console.error('FFFFFFFFFFF', val.value)
     if(!init.value) return;
 
     if(val.value){
@@ -168,7 +169,7 @@ watch(() => playing, (val: Ref<boolean>) => {
         VideoStudio.methods.pause();
     }
     
-}, { deep: true, immediate: true });
+});
 
 onMounted(async () => { 
     init.value = true;

@@ -1,6 +1,5 @@
 import { computed, ref } from "vue";
 import { ClipEngine, TimeDriver } from "clip-engine";
-import { Project } from './project';
 
 type onTimeTick = (timeMs: number) => void;
 
@@ -23,7 +22,7 @@ const VideoStudioRef = ref({
                     type: 'video',
                     label: '狮子',
                     url: '/sample_0.mp4',
-                    duration: 37000,
+                    duration: 5000,
                     width: 1920,
                     height: 1080
                 });
@@ -48,7 +47,7 @@ const VideoStudioRef = ref({
             }
 
             function initProject(){
-                Project.methods.create('TestSample');
+                VideoStudio.data.clipEngine?.createProject('Test-Sample');
             }
 
             async function initClipEngine(tick: onTimeTick){
@@ -67,9 +66,9 @@ const VideoStudioRef = ref({
                 });
             }
 
-            initProject();
             await initClipEngine(tick);
             initAssets();
+            initProject();
         },
         start(){
             VideoStudio.data.clipEngine!.getTimeDriver().start();

@@ -27,7 +27,8 @@ export default {
             warning: '#FBBF24', // amber-400
             danger: '#EF4444', // red-500
 
-            purple: '#892fff'
+            purple: '#892fff',
+            'dark-purple': '#6200D5'
         },
         },
     },

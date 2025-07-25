@@ -1,5 +1,6 @@
 <template>
-    <div :class="['flex flex-row', direction=='left'? '' : 'flex-row-reverse']">
+    <div :class="['flex flex-row h-full', direction=='left'? '' : 'flex-row-reverse']">
+        <!-- 导航栏 -->
         <div class="flex flex-col space-y-2 items-center w-[72px]">
             <div 
                 v-for="(item, index) in items" 
@@ -25,17 +26,21 @@
                 <span class="text-[10px]">{{ item.label }}</span>
             </div>
         </div>
+        <!-- 内容 -->
         <div 
-            class="h-full bg-white rounded-[15px] shadow-md transition-all duration-300 overflow-hidden"
+            class="h-full bg-[#FAFAFF] rounded-[15px] shadow-md transition-all duration-300 overflow-hidden"
             :style="{ width: isExpanded ? '300px' : '0px' }"
         >
             <div class="w-[300px] shrink-0">
                 <!-- drawer 标题 -->
                 <div class="w-full h-[40px] font-bold text-[15px] pt-[20px] pl-[16px] pr-[16px] mb-[16px] flex flex-row justify-between items-center">
                     <span>{{  activedItem.label }}</span>
-                    <span class="material-symbols-outlined cursor-pointer"
+                    <span 
+                        class="material-symbols-outlined cursor-pointer"
                         @click="isExpanded = false"    
-                    >menu_open</span>
+                    >
+                        menu_open
+                    </span>
                 </div>
                 <!-- drawer 内容区域 -->
                 <component class="w-full h-full" :is="activedItem.component" 

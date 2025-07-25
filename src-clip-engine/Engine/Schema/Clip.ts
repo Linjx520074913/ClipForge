@@ -4,12 +4,23 @@ import { ClipSpeedSchema } from "./ClipSpeed";
 import { TransformationSchema } from './Transformation';
 import { ClipEffectSchema } from './Effect';
 
+export type ClipOption = {
+    width: number,
+    height:number,
+    x:     number,
+    y:     number
+};
+
 export const ClipSchema = z.object({
     id: z.string(),
     name: z.string(),
     type: z.enum(['video', 'audio', 'image', 'text', 'transition']),
-    assedId: z.string().nullable(),
-    trackId: z.string(),
+    assetID: z.string().nullable(),
+    trackID: z.string(),
+
+    isVisible: z.boolean(),
+    isLocked:  z.boolean(),
+    isEditing: z.boolean(),
 
     // 时间属性
     startTime: z.number(),     // 时间轴上的开始时间（毫秒）
