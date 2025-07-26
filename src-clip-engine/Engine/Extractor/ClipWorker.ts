@@ -39,10 +39,9 @@ self.onmessage = async (e: MessageEvent<ClipWorkerRequest>) => {
                     const frame = await getFrame(msg.time);
                     if(frame){
                         self.postMessage(
-                            { type: 'frame', frame: frame.clone() },
+                            { type: 'frame', frame: frame },
                             [ frame ]
                         );
-                        frame.close();
                     }else{
                         self.postMessage(
                             { type: 'frame', frame: null }

@@ -36,14 +36,14 @@ function updateAnchorStyle(root: Ref<HTMLElement | null>, props: any, style: Ref
 
     const el0 = root.value?.firstElementChild?.firstElementChild;
     const el1 = el0?.firstElementChild;
+
+    console.error('FFFFFFFFFFFFFF', el0, rect.width, rect.height)
     
-    if (el0 && el1) {
-      el0.style.width = `${rect.width}px`;
-      el0.style.height = `${rect.height}px`;
+    // if (el0) {
     
-      el1.style.width = `${rect.width}px`;
-      el1.style.height = `${rect.height}px`;
-    }
+    //   el0.style.width = `${rect.width}px`;
+    //   el0.style.height = `${rect.height}px`;
+    // }
 
 }
 

@@ -64,7 +64,7 @@ export class BaseTrack{
 
     render(input: GPUTexture | VideoFrame){
         if(!input) throw new Error('[ TrackRenderer ] input is empty');
-        
+
         if(this.rendering) return;
         
         this.rendering = true;
@@ -74,10 +74,10 @@ export class BaseTrack{
         const w = isVideoFrame? input.displayWidth: input.width;
         const h = isVideoFrame? input.displayHeight:input.height;
 
-        console.error('$$$$$$$$$$$$', w, h)
         const effectChainOutputTex = this.texturePool.getReusableTexture(w, h);
         if(isVideoFrame){
             const texture = this.texturePool.getReusableTexture(w, h, this.id);
+            console.error('*****************', input, w, h)
             this.gputContext.device.queue.copyExternalImageToTexture(
                 { source: input },
                 { texture },
@@ -87,7 +87,10 @@ export class BaseTrack{
         }else{
             this.effectChain.process(input, effectChainOutputTex);
         }
-        
+
+        this.canvas.width = w;
+        this.canvas.height= h;
+
         // 把 effectChain 输出的纹理渲染到 canvas 上
         this.mainRenderUnit.process(effectChainOutputTex, this.canvasCtx.getCurrentTexture());
         this.rendering = false;

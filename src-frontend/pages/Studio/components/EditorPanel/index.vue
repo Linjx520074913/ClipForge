@@ -70,9 +70,7 @@
                                 <template #content>
                                     <canvas 
                                         ref="videoRef" :id="`${clip.id}`"
-                                        width="1920"
-                                        height="1080"
-                                        :style="{ width: '1920px', height: '1080px' }"
+                                        :style="{width: `${clip.transformation.size.w}px`, height: `${clip.transformation.size.h}px`}"
                                     />
                                 </template>
 

@@ -190,48 +190,54 @@ export class ClipEngine {
     this.addClipToTrack(trackID, clipInput);
   }
 
-  addClipToTrack(trackID: string, clip: z.input<typeof ClipSchema>): void {
-    const track = this.project.tracks.find((track) => track.id === trackID);
-    if (!track) {
-      throw new Error("Track not found");
-    }
-    track.clips.push(clip);
+	addClipToTrack(trackID: string, clip: z.input<typeof ClipSchema>): void {
+		const track = this.project.tracks.find((track) => track.id === trackID);
+		if (!track) {
+		throw new Error("Track not found");
+		}
+		track.clips.push(clip);
 
-    const extractor = new ClipFrameExtractor();
-    // TODO: 根据 assetID 查找对应的 url
-    // extractor.initialize(clip.assetID);
-    extractor.initialize("/sample_0.mp4");
-    this.frameExtractors.set(clip.id, extractor);
+		const extractor = new ClipFrameExtractor();
+		// TODO: 根据 assetID 查找对应的 url
+		// extractor.initialize(clip.assetID);
+		const url = this.assetManager.get(clip.assetID!)?.url;
+		if(!url){
+			throw new Error(`[ ClipEngine ] : get asset failed ${clip.id}`);
+		}
+		extractor.initialize(url);
+		this.frameExtractors.set(clip.id, extractor);
 
-    const name = `${trackID}:${clip.id}`;
+		const name = `${trackID}:${clip.id}`;
 
-    // this._tracks.set(name, new VideoTrack(name, this.ctx, canvas));
-  }
+		// this._tracks.set(name, new VideoTrack(name, this.ctx, canvas));
+	}
 
-  render(time: number) {
-    this._project.tracks.forEach((track) => {
-      track.clips.forEach(async (clip) => {
-        clip.isVisible =
-          clip.startTime <= time && clip.startTime + clip.duration >= time;
-        if (clip.isVisible) {
-          const extractor = this.frameExtractors.get(clip.id);
-          if (extractor) {
-            const frame = await extractor.getFrame(time - clip.startTime);
-            if (frame) {
-              if (this._tracks.values().size === 0) {
-                console.error(
-                  "[ ClipEngine ] render: not found any track to render"
-                );
-              }
-
-              for (let c of this._tracks.values()) {
-                c.render(frame);
-              }
-              frame?.close();
-            }
-          }
-        }
-      });
-    });
-  }
+	render(time: number) {
+		this._project.tracks.forEach((track) => {
+			track.clips.forEach(async (clip) => {
+				clip.isVisible =
+				clip.startTime <= time && clip.startTime + clip.duration >= time;
+				if (clip.isVisible) {
+					const extractor = this.frameExtractors.get(clip.id);
+					if (extractor) {
+						const frame = await extractor.getFrame(time - clip.startTime);
+						
+						if (frame && frame.format != null) {
+							if (this._tracks.values().size === 0) {
+								console.error(
+								"[ ClipEngine ] render: not found any track to render"
+								);
+							}
+								// console.error('1111111#$#$##$$', frame);
+							for (let c of this._tracks.values()) {
+									// console.error('++++++++++', frame)
+									c.render(frame);
+							}
+							frame?.close();
+						}
+					}
+				}
+			});
+		});
+	}
 }

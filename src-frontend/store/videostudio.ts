@@ -21,13 +21,13 @@ const VideoStudioRef = ref({
             const assetManager = VideoStudio.data.clipEngine?.getAssetManager();
             // TODO: 这里的 asset 信息需要先解析出来
             assetManager?.register({
-            id: "asset-0",
-            type: "video",
-            label: "狮子",
-            url: "/sample_0.mp4",
-            duration: 5000,
-            width: 1920,
-            height: 1080,
+              id: "asset-0",
+              type: "video",
+              label: "狮子",
+              url: "/sample_2.mp4",
+              duration: 30000,
+              width: 1920,
+              height: 1080,
             });
             assetManager?.register({
             id: "asset-1",
