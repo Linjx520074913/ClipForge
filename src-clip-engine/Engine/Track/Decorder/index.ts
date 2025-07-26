@@ -11,7 +11,7 @@ export class TrackDecoder {
 
     }
 
-    async getFrame(timeMs: number): Promise {
+    async getFrame(timeMs: number): Promise<void> {
         // 解码
         this.worker.postMessage({});
     }
