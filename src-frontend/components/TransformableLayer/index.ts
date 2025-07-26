@@ -33,18 +33,6 @@ function updateAnchorStyle(root: Ref<HTMLElement | null>, props: any, style: Ref
         height: `${rect.height}px`,
         zIndex: props.zIndex
     };
-
-    const el0 = root.value?.firstElementChild?.firstElementChild;
-    const el1 = el0?.firstElementChild;
-
-    console.error('FFFFFFFFFFFFFF', el0, rect.width, rect.height)
-    
-    // if (el0) {
-    
-    //   el0.style.width = `${rect.width}px`;
-    //   el0.style.height = `${rect.height}px`;
-    // }
-
 }
 
 export { updateAnchorStyle }

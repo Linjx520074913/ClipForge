@@ -66,6 +66,7 @@
                                 ref="layersRef"
                                 :size="clip.transformation.size"
                                 :pos="clip.transformation.position"
+                                :class="[clip.isVisible? '' : 'hidden']"
                             >
                                 <template #content>
                                     <canvas 

@@ -30,7 +30,7 @@ export class ClipEngine {
 
   private _tracks: Map<string, BaseTrack> = new Map();
 
-  private frameExtractors: Map<ClipID, ClipFrameExtractor> = new Map();
+  private frameExtractors: Map<string, ClipFrameExtractor> = new Map();
 
   private constructor(ctx: GPUContext) {
     this.ctx = ctx;
@@ -76,8 +76,10 @@ export class ClipEngine {
   }
 
   bindClipCanvasToTrack(id: string, canvas: HTMLCanvasElement) {
+	
     const track = new VideoTrack(id, this.ctx, canvas);
     this._tracks.set(id, track);
+	console.error('bindClipCanvasToTrack', id, this._tracks)
   }
 
   getTimeDriver() {
@@ -205,11 +207,8 @@ export class ClipEngine {
 			throw new Error(`[ ClipEngine ] : get asset failed ${clip.id}`);
 		}
 		extractor.initialize(url);
+		console.error('#####################', clip.id)
 		this.frameExtractors.set(clip.id, extractor);
-
-		const name = `${trackID}:${clip.id}`;
-
-		// this._tracks.set(name, new VideoTrack(name, this.ctx, canvas));
 	}
 
 	render(time: number) {
@@ -228,11 +227,8 @@ export class ClipEngine {
 								"[ ClipEngine ] render: not found any track to render"
 								);
 							}
-								// console.error('1111111#$#$##$$', frame);
-							for (let c of this._tracks.values()) {
-									// console.error('++++++++++', frame)
-									c.render(frame);
-							}
+							console.error('###### render ######', this._tracks);
+							this._tracks.get(clip.id)!.render(frame);
 							frame?.close();
 						}
 					}
