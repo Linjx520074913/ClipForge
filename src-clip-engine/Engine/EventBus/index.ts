@@ -12,6 +12,9 @@ export type EngineEvent = {
     'time:seek':  { curTimeMs: number };
     'time:ended': void;
     'time:tick':  { curTimeMs: number };
+
+    // 帧相关
+    'frame:update': { clipID: string, trackID: string, frame: VideoFrame };
 };
 
 export class EventBus<Events extends Record<string, any>>{

@@ -18,7 +18,7 @@ export function useVideoStudio(){
     // 储存所有图层（视频、音频、图像、文本）的引用
     const layersRef = ref([]);
 
-    const videoRef = ref([]);
+    const videoRef = ref<HTMLCanvasElement>([]);
 
     const stageCanvasRef = ref<HTMLElement | null>();
     const canvasContainerRef = ref<HTMLElement | null>();
@@ -212,7 +212,7 @@ export function useDrag(){
 
         // 添加轨道
         const asset: Asset = JSON.parse(data);
-        
+         
         VideoStudio.data.clipEngine.addVideoTrack(asset, { width: tw, height: th, x: tx, y: ty });
 
         console.error('#########',  VideoStudio.data.clipEngine)

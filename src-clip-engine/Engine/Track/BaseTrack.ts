@@ -74,6 +74,7 @@ export class BaseTrack{
         const w = isVideoFrame? input.displayWidth: input.width;
         const h = isVideoFrame? input.displayHeight:input.height;
 
+        console.error('$$$$$$$$$$$$', w, h)
         const effectChainOutputTex = this.texturePool.getReusableTexture(w, h);
         if(isVideoFrame){
             const texture = this.texturePool.getReusableTexture(w, h, this.id);

@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-row h-full">
+    <div class="flex flex-row">
         <!-- 主体区域：左右三栏布局 -->
         <AssetsPanel/>
         <div class="resize w-[7px] h-full"/>
@@ -18,12 +18,5 @@ import {
 } from './components/index';
 
 defineOptions({ name: 'Studio' });
-
-onMounted(async () => {
-    function onTick(timeMs: number) {
-        
-    }
-    await VideoStudio.methods.initialize(onTick);
-});
 
 </script>

@@ -56,6 +56,7 @@
                         <div
                             v-for="(track, tidx) in VideoStudio.data.clipEngine?.project?.tracks" :key="tidx"
                         >
+                            <!-- TODO resize 的时候要同步修改 size 和 pos -->
                             <TransformableLayer
                                 v-for="(clip, cidx) in track.clips" :key="cidx"
                                 v-if="canvasContainerRef"
@@ -67,15 +68,12 @@
                                 :pos="clip.transformation.position"
                             >
                                 <template #content>
-                                    <VideoPlayer
-                                        ref="videoRef"
-                                        v-if="clip.type == 'video' && clip.isVisible"
-                                        :src="clip.assedId"
-                                        @mousedown="clip.isEditing = true"
-                                        :size="clip.transformation.size"
-                                        :engine="VideoStudio.data.clipEngine"
-                                    >
-                                    </VideoPlayer>
+                                    <canvas 
+                                        ref="videoRef" :id="`${clip.id}`"
+                                        width="1920"
+                                        height="1080"
+                                        :style="{ width: '1920px', height: '1080px' }"
+                                    />
                                 </template>
 
                             </TransformableLayer>
@@ -114,6 +112,7 @@ import {
 } from './index';
 
 import EditorToolbar from './EditorToolbar/index.vue';
+import { string } from 'zod';
 
 defineOptions({ name: 'EditorPanel' });
 
@@ -193,7 +192,43 @@ watch(() => playing, (val: Ref<boolean>) => {
     
 }, { deep: true });
 
-onMounted(() => {
+watch(
+    () => [...videoRef.value],
+    (newCanvases, oldCanvases = []) => {
+        // 1. 生成ID映射（假设每个canvas有唯一id）
+        const newIds = new Set(newCanvases.map(c => c.id));
+        const oldIds = new Set(oldCanvases.map(c => c.id));
+
+        // 2. 找出新增元素（在新不在旧）
+        const added = newCanvases.filter(c => !oldIds.has(c.id));
+        
+        // 3. 找出删除元素（在旧不在新）
+        const removed = oldCanvases.filter(c => !newIds.has(c.id));
+       
+        if(added.length){
+            // 添加 clip 轨
+            added.forEach((instance: any, i: any) => {
+                VideoStudio.data.clipEngine?.bindClipCanvasToTrack(instance.id, instance);
+            });
+        }
+
+        if(removed.length){
+            // 删除 clip 轨
+        }
+    },
+    { deep: true, flush: 'post' }
+);
+
+onMounted(async () => {
+    function onTimeTick(timeMs: number) {
+        
+    }
+    function onFrameTick(clipID: string, trackID: string, frame: VideoFrame) {
+        videoRef.value.forEach((instance: any, i: any) => {
+            instance.updateFrame(frame);
+        })
+    }
+    await VideoStudio.methods.initialize(onTimeTick, onFrameTick);
     addResizeObserver();
     addGlobalDragEvent();
 });

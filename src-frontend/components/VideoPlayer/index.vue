@@ -14,8 +14,7 @@ import { defineOptions, defineEmits, onMounted, onBeforeUnmount, ref } from "vue
 import {
     useMP4,
     useClipEngine,
-    VideoTrack,
-    useWebAV
+    VideoTrack
 } from './index';
 import { ClipEngine, ShaderDescription } from "clip-engine";
 
@@ -34,8 +33,6 @@ const props = defineProps<{
 
 let videoTrack: VideoTrack;
 
-let { loadMediaSource, seek, setVideoTrack } = useWebAV();
-
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 
 function addEffect(desc: ShaderDescription){
@@ -50,22 +47,7 @@ function updateEffect(desc: ShaderDescription){
     (videoTrack as VideoTrack).getEffectChain().getNode(desc.name)?.applyParameters(desc.params);
 }
 
-onMounted(async () => {
-    const id = uuidv4();
-    videoTrack = new VideoTrack(`video-track-${id}`, props.engine.getContext(), canvasRef.value);
-    setVideoTrack(videoTrack);
-
-    // 加载视频
-    const { duration, width, height } =await loadMediaSource(props.src);
-    canvasRef.value.width = width;
-    canvasRef.value.height = height;
-
-    seek(0);
-    
-});
-
 defineExpose({
-    seek,
     addEffect,
     removeEffect,
     updateEffect
