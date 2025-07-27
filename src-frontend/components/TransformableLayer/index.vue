@@ -96,9 +96,10 @@ function getContentElement(){
 function handleClickOutside(event: MouseEvent) {
     if (!rootRef.value || !rotateRef.value) return;
     
-    if(!rootRef.value.contains(event.target) && event.target != rotateRef.value){
-        emit('update:selected', false);
-    }
+    // TODO: 点击特效滤镜的不取消焦点
+    // if(!rootRef.value.contains(event.target) && event.target != rotateRef.value){
+    //     emit('update:selected', false);
+    // }
 }
 
 let observer: ResizeObserver;

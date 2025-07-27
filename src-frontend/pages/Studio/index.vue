@@ -10,7 +10,6 @@
 </template>
 
 <script setup lang="ts">
-import { VideoStudio } from '@frontend/store/videostudio';
 import {
     AssetsPanel,
     EditorPanel,

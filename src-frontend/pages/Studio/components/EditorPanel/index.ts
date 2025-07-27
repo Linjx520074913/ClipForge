@@ -6,17 +6,11 @@ import {
     VideoPlayer
 } from '@frontend/components/index'
 
-import { Asset, ClipEngine, ILayer } from "clip-engine";
-import { TimeDriver } from "src-clip-engine/Engine/Time/TimeDriver";
+import { Asset } from "clip-engine";
 
 import { VideoStudio } from '@frontend/store/videostudio';
 
-const layers: Ref<ILayer[]> = ref([]);
-
 export function useVideoStudio(){
-
-    // 储存所有图层（视频、音频、图像、文本）的引用
-    const layersRef = ref([]);
 
     const videoRef = ref<HTMLCanvasElement>([]);
 
@@ -77,8 +71,7 @@ export function useVideoStudio(){
         if (stageCanvasRef.value) {
             resizeObserver = new ResizeObserver(entries => {
                 for (const entry of entries) {
-                    const { width, height } = entry.contentRect
-                    // containerSize.value = { width, height }
+                    const { width, height } = entry.contentRect;
                     // console.error('📏 canvas 尺寸变了：', width, height)
                     resizeCanvasContainer(ratio)
                 }
@@ -100,8 +93,6 @@ export function useVideoStudio(){
         canvasContainerRef,
         resizeObserver,
         videoRef,
-        layersRef,
-        layers,
         resizeCanvasContainer,
         handleRatioUpdate,
         addResizeObserver,
@@ -214,22 +205,6 @@ export function useDrag(){
         const asset: Asset = JSON.parse(data);
          
         VideoStudio.data.clipEngine.addVideoTrack(asset, { width: tw, height: th, x: tx, y: ty });
-
-        console.error('#########',  VideoStudio.data.clipEngine)
-        // Project.methods.addVideoTrack(asset, tw, th, tx, ty);
-        // console.error("===============", Project.data.project);
-        // try {
-        //     const asset: Asset = JSON.parse(data);
-        //     layer.size.w = tw;
-        //     layer.size.h = th;
-        //     layer.pos.x  = tx;
-        //     layer.pos.y  = ty;
-        //     // 添加到 layers 中
-        //     layers.value.push(layer);
-        //     console.error('===============', layer)
-        // } catch (e) {
-        //     console.error('数据解析失败', e);
-        // }
     }
 
     function onDragLeave(e: DragEvent){
@@ -258,7 +233,6 @@ export function useTimeline(){
 
 export {
     TransformableLayer,
-    TimeLinemableLayer,
     TimeLine,
     VideoPlayer
 }

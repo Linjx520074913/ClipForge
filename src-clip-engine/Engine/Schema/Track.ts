@@ -13,6 +13,7 @@ export const TrackSchema = z.object({
     clips: z.array(ClipSchema),
     isLocked: z.boolean(),
     isVisible: z.boolean(),
+    isEditing: z.boolean(),
     isMuted: z.boolean(),
     volume: z.number().min(0).max(1),
     opacity: z.number().min(0).max(1),

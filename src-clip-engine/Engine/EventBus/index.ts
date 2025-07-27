@@ -6,15 +6,16 @@ export type EngineEvent = {
     'engine:error': { message: string };
 
     // 时间驱动相关
-    'time:start': { curTimeMs: number };
-    'time:pause': { curTimeMs: number };
-    'time:stop':  { curTimeMs: number };
-    'time:seek':  { curTimeMs: number };
+    'time:start': number;
+    'time:pause': number;
+    'time:stop':  number;
+    'time:seek':  number;
     'time:ended': void;
-    'time:tick':  { curTimeMs: number };
+    'time:tick':  number;
 
     // 帧相关
     'frame:update': { clipID: string, trackID: string, frame: VideoFrame };
+
 };
 
 export class EventBus<Events extends Record<string, any>>{

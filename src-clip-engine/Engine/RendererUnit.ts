@@ -1,5 +1,7 @@
 import { GPUContext } from './GPUContext';
 import { ShaderParamPack } from './Type';
+import { ShaderSpecSchema } from './Schema';
+import { z } from 'zod';
 
 /**
  * 渲染单元，负责把输入纹理处理后输出
@@ -15,6 +17,8 @@ export class RendererUnit{
     private uniformBuffer: GPUBuffer;
     
     params:        ShaderParamPack;
+
+    p:             z.input<typeof ShaderSpecSchema>;
 
     constructor(ctx: GPUContext, name: string = ""){
         this.ctx = ctx;
@@ -110,6 +114,66 @@ export class RendererUnit{
         this.ctx.device.queue.writeBuffer(this.uniformBuffer, 0, floatArray);
     }
 
+    applyShaderParameters(param: z.input<typeof ShaderSpecSchema>){
+        this.p = param;
+
+        if(!param) return;
+        
+        const { binding, entries } = param.params;
+        const uniformValues: number[] = [];
+        // 解包 param，然后把 entries 中的参数放入到 uniformValues 中
+        for(const key of Object.keys(entries)){
+            const { value, type } = entries[key];
+
+            switch(type){
+                case 'f32':
+                    {
+                        uniformValues.push(value as number);
+                    }
+                break;
+                case 'vec2':
+                    {
+                        const arr = value as number[];
+                        if(arr.length != 2){
+                            console.error(`[ RendererUnit ] vec2 must have 2 elements : ${value}`);
+                            return;
+                        }else{
+                            uniformValues.push(...arr)
+                        }
+                    }
+                break;
+                case 'vec4':
+                    {
+                        const arr = value as number[];
+                        if(arr.length != 4){
+                            console.error(`[ RendererUnit ] vec4 must have 4 elements : ${value}`);
+                        }else{
+                            uniformValues.push(...arr);
+                        }
+                    }
+                break;
+                default:
+                    console.error(`[ RendererUnit ] unknown type: ${type}`);
+                    break;
+            }
+        }
+        if(uniformValues.length == 0){
+            return;
+        }
+       
+        const floatArray = new Float32Array(uniformValues)
+        if(!this.uniformBuffer){
+            this.uniformBuffer = this.ctx.device.createBuffer({
+                size: floatArray.byteLength,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+            })
+        }
+
+        console.error('$$$$$$$$$$$$$$', this.uniformBuffer)
+
+        this.ctx.device.queue.writeBuffer(this.uniformBuffer, 0, floatArray);
+    }
+
     /**
      * 检查异常
      */
@@ -131,7 +195,6 @@ export class RendererUnit{
                 { binding: 0, resource: this.ctx.sampler },
                 { binding: 1, resource: input.createView() },
             ];
-            
             if(this.uniformBuffer){
                 entries.push({ binding: 2, resource: { buffer: this.uniformBuffer }});
             }

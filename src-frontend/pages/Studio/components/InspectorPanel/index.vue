@@ -1,6 +1,10 @@
 <template>
     <div>
-        <FoldableSlidebar :direction="right" :items="options"/>
+        <FoldableSlidebar 
+            :direction="'right'" 
+            :items="options"
+            v-if="VideoStudio.data.clipEngine?.project?.tracks?.length"
+        />
     </div>
 </template>
 
@@ -10,6 +14,8 @@ import AudioPanel  from './AudioPanel/index.vue';
 import ColorPanel  from './ColorPanel/index.vue';
 import EffectPanel from './EffectPanel/index.vue';
 import FilterPanel from './FilterPanel/index.vue';
+
+import { VideoStudio } from '@frontend/store/videostudio';
 
 defineOptions({ name: 'InspectorPanel' });
 

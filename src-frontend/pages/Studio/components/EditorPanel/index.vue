@@ -12,46 +12,17 @@
                     @update:ratio="handleRatioUpdate"
                 />
                 <!-- 预览区域,根据比例重置过大小 -->
-                <div 
+                <div
                     class="canvas-container bg-black relative overflow-hidden"
                     ref="canvasContainerRef"
                     @dragover.prevent
                     @drop="onDrop"
                     @dragenter="onDragEnter"
-                    @dragleave="onDragLeave">
+                    @dragleave="onDragLeave"
+                >
 
                     <!-- 这一层 div 是用来显示拖拽的时候的效果的 -->
                     <div :class="['w-full h-full relative', globalDragging? 'pointer-events-none' : '']">
-                        <!-- 生成 layer 层, layer 中包含 Video/Audio/Text/Image 等 -->
-                        <!-- <TransformableLayer
-                            v-for="(layer, index) in layers" :key="index" 
-                            v-if="canvasContainerRef"
-                            v-model:selected="layer.active"
-                            :zIndex="layer.zIndex"
-                            :to="'.stage-canvas'"
-                            ref="layersRef"
-                            :size="layer.size"
-                            :pos="layer.pos"
-                            >
-                            <template #content>
-                                <VideoPlayer 
-                                    ref="videoRef" 
-                                    v-if="layer.type == 'video'"
-                                    :src="layer.source.uri" 
-                                    @mousedown="layer.active = true"
-                                    :size="layer.size"
-                                    :engine="VideoStudio.data.clipEngine"
-                                />
-                                <img 
-                                    class="object-contain w-full h-full" 
-                                    v-if="layer.type == 'image'" 
-                                    :src="layer.source.uri" 
-                                    @mousedown="layer.active = true"
-                                    draggable="false"
-                                />
-                                <div v-if="layer.type == 'text'" @mousedown="layer.active = true">{{ layer.source.text }} </div>
-                            </template>
-                        </TransformableLayer> -->
                         <!-- 每个 Clip 都对应一个 TransformableLayer -->
                         <div
                             v-for="(track, tidx) in VideoStudio.data.clipEngine?.project?.tracks" :key="tidx"
@@ -60,10 +31,9 @@
                             <TransformableLayer
                                 v-for="(clip, cidx) in track.clips" :key="cidx"
                                 v-if="canvasContainerRef"
-                                v-model:selected="clip.isEditing"
+                                v-model:selected="track.isEditing"
                                 :zIndex=track.order
                                 :to="'.stage-canvas'"
-                                ref="layersRef"
                                 :size="clip.transformation.size"
                                 :pos="clip.transformation.position"
                                 :class="[clip.isVisible? '' : 'hidden']"
@@ -89,36 +59,33 @@
                 </div>
             </div>
             <!-- 时间轴 -->
-            <TimeLine class="w-full h-1/4" 
+            <TimeLine 
+                class="w-full h-1/4" 
                 v-model:playing="playing"
                 :curTime="VideoStudio.data.curTimeMs"
-                @onSeek="VideoStudio.methods.seek"/>
+                @onSeek="VideoStudio.methods.seek"
+            />
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { VideoStudio } from '@frontend/store/videostudio';
-import { VideoTrack, ILayer, ShaderDescription } from 'clip-engine';
+import { ShaderDescription } from 'clip-engine';
 import { 
     useTimeline, 
     useVideoStudio,
     useDrag,
     TransformableLayer,
-    TimeLine,
-    VideoPlayer,
-    useClipEngine,
+    TimeLine
 } from './index';
 
 import EditorToolbar from './EditorToolbar/index.vue';
-import { string } from 'zod';
 
 defineOptions({ name: 'EditorPanel' });
 
 let {
-    layers,
     videoRef,
-    layersRef,
     canvasContainerRef, 
     stageCanvasRef, 
     resizeObserver,
@@ -176,7 +143,6 @@ function onUpdateShader(s: ShaderDescription){
     })
 }
 
-
 /**
  * 控制 TimeDriver 的播放状态
  * @param playing 
@@ -219,18 +185,16 @@ watch(
 );
 
 onMounted(async () => {
-    function onTimeTick(timeMs: number) {
-        
-    }
     function onFrameTick(clipID: string, trackID: string, frame: VideoFrame) {
         videoRef.value.forEach((instance: any, i: any) => {
             instance.updateFrame(frame);
         })
     }
-    await VideoStudio.methods.initialize(onTimeTick, onFrameTick);
+    await VideoStudio.methods.initialize(onFrameTick);
     addResizeObserver();
     addGlobalDragEvent();
 });
+
 onBeforeUnmount(() => {
     removeResizeObserver();
     removeGlobalDragEvent();

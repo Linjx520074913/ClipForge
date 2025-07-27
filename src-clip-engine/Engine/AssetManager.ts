@@ -10,7 +10,7 @@ export interface Asset {
     type:      AssetType;
     url:       string;
     label:     string;
-    duration?: number;      // 仅视频
+    duration:  number;      // 仅视频
     width?:    number;      // 仅视频
     height?:   number;      // 仅视频
     cover?:    ImageBitmap; // 封面

@@ -1,11 +1,9 @@
-import { TrackRenderer } from './TrackRenderer';
 import { GPUContext } from './GPUContext';
 import { BaseTrack } from './Track/BaseTrack';
 import { TimeDriver } from './Time/TimeDriver';
 import { EngineEvent, EventBus } from './EventBus';
 import { AssetManager, Asset } from './AssetManager';
-import { getAsset } from 'node:sea';
-import { ClipSchema, ProjectSchema, ClipOption, TrackType, TrackSchema } from './Schema';
+import { ClipSchema, ProjectSchema, ClipOption, TrackType, TrackSchema, ShaderSpecSchema } from './Schema';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 import { ClipFrameExtractor } from './Extractor/ClipFrameExtractor';
@@ -18,179 +16,179 @@ class TrackGraph{
 type ClipID  = string;
 type TrackID = string;
 export class ClipEngine {
-  private ctx: GPUContext;
-  // private trackGraph: TrackGraph;
-  private timeDriver: TimeDriver;
+    private ctx: GPUContext;
+    // private trackGraph: TrackGraph;
+    private timeDriver: TimeDriver;
 
-  private assetManager: AssetManager;
+    private assetManager: AssetManager;
 
-  private eventBus: EventBus<EngineEvent>;
+    private _eventBus: EventBus<EngineEvent>;
 
-  private _project: ReturnType<typeof ProjectSchema.parse>;
+    private _project!: ReturnType<typeof ProjectSchema.parse>;
 
-  private _tracks: Map<string, BaseTrack> = new Map();
+    private _tracks: Map<string, BaseTrack> = new Map();
 
-  private frameExtractors: Map<string, ClipFrameExtractor> = new Map();
+    private frameExtractors: Map<string, ClipFrameExtractor> = new Map();
 
-  private constructor(ctx: GPUContext) {
-    this.ctx = ctx;
-    this.timeDriver = new TimeDriver(30000);
-    this.assetManager = new AssetManager();
-    this.eventBus = new EventBus<EngineEvent>();
+    private constructor(ctx: GPUContext) {
+        this.ctx = ctx;
+        this.timeDriver = new TimeDriver(30000);
+        this.assetManager = new AssetManager();
+        this._eventBus = new EventBus<EngineEvent>();
 
-    this.timeDriver.on("start", (time) =>
-      this.eventBus.emit("time:start", time)
-    );
-    this.timeDriver.on("pause", (time) =>
-      this.eventBus.emit("time:pause", time)
-    );
-    this.timeDriver.on("stop", (time) => this.eventBus.emit("time:stop", time));
-    this.timeDriver.on("tick", async (timeMs: number) => {
-      this.render(timeMs);
-      this.eventBus.emit("time:tick", timeMs);
-    });
-  }
+        this.timeDriver.on("start", (time) =>
+            this._eventBus.emit("time:start", time)
+        );
+        this.timeDriver.on("pause", (time) =>
+            this._eventBus.emit("time:pause", time)
+        );
+        this.timeDriver.on("stop", (time) => this._eventBus.emit("time:stop", time));
+        this.timeDriver.on("tick", async (timeMs: number) => {
+            this.render(timeMs);
+            this._eventBus.emit("time:tick", timeMs );
+        });
+    }
 
-  static async create(): Promise<ClipEngine> {
-    const ctx = await GPUContext.create();
-    return new ClipEngine(ctx);
-  }
+    static async create(): Promise<ClipEngine> {
+        const ctx = await GPUContext.create();
+        return new ClipEngine(ctx);
+    }
 
-  getContext(): GPUContext {
-    return this.ctx;
-  }
+    getContext(): GPUContext {
+        return this.ctx;
+    }
 
-  get project() {
-    return this._project;
-  }
-  get tracks() {
-    return this._tracks;
-  }
+    get project() { return this._project; }
+    get tracks() { return this._tracks; }
 
-  getAssetManager(): AssetManager {
-    return this.assetManager;
-  }
+    get eventBus() { return this._eventBus; }
 
-  addTrack(track: BaseTrack) {
-    // this._tracks.push(track);
-  }
+    getAssetManager(): AssetManager {
+        return this.assetManager;
+    }
 
-  bindClipCanvasToTrack(id: string, canvas: HTMLCanvasElement) {
-	
-    const track = new VideoTrack(id, this.ctx, canvas);
-    this._tracks.set(id, track);
-	console.error('bindClipCanvasToTrack', id, this._tracks)
-  }
+    addTrack(track: BaseTrack) {
+        // this._tracks.push(track);
+    }
 
-  getTimeDriver() {
-    return this.timeDriver;
-  }
+    bindClipCanvasToTrack(id: string, canvas: HTMLCanvasElement) {
+        
+        const track = new VideoTrack(id, this.ctx, canvas);
+        this._tracks.set(id, track);
+        console.error('bindClipCanvasToTrack', id, this._tracks)
+    }
 
-  removeTrack(name: string) {
-    // const idx = this._tracks.findIndex(t => t.name === name);
-    // if(idx >= 0){
-    //     this._tracks[idx].destroy();
-    //     this._tracks.splice(idx, 1);
-    // }
-  }
+    getTimeDriver() {
+        return this.timeDriver;
+    }
 
-  on<K extends keyof EngineEvent>(
-    event: K,
-    callback: (payload: EngineEvent[K]) => void
-  ) {
-    this.eventBus.on(event, callback);
-  }
+    removeTrack(name: string) {
+        // const idx = this._tracks.findIndex(t => t.name === name);
+        // if(idx >= 0){
+        //     this._tracks[idx].destroy();
+        //     this._tracks.splice(idx, 1);
+        // }
+    }
 
-  off<K extends keyof EngineEvent>(
-    event: K,
-    callback: (payload: EngineEvent[K]) => void
-  ) {
-    this.eventBus.off(event, callback);
-  }
+    on<K extends keyof EngineEvent>(
+        event: K,
+        callback: (payload: EngineEvent[K]) => void
+    ) {
+        this._eventBus.on(event, callback);
+    }
 
-  createProject(name: string): void {
-    const input: z.input<typeof ProjectSchema> = {
-      id: uuidv4(),
-      name: name,
-      setting: {},
-      tracks: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    this._project = ProjectSchema.parse(input);
-  }
+    off<K extends keyof EngineEvent>(
+        event: K,
+        callback: (payload: EngineEvent[K]) => void
+    ) {
+        this._eventBus.off(event, callback);
+    }
 
-  addVideoTrack(asset: Asset, option: ClipOption): void {
-    const type: TrackType = "video";
-    const trackID = `${type}-${this.project.tracks.length}`;
-    const trackInput: z.input<typeof TrackSchema> = {
-      id: trackID,
-      name: trackID,
-      type: type,
-      order: this.project.tracks.length,
-      clips: [],
-      isLocked: false,
-      isVisible: true,
-      isMuted: false,
-      volume: 1,
-      opacity: 1,
-      blendMode: "normal",
-      effects: [],
-    };
+    createProject(name: string): void {
+        const input: z.input<typeof ProjectSchema> = {
+            id: uuidv4(),
+            name: name,
+            setting: {},
+            tracks: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+        this._project = ProjectSchema.parse(input);
+    }
 
-    this._project.tracks.push(trackInput);
+    addVideoTrack(asset: Asset, option: ClipOption): void {
+        const type: TrackType = "video";
+        const trackID = `${type}-${this.project.tracks.length}`;
+        const trackInput: z.input<typeof TrackSchema> = {
+            id: trackID,
+            name: trackID,
+            type: type,
+            order: this.project.tracks.length,
+            clips: [],
+            isLocked: false,
+            isVisible: true,
+            isEditing: true,
+            isMuted: false,
+            volume: 1,
+            opacity: 1,
+            blendMode: "normal",
+            effects: [],
+        };
 
-    // 添加默认 clip
-    const clipID = `${trackID}:clip_0`;
-    const clipInput: z.input<typeof ClipSchema> = {
-      id: clipID,
-      name: clipID,
-      type: type,
-      assetID: asset.id,
-      trackID: trackID,
+        this._project.tracks.push(trackInput);
 
-      isEditing: true,
-      isVisible: true,
-      isLocked: false,
+        // 添加默认 clip
+        const clipID = `${trackID}:clip_0`;
+        const clipInput: z.input<typeof ClipSchema> = {
+            id: clipID,
+            name: clipID,
+            type: type,
+            assetID: asset.id,
+            trackID: trackID,
 
-      startTime: 0,
-      duration: asset.duration,
+            isEditing: true,
+            isVisible: true,
+            isLocked: false,
 
-      trim: {
-        startTime: 0,
-        endTime: 10000,
-        offset: 0,
-      },
-      speed: {
-        value: 1.0,
-      },
-      transformation: {
-        position: {
-          x: option.x,
-          y: option.y,
-        },
-        size: {
-          w: option.width,
-          h: option.height,
-        },
-        scale: {
-          x: 1,
-          y: 1,
-          uniform: true,
-        },
-        rotation: 0,
-        opacity: 0,
-        crop: {
-          left: 0,
-          top: 0,
-          right: 0,
-          bottom: 0,
-        },
-      },
-    };
+            startTime: 0,
+            duration: asset.duration,
 
-    this.addClipToTrack(trackID, clipInput);
-  }
+            trim: {
+                startTime: 0,
+                endTime: 10000,
+                offset: 0,
+            },
+            speed: {
+                value: 1.0,
+            },
+            transformation: {
+                position: {
+                    x: option.x,
+                    y: option.y,
+                },
+                size: {
+                    w: option.width,
+                    h: option.height,
+                },
+                scale: {
+                    x: 1,
+                    y: 1,
+                    uniform: true,
+                },
+                rotation: 0,
+                opacity: 0,
+                crop: {
+                    left: 0,
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                },
+            },
+            effects: []
+        };
+
+        this.addClipToTrack(trackID, clipInput);
+    }
 
 	addClipToTrack(trackID: string, clip: z.input<typeof ClipSchema>): void {
 		const track = this.project.tracks.find((track) => track.id === trackID);
@@ -206,10 +204,18 @@ export class ClipEngine {
 		if(!url){
 			throw new Error(`[ ClipEngine ] : get asset failed ${clip.id}`);
 		}
-		extractor.initialize(url);
-		console.error('#####################', clip.id)
+		extractor.initialize(url).then(() => {
+            this.timeDriver.seek(0);
+        });
 		this.frameExtractors.set(clip.id, extractor);
 	}
+
+    addEffectToClip(
+        trackId: string, 
+        clipId: string, 
+        effect: z.input<typeof ShaderSpecSchema>): void {
+        this._tracks.get(clipId)?.getEffectChain().add(effect);
+    }
 
 	render(time: number) {
 		this._project.tracks.forEach((track) => {
@@ -227,7 +233,8 @@ export class ClipEngine {
 								"[ ClipEngine ] render: not found any track to render"
 								);
 							}
-							console.error('###### render ######', this._tracks);
+                            
+                            // this._tracks.get(clip.id)?.getEffectChain().add()
 							this._tracks.get(clip.id)!.render(frame);
 							frame?.close();
 						}

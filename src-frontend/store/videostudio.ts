@@ -1,7 +1,6 @@
 import { computed, ref } from "vue";
 import { ClipEngine, TimeDriver } from "clip-engine";
 
-type onTimeTick = (timeMs: number) => void;
 type onFrameTick = (clipID: string, trackID: string, frame: VideoFrame) => void;
 
 const VideoStudioRef = ref({
@@ -10,8 +9,7 @@ const VideoStudioRef = ref({
     curTimeMs: 0,
   },
   methods: {
-    async initialize(
-        timeTick: onTimeTick, 
+    async initialize( 
         frameTick: onFrameTick
     ) {
         /**
@@ -21,31 +19,31 @@ const VideoStudioRef = ref({
             const assetManager = VideoStudio.data.clipEngine?.getAssetManager();
             // TODO: 这里的 asset 信息需要先解析出来
             assetManager?.register({
-              id: "asset-0",
-              type: "video",
-              label: "狮子",
-              url: "/sample_2.mp4",
-              duration: 3000,
-              width: 1920,
-              height: 1080,
+                id: "asset-0",
+                type: "video",
+                label: "狮子",
+                url: "/sample_2.mp4",
+                duration: 3000,
+                width: 1920,
+                height: 1080,
             });
             assetManager?.register({
-            id: "asset-1",
-            type: "video",
-            label: "兔子",
-            url: "/sample_1.mp4",
-            duration: 5000,
-            width: 1920,
-            height: 1080,
+                id: "asset-1",
+                type: "video",
+                label: "兔子",
+                url: "/sample_1.mp4",
+                duration: 5000,
+                width: 1920,
+                height: 1080,
             });
             assetManager?.register({
-            id: "asset-2",
-            type: "video",
-            label: "雪",
-            url: "/sample_2.mp4",
-            duration: 14000,
-            width: 1920,
-            height: 1080,
+                id: "asset-2",
+                type: "video",
+                label: "雪",
+                url: "/sample_2.mp4",
+                duration: 14000,
+                width: 1920,
+                height: 1080,
             });
         }
 
@@ -53,7 +51,7 @@ const VideoStudioRef = ref({
             VideoStudio.data.clipEngine?.createProject("Test-Sample");
         }
 
-        async function initClipEngine(tick: onTimeTick) {
+        async function initClipEngine() {
             VideoStudio.data.clipEngine = await ClipEngine.create();
 
             const data = VideoStudio.data;
@@ -62,7 +60,6 @@ const VideoStudioRef = ref({
             data.clipEngine.on("time:stop", (timeMs: number) => {});
             data.clipEngine.on("time:tick", (timeMs: number) => {
                 data.curTimeMs = timeMs;
-                timeTick(timeMs);
             });
             data.clipEngine?.on(
                 "frame:update",
@@ -75,7 +72,7 @@ const VideoStudioRef = ref({
             );
         }
 
-        await initClipEngine(timeTick);
+        await initClipEngine();
         initAssets();
         initProject();
     },

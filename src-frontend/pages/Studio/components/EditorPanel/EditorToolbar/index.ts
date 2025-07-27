@@ -57,7 +57,7 @@ const aspectRatios: AspecRatioItem[] = [
 const isActived = ref(false);
 
 // 激活的画面配置
-const activedRatio = ref(aspectRatios[0]);
+const activedRatio = ref(aspectRatios[1]);
 
 const dropdownRef = ref<HTMLElement | null>(null);
 

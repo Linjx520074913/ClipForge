@@ -3,6 +3,7 @@ import { ClipTrimSchema } from './ClipTrim';
 import { ClipSpeedSchema } from "./ClipSpeed";
 import { TransformationSchema } from './Transformation';
 import { ClipEffectSchema } from './Effect';
+import { ShaderSpecSchema } from './ShaderSpec';
 
 export type ClipOption = {
     width: number,
@@ -32,5 +33,5 @@ export const ClipSchema = z.object({
     transformation: TransformationSchema,
     
     // 内容属性
-    effects: z.array(ClipEffectSchema)
+    effects: z.array(ShaderSpecSchema)
 });

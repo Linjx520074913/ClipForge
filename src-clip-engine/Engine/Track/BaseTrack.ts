@@ -77,7 +77,6 @@ export class BaseTrack{
         const effectChainOutputTex = this.texturePool.getReusableTexture(w, h);
         if(isVideoFrame){
             const texture = this.texturePool.getReusableTexture(w, h, this.id);
-            console.error('*****************', input, w, h)
             this.gputContext.device.queue.copyExternalImageToTexture(
                 { source: input },
                 { texture },

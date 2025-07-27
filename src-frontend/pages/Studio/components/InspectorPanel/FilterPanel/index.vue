@@ -1,7 +1,25 @@
 <template>
     <div class="grid grid-cols-1 gap-1 p-2 overflow-y-scroll h-full">
-        <div v-for="(filter, index) in filter_list" :key="index"
-            :class="['flex flex-col justify-center items-center w-full min-h-[150px] border cursor-pointer rounded-lg overflow-hidden px-2 py-1',
+        <template
+            v-for="(track, tidx) in VideoStudio?.data?.clipEngine?.project?.tracks"
+            :key="tidx"
+        >
+            <template 
+                v-if="track.isEditing"
+                v-for="(clip, cidx) in track.clips" :key="cidx">
+                <div
+                    v-if="clip.isEditing"
+                    v-for="(effect, eidx) in clip.effects" :key="eidx" 
+                >
+                    {{  effect.name }}
+                       
+                </div>
+            </template>
+        </template>
+        <div 
+            v-for="(filter, index) in filter_list" :key="index"
+            :class="[
+                'flex flex-col justify-center items-center w-full min-h-[150px] border cursor-pointer rounded-lg overflow-hidden px-2 py-1',
                 filter.actived ? 'bg-purple' : 'hover:bg-[#E3E3E8]'
             ]"
             @click="activeFilter(index)">
@@ -25,6 +43,7 @@
                 <span class="text-xs text-gray-500">{{ param.value }}</span>
             </div>
         </div>
+        
     </div>
 </template>
 
@@ -34,9 +53,10 @@
  * 1、添加 API，获取滤镜列表
  * 2、滤镜列表可以多选，选中返回列表
  */
-import { defineOptions, defineEmits, onMounted, ref } from 'vue';
 import { AXIOS } from '@frontend/api';
+import { VideoStudio } from '@frontend/store/videostudio';
 import { ShaderDescription } from 'clip-engine';
+import { computed } from 'vue';
 defineOptions({ name: 'FilterPanel' });
 const emit = defineEmits(['onChildEvent', 'onUpdateShader']);
 
@@ -45,8 +65,6 @@ const emit = defineEmits(['onChildEvent', 'onUpdateShader']);
  */
 const filter_list = ref<ShaderDescription>([]);
 
-const activeFilters: Filter[] = [];
-
 /**
  * 激活/禁用滤镜 
  * @param index 滤镜索引
@@ -54,26 +72,32 @@ const activeFilters: Filter[] = [];
 function activeFilter(index: number){
     if(!filter_list.value) return;
 
-    filter_list.value[index].actived = !filter_list.value[index].actived;
-    
-    // 如果是激活状态，则添加到激活列表
-    if(filter_list.value[index].actived){
-        activeFilters.push(filter_list.value[index]);
-    }else{
-        // 如果是禁用状态，则从激活列表中移除
-        const idx = activeFilters.findIndex(f => f.id === filter_list.value[index].id);
-        if(idx !== -1){
-            activeFilters.splice(idx, 1);
+    // 添加到 activedClip
+    const tracks = VideoStudio.data.clipEngine?.project.tracks.filter(f => f.isEditing);
+    if(tracks?.length){
+        const clips = tracks[0].clips.filter(c => c.isEditing);
+        if(clips.length){
+            VideoStudio.data.clipEngine?.addEffectToClip(tracks[0].id, clips[0].id, filter_list.value[index]); 
+            clips[0].effects.push(filter_list.value[index]);
+            
         }
     }
-
-    emit('onChildEvent', activeFilters);
+    
 }
 
 function onParamsChange(s: ShaderDescription){
     console.error('@@@@@@@@', s)
     emit('onUpdateShader', s);
 }
+
+const activedClip = computed(() => {
+    const track = VideoStudio.data.clipEngine?.project.tracks.filter(f => f.isEditing);
+    if(track){
+        const clip = track[0].clips.filter(c => c.isEditing);
+        return clip.length? clip[0] : undefined;
+    }
+    return undefined
+});
 
 onMounted(async() => {
     try{

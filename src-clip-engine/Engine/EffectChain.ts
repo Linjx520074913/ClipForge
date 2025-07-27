@@ -3,6 +3,10 @@ import { RendererUnit } from "./RendererUnit";
 import { GPUTexturePool } from "./GPUTexturePool";
 import { ShaderDescription } from './Type';
 
+import { ShaderSpecSchema } from './Schema';
+
+import { z } from 'zod';
+
 export class EffectChain{
 
     private ctx: GPUContext;
@@ -30,6 +34,17 @@ export class EffectChain{
         const node = new RendererUnit(this.ctx, desc.name);
         node.initialize(desc.code);
         node.applyParameters(desc.params); 
+        
+        const exist = this.units.some(u => u.name === node.name);
+        if(!exist){
+            this.units.push(node);
+        }
+    }
+
+    add(spec: z.input<typeof ShaderSpecSchema>){
+        const node = new RendererUnit(this.ctx, spec.name);
+        node.initialize(spec.code);
+        node.applyShaderParameters(spec); 
         
         const exist = this.units.some(u => u.name === node.name);
         if(!exist){
@@ -84,10 +99,10 @@ export class EffectChain{
                 const target = isLast ? output: pong;
                 
                 // 如果包含该字段，每帧都更新参数
-                if(this.units[i].params.entries.hasOwnProperty('seed')){
-                    this.units[i].params.entries["seed"].value = Math.random();
-                    this.units[i].applyParameters(this.units[i].params);
-                }
+                // if(this.units[i].params.entries.hasOwnProperty('seed')){
+                //     this.units[i].params.entries["seed"].value = Math.random();
+                //     this.units[i].applyParameters(this.units[i].params);
+                // }
                 this.units[i].process(ping, target);
     
                 const temp = ping;
