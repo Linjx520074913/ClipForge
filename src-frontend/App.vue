@@ -18,7 +18,6 @@
  * 1、所有交互添加提示，比如 按钮
  */
 import { AppHeader } from '@frontend/components';
-import { HomePage } from '@frontend/page';
 import { TestClipEngine } from '@frontend/test';
 import { Studio } from '@frontend/pages';
 </script>

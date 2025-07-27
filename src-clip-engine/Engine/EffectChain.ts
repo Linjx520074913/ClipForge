@@ -44,7 +44,7 @@ export class EffectChain{
     add(spec: z.input<typeof ShaderSpecSchema>){
         const node = new RendererUnit(this.ctx, spec.name);
         node.initialize(spec.code);
-        node.applyShaderParameters(spec); 
+        node.apply(spec); 
         
         const exist = this.units.some(u => u.name === node.name);
         if(!exist){

@@ -57,7 +57,7 @@ export class BaseTrack{
         
         this.mainRenderUnit = new RendererUnit(gpuContext, "main");
         this.mainRenderUnit.initialize(RawShaderCode);
-        this.mainRenderUnit.applyParameters();
+        this.mainRenderUnit.apply();
 
         this.texturePool = new GPUTexturePool(gpuContext);
     }
