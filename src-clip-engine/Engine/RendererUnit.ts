@@ -105,8 +105,6 @@ export class RendererUnit{
             })
         }
 
-        console.error('$$$$$$$$$$$$$$', this.uniformBuffer)
-
         this.ctx.device.queue.writeBuffer(this.uniformBuffer, 0, floatArray);
     }
 

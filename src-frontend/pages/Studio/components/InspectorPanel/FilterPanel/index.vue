@@ -1,21 +1,43 @@
 <template>
     <div class="grid grid-cols-1 gap-1 p-2 overflow-y-scroll h-full">
-        <template
+        <div
             v-for="(track, tidx) in VideoStudio?.data?.clipEngine?.project?.tracks"
             :key="tidx"
         >
-            <template 
+            <div 
                 v-if="track.isEditing"
-                v-for="(clip, cidx) in track.clips" :key="cidx">
+                v-for="(clip, cidx) in track.clips" :key="cidx"
+                class="flex flex-row overflow-x-scroll w-full space-x-2 border p-2 cursor-pointer"
+            >
                 <div
                     v-if="clip.isEditing"
-                    v-for="(effect, eidx) in clip.effects" :key="eidx" 
+                    v-for="(effect, eidx) in clip.effects" :key="eidx"
+                    :class="['border w-[50px] flex-shrink-0 p-1 text-[12px] rounded-md', clip.curEffectIndex == eidx? 'bg-purple' : 'border-gray-200']"
+                    @click.stop="clip.curEffectIndex = eidx"
                 >
-                    {{  effect.name }}
-                       
+                    <img src="/imgs/avata.png" class="rounded-md mb-1"/>
+                    {{ effect.name }}
                 </div>
-            </template>
-        </template>
+            </div>
+            <!-- 参数面板 -->
+            <div
+                v-if="curEffect" 
+                v-for="(param, pidx) in curEffect.params.entries" :key="pidx"
+            >
+                <label class="text-sm">{{ param.label }}</label>
+                <input
+                    v-if="param.type === 'f32'"
+                    type="range"
+                    :step="param.step"
+                    :min="param.min"
+                    :max="param.max"
+                    v-model.number="param.value"
+                    @click.stop
+                    class="w-full"
+                />
+                <span class="text-xs text-gray-500">{{ param.value }}</span>
+            </div>
+        </div>
         <div 
             v-for="(filter, index) in filter_list" :key="index"
             :class="[
@@ -25,23 +47,6 @@
             @click="activeFilter(index)">
             <img class="w-full flex-1">
             <p>{{ filter.name }}</p>
-            <div v-if="filter.actived" 
-                v-for="(param, key) in filter.params.entries" :key="key" 
-                :class="['flex flex-col p-1 w-full', filter.actived? 'border border-gray-400' : '']">
-                <label class="text-sm">{{ param.label }}</label>
-                <input
-                    v-if="param.type === 'f32'"
-                    type="range"
-                    :step="param.step"
-                    :min="param.min"
-                    :max="param.max"
-                    v-model.number="param.value"
-                    @input.stop.prevent="onParamsChange(filter)"
-                    @click.stop
-                    class="w-full"
-                />
-                <span class="text-xs text-gray-500">{{ param.value }}</span>
-            </div>
         </div>
         
     </div>
@@ -55,7 +60,7 @@
  */
 import { AXIOS } from '@frontend/api';
 import { VideoStudio } from '@frontend/store/videostudio';
-import { ShaderDescription } from 'clip-engine';
+import { ShaderSpecSchema, ClipEffectSchema } from 'clip-engine';
 import { computed } from 'vue';
 defineOptions({ name: 'FilterPanel' });
 const emit = defineEmits(['onChildEvent', 'onUpdateShader']);
@@ -77,26 +82,19 @@ function activeFilter(index: number){
     if(tracks?.length){
         const clips = tracks[0].clips.filter(c => c.isEditing);
         if(clips.length){
-            VideoStudio.data.clipEngine?.addEffectToClip(tracks[0].id, clips[0].id, filter_list.value[index]); 
             clips[0].effects.push(filter_list.value[index]);
-            
+            clips[0].curEffectIndex = clips[0].effects.length - 1;
         }
     }
+    VideoStudio.data.clipEngine?.render();
+}
+
+const curEffect = computed(() => {
+    const project = VideoStudio.data.clipEngine?.project!;
+    const curTrack = project.tracks[project.curTrackIndex];
+    const curClip = curTrack.clips[curTrack.curClipIndex];
     
-}
-
-function onParamsChange(s: ShaderDescription){
-    console.error('@@@@@@@@', s)
-    emit('onUpdateShader', s);
-}
-
-const activedClip = computed(() => {
-    const track = VideoStudio.data.clipEngine?.project.tracks.filter(f => f.isEditing);
-    if(track){
-        const clip = track[0].clips.filter(c => c.isEditing);
-        return clip.length? clip[0] : undefined;
-    }
-    return undefined
+    return curClip.effects[curClip.curEffectIndex];
 });
 
 onMounted(async() => {

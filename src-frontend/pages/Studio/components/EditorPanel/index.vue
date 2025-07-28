@@ -40,7 +40,7 @@
                             >
                                 <template #content>
                                     <canvas 
-                                        ref="videoRef" :id="`${clip.id}`"
+                                        ref="videoRef" :id="`${track.id}:${clip.id}`"
                                         :style="{width: `${clip.transformation.size.w}px`, height: `${clip.transformation.size.h}px`}"
                                     />
                                 </template>
@@ -173,7 +173,10 @@ watch(
         if(added.length){
             // 添加 clip 轨
             added.forEach((instance: any, i: any) => {
-                VideoStudio.data.clipEngine?.bindClipCanvasToTrack(instance.id, instance);
+                const id = instance.id.split(':');
+                const trackId = id[0];
+                const clipId = id[1];
+                VideoStudio.data.clipEngine?.bindClipCanvasToTrack(trackId, clipId, instance);
             });
         }
 

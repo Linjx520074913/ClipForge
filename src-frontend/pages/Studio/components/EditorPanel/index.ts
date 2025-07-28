@@ -9,6 +9,7 @@ import {
 import { Asset } from "clip-engine";
 
 import { VideoStudio } from '@frontend/store/videostudio';
+import { uuidv4 } from 'zod';
 
 export function useVideoStudio(){
 
@@ -204,6 +205,7 @@ export function useDrag(){
         // 添加轨道
         const asset: Asset = JSON.parse(data);
          
+        // TODO: 添加到指定轨道
         VideoStudio.data.clipEngine.addVideoTrack(asset, { width: tw, height: th, x: tx, y: ty });
     }
 

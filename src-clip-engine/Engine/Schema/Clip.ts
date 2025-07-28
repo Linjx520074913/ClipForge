@@ -16,8 +16,8 @@ export const ClipSchema = z.object({
     id: z.string(),
     name: z.string(),
     type: z.enum(['video', 'audio', 'image', 'text', 'transition']),
-    assetID: z.string().nullable(),
-    trackID: z.string(),
+    assetId: z.string().nullable(),
+    trackId: z.string(),
 
     isVisible: z.boolean(),
     isLocked:  z.boolean(),
@@ -33,5 +33,6 @@ export const ClipSchema = z.object({
     transformation: TransformationSchema,
     
     // 内容属性
-    effects: z.array(ShaderSpecSchema)
+    effects: z.array(ShaderSpecSchema),
+    curEffectIndex: z.number()  // 当前使用特效索引
 });

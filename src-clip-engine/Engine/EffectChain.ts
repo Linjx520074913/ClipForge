@@ -42,14 +42,18 @@ export class EffectChain{
     }
 
     add(spec: z.input<typeof ShaderSpecSchema>){
-        const node = new RendererUnit(this.ctx, spec.name);
-        node.initialize(spec.code);
-        node.apply(spec); 
-        
-        const exist = this.units.some(u => u.name === node.name);
-        if(!exist){
+        const exist = this.units.some(u => u.name === spec.name);
+        if(!exist) {
+            const node = new RendererUnit(this.ctx, spec.name);
+            node.initialize(spec.code);
+            node.apply(spec); 
+            
             this.units.push(node);
         }
+        // 更新参数
+        this.units.filter(u => u.name === spec.name).forEach( n => {
+            n.apply(spec);
+        });
     }
 
     /**
@@ -103,6 +107,7 @@ export class EffectChain{
                 //     this.units[i].params.entries["seed"].value = Math.random();
                 //     this.units[i].applyParameters(this.units[i].params);
                 // }
+                // this.units[i].apply(this.units[i].p)
                 this.units[i].process(ping, target);
     
                 const temp = ping;

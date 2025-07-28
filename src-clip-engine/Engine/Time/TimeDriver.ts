@@ -18,7 +18,7 @@ export class TimeDriver{
 
     private startTime: number = 0;      // play 开始时刻对应的 performance.now()
     private lastTime: number  = 0;      // 上一次 requestAnimationFrame 的时间
-    curTimeMs: number   = 0;              // 当前播放时间（秒）
+    curTimeMs: number   = 0;              // 当前播放时间（毫秒）
 
     duration: number;                   // 总时长
     playbackRate: number = 1;           // 播放速率

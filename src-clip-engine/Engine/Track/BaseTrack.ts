@@ -23,7 +23,6 @@ type TrackType = 'video' | 'audio' | 'image' | 'text' | 'subtitle'
  */
 export class BaseTrack{
 
-    private name: string;
     private type: TrackType;
 
     private gputContext: GPUContext;
@@ -40,10 +39,9 @@ export class BaseTrack{
 
     private id: string;
 
-    constructor(name: string, gpuContext: GPUContext, canvas: HTMLCanvasElement){
+    constructor(gpuContext: GPUContext, canvas: HTMLCanvasElement){
         this.gputContext = gpuContext;
         this.id = uuidv4();
-        this.name = name;
         this.canvas = canvas;
         this.canvasCtx = this.canvas.getContext('webgpu');
 

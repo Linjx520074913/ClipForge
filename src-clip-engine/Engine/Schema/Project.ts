@@ -8,6 +8,7 @@ export const ProjectSchema = z.object({
     name: z.string(),
     setting: ProjectSettingSchema,
     tracks: z.array(TrackSchema),
+    curTrackIndex: z.number(),
     createdAt: z.string(),
     updatedAt: z.string()
 });

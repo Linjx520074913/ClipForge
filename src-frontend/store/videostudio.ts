@@ -17,13 +17,14 @@ const VideoStudioRef = ref({
          */
         function initAssets() {
             const assetManager = VideoStudio.data.clipEngine?.getAssetManager();
+
             // TODO: 这里的 asset 信息需要先解析出来
             assetManager?.register({
                 id: "asset-0",
                 type: "video",
-                label: "狮子",
+                label: "雪",
                 url: "/sample_2.mp4",
-                duration: 3000,
+                duration: 20000,
                 width: 1920,
                 height: 1080,
             });
@@ -33,15 +34,15 @@ const VideoStudioRef = ref({
                 label: "兔子",
                 url: "/sample_1.mp4",
                 duration: 5000,
-                width: 1920,
-                height: 1080,
+                width: 1280,
+                height: 720,
             });
             assetManager?.register({
                 id: "asset-2",
                 type: "video",
                 label: "雪",
-                url: "/sample_2.mp4",
-                duration: 14000,
+                url: "/sample_0.mp4",
+                duration: 37000,
                 width: 1920,
                 height: 1080,
             });
