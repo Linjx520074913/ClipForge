@@ -168,6 +168,7 @@ export function useMove(
         if(!root) return;
 
         emit('update:selected', true);
+        emit('onStatusChange', { trackId: props.trackId, clipId: props.clipId, value: true });
         transformStart = {
             left: root.offsetLeft,
             top: root.offsetTop,

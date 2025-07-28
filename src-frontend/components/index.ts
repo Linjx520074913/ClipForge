@@ -6,12 +6,9 @@ import SlidingPanel  from './SlidingPanel/index.vue';
 
 import TransformableLayer from "./TransformableLayer/index.vue";
 
-import VideoPlayer from './VideoPlayer/index.vue';
-
 import AppHeader from './AppHeader/index.vue';
 import FoldableSlidebar from './FoldableSlidebar/index.vue'
 
-export { VideoPlayer }
 export { TimeLine }
 
 export {

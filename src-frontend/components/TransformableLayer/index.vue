@@ -56,10 +56,13 @@ const props = defineProps({
     },
     zIndex: { type: Number, default: 1 },
     selected: { type: Boolean, default: false },
-    to: { type: String, default: 'body' }
+    to: { type: String, default: 'body' },
+    trackId: { type: String, default: '' },
+    clipId: { type: String, default: '' }
 });
 const emit = defineEmits<{
     (e: 'update:selected', value: boolean): void;
+    (e: 'onStatusChange', { trackId: string, clipId: string, value: boolean }): void;
 }>();
 
 const rootRef = ref<HTMLElement | null>(null);
@@ -95,11 +98,19 @@ function getContentElement(){
 
 function handleClickOutside(event: MouseEvent) {
     if (!rootRef.value || !rotateRef.value) return;
+
+    const filterPanelEl = document.getElementById('filter-panel');
+    const timelineEl = document.getElementById('timeline');
     
     // TODO: 点击特效滤镜的不取消焦点
-    // if(!rootRef.value.contains(event.target) && event.target != rotateRef.value){
-    //     emit('update:selected', false);
-    // }
+    if(!rootRef.value.contains(event.target) 
+        && event.target != rotateRef.value 
+        && !filterPanelEl?.contains(event.target as Node)
+        && !timelineEl?.contains(event.target as Node)
+    ){
+        emit('update:selected', false);
+        emit('onStatusChange', { trackId: props.trackId, clipId: props.clipId, value: false });
+    }
 }
 
 let observer: ResizeObserver;
@@ -123,6 +134,8 @@ onMounted(async() => {
     updateAnchorStyle(rootRef, props, anchorStyle);
 
     document.addEventListener('mousedown', handleClickOutside);
+
+    emit('onStatusChange', { trackId: props.trackId, clipId: props.clipId, value: true });
 });
 
 onBeforeUnmount(() => {

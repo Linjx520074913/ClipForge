@@ -2,8 +2,7 @@ import { AspecRatioItem } from '@frontend/components/VideoStudioToolbar';
 
 import {
     TransformableLayer,
-    TimeLine,
-    VideoPlayer
+    TimeLine
 } from '@frontend/components/index'
 
 import { Asset } from "clip-engine";
@@ -235,6 +234,5 @@ export function useTimeline(){
 
 export {
     TransformableLayer,
-    TimeLine,
-    VideoPlayer
+    TimeLine
 }

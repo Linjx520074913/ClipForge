@@ -1,6 +1,7 @@
 <template>
     <div 
         class="flex flex-col"
+        id="timeline"
     >
         <!-- 控制条 -->
         <div class="w-full h-[40px] flex items-center justify-center">

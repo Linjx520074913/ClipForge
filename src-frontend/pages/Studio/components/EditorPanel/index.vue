@@ -31,12 +31,15 @@
                             <TransformableLayer
                                 v-for="(clip, cidx) in track.clips" :key="cidx"
                                 v-if="canvasContainerRef"
-                                v-model:selected="track.isEditing"
+                                v-model:selected="clip.isEditing"
                                 :zIndex=track.order
                                 :to="'.stage-canvas'"
                                 :size="clip.transformation.size"
                                 :pos="clip.transformation.position"
                                 :class="[clip.isVisible? '' : 'hidden']"
+                                :trackId="track.id"
+                                :clipId="clip.id"
+                                @onStatusChange="onStatusChange"
                             >
                                 <template #content>
                                     <canvas 
@@ -59,7 +62,7 @@
                 </div>
             </div>
             <!-- 时间轴 -->
-            <TimeLine 
+            <TimeLine
                 class="w-full h-1/4" 
                 v-model:playing="playing"
                 :curTime="VideoStudio.data.curTimeMs"
@@ -108,39 +111,35 @@ const {
     removeGlobalDragEvent
 } = useDrag();
 
-let preShaderDescs: ShaderDescription[] = [];
+function onStatusChange(data: {trackId: string, clipId: string, value: boolean}){
+    console.error('@@@@@@ onStatusChange @@@@@@', data)
+    // 获取/丢失焦点
+    const project = VideoStudio.data.clipEngine?.project;
+    if(!project) return;
 
-function diffFilters(prev: ShaderDescription[], next: ShaderDescription[]) {
-    const added = next.filter(n => !prev.some(p => p.name === n.name));
-    const removed = prev.filter(p => !next.some(n => n.name === p.name));
-    return { added, removed };
-}
+    project.curTrackIndex = -1;
 
-function handleRightSlidingPanelEvent(desc: ShaderDescription[]){
-    
-    const { added, removed } = diffFilters(preShaderDescs, desc);
-
-    if (added.length) {
-        console.log('新增 filters:', added[0]);
-        videoRef.value.forEach((instance: any, i: any) => {
-            instance.addEffect(added[0]);
-        });
-    }
-    if (removed.length) {
-        console.log('移除 filters:', removed);
-        videoRef.value.forEach((instance: any, i: any) => {
-            instance.removeEffect(removed[0]);
-        });
-    }
-
-    preShaderDescs = [...desc];
-}
-
-function onUpdateShader(s: ShaderDescription){
-    console.error('########onupdateShader')
-    videoRef.value.forEach((instance: any, i: any) => {
-        instance.updateEffect(s);
-    })
+    project.tracks.forEach(
+        (track, tidx) => {
+            if(track.id == data.trackId)    {
+                track.isEditing = data.value;
+            }
+            if(track.isEditing){
+                project.curTrackIndex = tidx;
+            }
+            track.clips.forEach(
+                (clip, cidx) => {
+                    if(clip.id == data.clipId) {
+                        clip.isEditing = data.value;
+                    }
+                    
+                    if(clip.isEditing){
+                        track.curClipIndex = cidx;
+                    }
+                }
+            );
+        }
+    );
 }
 
 /**

@@ -1,11 +1,13 @@
 <template>
-    <div class="grid grid-cols-1 gap-1 p-2 overflow-y-scroll h-full">
+    <div 
+        class="grid grid-cols-1 gap-1 p-2 overflow-y-scroll h-full"
+        id="filter-panel"
+    >
         <div
             v-for="(track, tidx) in VideoStudio?.data?.clipEngine?.project?.tracks"
             :key="tidx"
         >
             <div 
-                v-if="track.isEditing"
                 v-for="(clip, cidx) in track.clips" :key="cidx"
                 class="flex flex-row overflow-x-scroll w-full space-x-2 border p-2 cursor-pointer"
             >
@@ -92,7 +94,10 @@ function activeFilter(index: number){
 const curEffect = computed(() => {
     const project = VideoStudio.data.clipEngine?.project!;
     const curTrack = project.tracks[project.curTrackIndex];
+    if(!curTrack) return undefined;
+
     const curClip = curTrack.clips[curTrack.curClipIndex];
+    if(!curClip) return undefined;
     
     return curClip.effects[curClip.curEffectIndex];
 });
