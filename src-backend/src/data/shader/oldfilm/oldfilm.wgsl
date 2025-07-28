@@ -8,7 +8,7 @@ struct OldFilmUniforms{
     uVignetting: f32,
     uVignettingAlpha: f32,
     uVignettingBlur: f32,
-    uSeed: f32
+    time: f32
 };
 
 @group(0) @binding(0) var inputSampler: sampler;
@@ -33,12 +33,12 @@ fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
         color *= vec4<f32>(vec3<f32>(vignette(color.rgb, coord, size)), color.a);
     }
 
-    if(params.uScratchDensity > params.uSeed && params.uScratch != 0.){
-        color = vec4<f32>(scratch(color.rgb, coord, params.uSeed, size), color.a);
+    if(params.uScratchDensity > params.time && params.uScratch != 0.){
+        color = vec4<f32>(scratch(color.rgb, coord, params.time, size), color.a);
     }
 
     if(params.uNoise > 0. && params.uNoiseSize > 0.){
-        color += vec4<f32>(vec3<f32>(noise(uv, params.uSeed, size)), color.a);
+        color += vec4<f32>(vec3<f32>(noise(uv, params.time, size)), color.a);
     }
 
     return color;
@@ -90,16 +90,16 @@ fn modulo(x: f32, y: f32) -> f32
     return x - y * floor(x/y);
 }
 
-fn scratch(co: vec3<f32>, coord: vec2<f32>, uSeed: f32, uDimensions: vec2f) -> vec3<f32>
+fn scratch(co: vec3<f32>, coord: vec2<f32>, time: f32, uDimensions: vec2f) -> vec3<f32>
 {
     var color = co;
 
-    let phase: f32 = uSeed * 256.0;
+    let phase: f32 = time * 256.0;
     let s: f32 = modulo(floor(phase), 2.0);
     let dist: f32 = 1.0 / params.uScratchDensity;
-    let d: f32 = distance(coord, vec2<f32>(uSeed * dist, abs(s - uSeed * dist)));
+    let d: f32 = distance(coord, vec2<f32>(time * dist, abs(s - time * dist)));
 
-    if (d < uSeed * 0.6 + 0.4)
+    if (d < time * 0.6 + 0.4)
     {
         let period: f32 = params.uScratchDensity * 10.0;
 
@@ -109,7 +109,7 @@ fn scratch(co: vec3<f32>, coord: vec2<f32>, uSeed: f32, uDimensions: vec2f) -> v
         let yy: f32 = (1.0 - bb) * aa + bb * (2.0 - aa);
 
         let kk: f32 = 2.0 * period;
-        let dw: f32 = params.uScratchWidth / uDimensions.x * (0.75 + uSeed);
+        let dw: f32 = params.uScratchWidth / uDimensions.x * (0.75 + time);
         let dh: f32 = dw * kk;
 
         var tine: f32 = (yy - (2.0 - dh));
@@ -132,12 +132,12 @@ fn rand(p: vec2f) -> f32 {
     return fract(sin(dotVal) * 43758.5453);
 }
 
-fn noise(coord: vec2<f32>, uSeed: f32, size: vec2f) -> f32
+fn noise(coord: vec2<f32>, time: f32, size: vec2f) -> f32
 {
     var pixelCoord: vec2<f32> = coord * size;
     pixelCoord.x = floor(pixelCoord.x / params.uNoiseSize);
     pixelCoord.y = floor(pixelCoord.y / params.uNoiseSize);
-    return (rand(pixelCoord * params.uNoiseSize * uSeed) - 0.5) * params.uNoise;
+    return (rand(pixelCoord * params.uNoiseSize * time) - 0.5) * params.uNoise;
 }
 
 

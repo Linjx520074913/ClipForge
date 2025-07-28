@@ -9,7 +9,6 @@
             :key="tidx"
             :class="[VideoStudio.data.clipEngine?.project.curTrackIndex == tidx ? '' : 'hidden']"
         >
-        {{   }}
             <div 
                 v-for="(clip, cidx) in track.clips"
                 :key="cidx"
@@ -66,15 +65,17 @@
  */
 import { AXIOS } from '@frontend/api';
 import { VideoStudio } from '@frontend/store/videostudio';
-import { ShaderSpecSchema, ClipEffectSchema } from 'clip-engine';
+import { ShaderSpecSchema } from 'clip-engine';
+import { z } from 'zod';
 import { computed } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 defineOptions({ name: 'FilterPanel' });
 const emit = defineEmits(['onChildEvent', 'onUpdateShader']);
 
 /**
  * 滤镜列表
  */
-const filter_list = ref<ShaderDescription>([]);
+const filter_list = ref<typeof ShaderSpecSchema>([]);
 
 /**
  * 激活/禁用滤镜 
@@ -83,15 +84,17 @@ const filter_list = ref<ShaderDescription>([]);
 function activeFilter(index: number){
     if(!filter_list.value) return;
 
-    // 添加到 activedClip
-    const tracks = VideoStudio.data.clipEngine?.project.tracks.filter(f => f.isEditing);
-    if(tracks?.length){
-        const clips = tracks[0].clips.filter(c => c.isEditing);
-        if(clips.length){
-            clips[0].effects.push(filter_list.value[index]);
-            clips[0].curEffectIndex = clips[0].effects.length - 1;
-        }
-    }
+    const project = VideoStudio.data.clipEngine?.project!;
+    const curTrack = project.tracks[project.curTrackIndex];
+    if(!curTrack) return undefined;
+
+    const curClip = curTrack.clips[curTrack.curClipIndex];
+    if(!curClip) return undefined;
+
+    const spec: z.input<typeof ShaderSpecSchema> = { ...filter_list.value[index] };
+    spec.id = uuidv4();
+    curClip.effects.push(spec);
+
     VideoStudio.data.clipEngine?.render();
 }
 

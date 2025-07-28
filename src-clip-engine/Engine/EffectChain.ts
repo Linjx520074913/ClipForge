@@ -1,7 +1,6 @@
 import { GPUContext } from './GPUContext';
 import { RendererUnit } from "./RendererUnit";
 import { GPUTexturePool } from "./GPUTexturePool";
-import { ShaderDescription } from './Type';
 
 import { ShaderSpecSchema } from './Schema';
 
@@ -18,29 +17,6 @@ export class EffectChain{
         this.texturePool = new GPUTexturePool(this.ctx);
     }
 
-    /**
-     * 添加滤镜节点
-     * @param node 
-     */
-    // addNode(node: RendererUnit): void{
-    //     const exist = this.units.some(u => u.name === node.name);
-    //     if(!exist){
-    //         this.units.push(node);
-    //     }
-    // }
-
-    addNode(desc: ShaderDescription): void{
-       
-        const node = new RendererUnit(this.ctx, desc.name);
-        node.initialize(desc.code);
-        node.applyParameters(desc.params); 
-        
-        const exist = this.units.some(u => u.name === node.name);
-        if(!exist){
-            this.units.push(node);
-        }
-    }
-
     add(spec: z.input<typeof ShaderSpecSchema>){
         const exist = this.units.some(u => u.name === spec.name);
         if(!exist) {
@@ -51,9 +27,10 @@ export class EffectChain{
             this.units.push(node);
         }
         // 更新参数
-        this.units.filter(u => u.name === spec.name).forEach( n => {
-            n.apply(spec);
-        });
+        const n = this.units.filter(u => u.name === spec.name);
+        if(n.length){
+            n[0].apply(spec);
+        }
     }
 
     /**

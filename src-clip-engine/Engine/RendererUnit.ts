@@ -55,7 +55,7 @@ export class RendererUnit{
         
         this.p = param;
         
-        const { binding, entries } = param.params;
+        const { binding, entries, runtime } = param.params;
         const uniformValues: number[] = [];
         // 解包 param，然后把 entries 中的参数放入到 uniformValues 中
         for(const key of Object.keys(entries)){
@@ -95,6 +95,11 @@ export class RendererUnit{
         }
         if(uniformValues.length == 0){
             return;
+        }
+
+        if(runtime?.includes('time')){
+            // TODO: 替换成时间
+            uniformValues.push(Math.random());
         }
        
         const floatArray = new Float32Array(uniformValues)

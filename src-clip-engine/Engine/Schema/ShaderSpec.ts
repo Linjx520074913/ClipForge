@@ -17,13 +17,15 @@ export const ShaderParamEntry = z.object({
  */
 export const ShaderParamPack = z.object({
     binding: z.number(),
-    entries: z.record(ShaderParamEntry)
+    entries: z.record(ShaderParamEntry),
+    runtime: z.array(z.string()).optional()
 });
 
 /**
  * 完整的 shader 规范（包括代码、参数等）
  */
 export const ShaderSpecSchema = z.object({
+    id:      z.string().nullable,
     name:    z.string(),
     code:    z.string(),
     params:  ShaderParamPack,

@@ -5,7 +5,7 @@ import { EngineEvent, EventBus } from './EventBus';
 import { AssetManager, Asset } from './AssetManager';
 import { ClipSchema, ProjectSchema, ClipOption, TrackType, TrackSchema, ShaderSpecSchema } from './Schema';
 import { v4 as uuidv4 } from 'uuid';
-import { uuid, z } from 'zod';
+import { z } from 'zod';
 import { ClipFrameExtractor } from './Extractor/ClipFrameExtractor';
 import { VideoTrack } from './Track/VideoTrack';
 import { FFmpegEngine } from './FFmpeg';
@@ -157,13 +157,13 @@ export class ClipEngine {
 
     createProject(name: string): void {
         const input: z.input<typeof ProjectSchema> = {
-        id: uuidv4(),
-        name: name,
-        setting: {},
-        tracks: [],
-        curTrackIndex: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+            id: uuidv4(),
+            name: name,
+            setting: {},
+            tracks: [],
+            curTrackIndex: 0,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
         };
         this._project = ProjectSchema.parse(input);
     }
