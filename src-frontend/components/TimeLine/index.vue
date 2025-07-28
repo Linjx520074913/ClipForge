@@ -36,15 +36,25 @@
                     <!-- 绘制 clip 片段 -->
                     <div
                         v-for="(clip, index) in track.clips"
-                        class="h-full bg-black absolute rounded-md"
+                        class="h-full bg-white rounded-xl text-white relative p-1"
                         :style="{ 
                             left: `${clip.startTime / 1000 * pxPerSec}px`, 
                             width: `${clip.duration / 1000 * pxPerSec}px`, 
                             willChange: 'left' 
                         }"
                     >
-                        <p>{{ clip.startTime}}</p>
-                        <p>{{ clip.duration}}</p>
+                        <!-- <div
+                            :class="[clip.isEditing? 'absolute w-full h-full top-0 left-0 border-2 border-purple ring-purple rounded-xl p-1': '']"
+                        >
+                            <div 
+                                class="w-full h-full border-2 border-white rounded-md">
+                            aaa
+                            </div>
+                        </div> -->
+                        <div 
+                            v-if="clip.isEditing"
+                            class="w-full h-full rounded-md ring-1 ring-purple-500 ring-offset-1 ring-offset-purple transition-all duration-200">
+                        </div>
                     </div>
                 </div>
             </div>
