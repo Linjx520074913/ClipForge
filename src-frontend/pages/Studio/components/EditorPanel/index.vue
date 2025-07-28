@@ -112,7 +112,6 @@ const {
 } = useDrag();
 
 function onStatusChange(data: {trackId: string, clipId: string, value: boolean}){
-    console.error('@@@@@@ onStatusChange @@@@@@', data)
     // 获取/丢失焦点
     const project = VideoStudio.data.clipEngine?.project;
     if(!project) return;
@@ -132,7 +131,6 @@ function onStatusChange(data: {trackId: string, clipId: string, value: boolean})
                     if(clip.id == data.clipId) {
                         clip.isEditing = data.value;
                     }
-                    
                     if(clip.isEditing){
                         track.curClipIndex = cidx;
                     }

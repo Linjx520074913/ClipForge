@@ -3,12 +3,16 @@
         class="grid grid-cols-1 gap-1 p-2 overflow-y-scroll h-full"
         id="filter-panel"
     >
+    {{ VideoStudio.data.clipEngine?.project.curTrackIndex }}
         <div
             v-for="(track, tidx) in VideoStudio?.data?.clipEngine?.project?.tracks"
             :key="tidx"
+            :class="[VideoStudio.data.clipEngine?.project.curTrackIndex == tidx ? '' : 'hidden']"
         >
+        {{   }}
             <div 
-                v-for="(clip, cidx) in track.clips" :key="cidx"
+                v-for="(clip, cidx) in track.clips"
+                :key="cidx"
                 class="flex flex-row overflow-x-scroll w-full space-x-2 border p-2 cursor-pointer"
             >
                 <div
