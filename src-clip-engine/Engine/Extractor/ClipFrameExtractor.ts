@@ -1,8 +1,11 @@
 import { ClipWorkerResponse } from ".";
+import { FrameCache } from "./FrameCache";
 
 export class ClipFrameExtractor {
     private worker: Worker;
     private init: boolean = false;
+
+    private cache: FrameCache = new FrameCache(600);
 
     constructor() {
         this.worker = new Worker(new URL('./ClipWorker.ts', import.meta.url), { type: 'module'});
@@ -35,16 +38,30 @@ export class ClipFrameExtractor {
         if(!this.init) throw new Error('Extractor not init');
     
         return new Promise((resolve, reject) => {
-            const frameHandler = (e: MessageEvent) => {
-                const { type, frame } = e.data as ClipWorkerResponse;
-                if(type === 'frame') {
-                    this.worker.removeEventListener('message', frameHandler);
-                    resolve(frame);
-                }
-            };
-            
-            this.worker.addEventListener('message', frameHandler);
-            this.worker.postMessage({ type: 'get-frame', time: time });
+            // 查找是否有缓存帧
+            // console.error('$$$$$$$$$FSFSDFSDF', time, this.cache);
+            const cached = this.cache.get(time);
+            if(cached){
+                resolve(cached.clone());
+                return;
+            }else{
+                // 无缓存则进行解码
+                const frameHandler = (e: MessageEvent) => {
+                    const { type, frame } = e.data as ClipWorkerResponse;
+                    if(type === 'frame') {
+                        this.worker.removeEventListener('message', frameHandler);
+                        if(frame) {
+                            this.cache.add(time, frame);
+                            resolve(frame.clone());
+                        }else {
+                            resolve(null);
+                        }
+                    }
+                };
+
+                this.worker.addEventListener('message', frameHandler);
+                this.worker.postMessage({ type: 'get-frame', time: time });
+            }
         });
     }
 
