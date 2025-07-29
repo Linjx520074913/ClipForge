@@ -1,10 +1,14 @@
-export type ClipWorkerRequest = 
-    | { type: 'init';      url: string }
-    | { type: 'get-frame'; time: number }
-    | { type: 'dispose' }
+export interface ClipWorkerRequest {
+    type : 'init' | 'get-frame' | 'dispose';
+    url? : string;
+    time?: number;
+    requestId?: string;
+}
 
-export type ClipWorkerResponse = 
-    | { type: 'init-done' }
-    | { type: 'frame'; frame: VideoFrame | null }
-    | { type: 'dispose-done' }
-    | { type: 'error'; msg: string }
+export interface ClipWorkerResponse {
+    type: 'init-done' | 'frame' | 'dispose-done' | 'error';
+    frame?: VideoFrame | null;
+    msg?: string;
+    time?: number;
+    requestId?: string;
+}

@@ -73,8 +73,8 @@ export class ClipEngine {
         this._eventBus.emit("time:stop", time)
         );
         this.timeDriver.on("tick", async (timeMs: number) => {
-        this.render(timeMs);
-        this._eventBus.emit("time:tick", timeMs);
+            this.render(timeMs);
+            this._eventBus.emit("time:tick", timeMs);
         });
     }
 
@@ -313,6 +313,7 @@ export class ClipEngine {
                     const extractor: ClipFrameExtractor = clipRuntime.extractor;
                     if (renderer && extractor) {
                         const frame = await extractor.getFrame(time - clip.startTime);
+                        // extractor.preload(time - clip.startTime);
                         if (frame && frame.format != null) {
                             const effectChain: EffectChain = renderer.getEffectChain();
                             clip.effects.forEach((effect) => {

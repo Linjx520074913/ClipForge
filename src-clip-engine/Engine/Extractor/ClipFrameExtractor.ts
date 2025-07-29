@@ -1,4 +1,4 @@
-import { ClipWorkerResponse } from ".";
+import { ClipWorkerRequest, ClipWorkerResponse } from ".";
 import { FrameCache } from "./FrameCache";
 
 export class ClipFrameExtractor {
@@ -7,60 +7,92 @@ export class ClipFrameExtractor {
 
     private cache: FrameCache = new FrameCache(600);
 
+    private frameDuration = 33;
+    private preloadCount = 30;
+
+    private pendingRequests = new Map<string, (frame: VideoFrame | null) => void>();
+
     constructor() {
         this.worker = new Worker(new URL('./ClipWorker.ts', import.meta.url), { type: 'module'});
+    
+        this.worker.addEventListener('message', (e: MessageEvent) => {
+            const { type, frame, time, requestId } = e.data as ClipWorkerResponse;
+
+            switch(type){
+                case 'init-done':
+                    this.init = true;
+                    if(requestId && this.pendingRequests.has(requestId)){
+                        this.pendingRequests.get(requestId)!();
+                        this.pendingRequests.delete(requestId);
+                    }
+                    break;
+                case 'frame':
+                    {
+                        if(time != undefined && frame) {
+                            if(!this.cache.has(time)) {
+                                this.cache.add(time, frame);
+                            } else {
+                                frame.close();
+                            }
+                        }
+
+                        if(requestId && this.pendingRequests.has(requestId)) {
+                            this.pendingRequests.get(requestId)!(frame ? frame.clone() : null);
+                            this.pendingRequests.delete(requestId);
+                        }
+                    }
+                    break;
+                case 'dispose-done':
+                    break;
+                case 'error':
+                    break;
+                default:
+                    break;
+            }
+            
+        });
+    }
+
+    private genRequestId(): string {
+        return Math.random().toString(36).slice(2);
     }
 
     async initialize(url: string): Promise<void> {
-        if(this.init){
-            
-        }
+        if(this.init) return;
 
-        return new Promise((resolve, reject) => { 
-            const initHandler = (e: MessageEvent) => {
-                this.worker.removeEventListener('message', initHandler);
-
-                const { type } = e.data as ClipWorkerResponse;
-                if(type === 'init-done'){
-                    this.init = true;
-                    resolve();
-                }else if(type === 'error') {
-                    reject(e.data.msg);
-                }
-            };
-
-            this.worker.addEventListener('message', initHandler);
-            this.worker.postMessage({ type: 'init', url: url });
+        return new Promise((resolve, reject) => {
+            const requestId = this.genRequestId();
+            this.pendingRequests.set(requestId, resolve);
+            this.worker.postMessage({ type: 'init', url, requestId } as ClipWorkerRequest);
         });
     }
 
     async getFrame(time: number): Promise<VideoFrame | null> {
         if(!this.init) throw new Error('Extractor not init');
     
-        return new Promise((resolve, reject) => {
-            // 查找是否有缓存帧
-            // console.error('$$$$$$$$$FSFSDFSDF', time, this.cache);
-            const cached = this.cache.get(time);
-            if(cached){
-                resolve(cached.clone());
-                return;
-            }else{
-                // 无缓存则进行解码
-                const frameHandler = (e: MessageEvent) => {
-                    const { type, frame } = e.data as ClipWorkerResponse;
-                    if(type === 'frame') {
-                        this.worker.removeEventListener('message', frameHandler);
-                        if(frame) {
-                            this.cache.add(time, frame);
-                            resolve(frame.clone());
-                        }else {
-                            resolve(null);
-                        }
-                    }
-                };
+        const cached = this.cache.get(time);
+        if(cached) {
+            return cached.clone();
+        }
 
-                this.worker.addEventListener('message', frameHandler);
-                this.worker.postMessage({ type: 'get-frame', time: time });
+        return new Promise((resolve, reject) => { 
+            const requestId = this.genRequestId();
+            this.pendingRequests.set(requestId, resolve);
+            this.worker.postMessage({ type: 'get-frame', time, requestId } as ClipWorkerRequest);
+        });
+    }
+
+    /**
+     * 预解码未来帧
+     * @param time 
+     */
+    preload(time: number) {
+        return new Promise(() => {
+            for (let i = 1; i <= this.preloadCount; i++) {
+                const t = time + i * this.frameDuration;
+                if (!this.cache.has(t)) {
+                    this.worker.postMessage({ type: 'get-frame', time: t } as ClipWorkerRequest);
+                }
             }
         });
     }
@@ -68,14 +100,10 @@ export class ClipFrameExtractor {
     async dispose(): Promise<void> {
         if(!this.init) return;
 
-        return new Promise((resolve) => {
-            const disposeHandler = (e: MessageEvent) => {
-                this.worker.removeEventListener('message', disposeHandler);
-                this.init = false;
-                resolve();
-            };
-            this.worker.addEventListener('message', disposeHandler);
-            this.worker.postMessage({ type: 'dispose' });
-        })
+        return new Promise((resolve, reject) => {
+            const requestId = this.genRequestId();
+            this.pendingRequests.set(requestId, resolve);
+            this.worker.postMessage({ type: 'dispose', requestId } as ClipWorkerRequest);
+        });
     }
 }

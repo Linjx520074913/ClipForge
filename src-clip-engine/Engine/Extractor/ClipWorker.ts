@@ -31,7 +31,7 @@ self.onmessage = async (e: MessageEvent<ClipWorkerRequest>) => {
             case 'init':
                 {
                     await initClip(msg.url);
-                    self.postMessage({ type: 'init-done' });
+                    self.postMessage({ type: 'init-done', requestId: msg.requestId });
                 }
                 break;
             case 'get-frame':
@@ -39,12 +39,12 @@ self.onmessage = async (e: MessageEvent<ClipWorkerRequest>) => {
                     const frame = await getFrame(msg.time);
                     if(frame){
                         self.postMessage(
-                            { type: 'frame', frame: frame },
+                            { type: 'frame', frame: frame, time: msg.time, requestId: msg.requestId },
                             [ frame ]
                         );
                     }else{
                         self.postMessage(
-                            { type: 'frame', frame: null }
+                            { type: 'frame', frame: null, time: msg.time, requestId: msg.requestId }
                         );
                     }
                 }
