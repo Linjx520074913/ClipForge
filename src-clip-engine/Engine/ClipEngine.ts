@@ -282,6 +282,8 @@ export class ClipEngine {
         if(this.rendering) return;
         this.rendering = true;
         this._project.tracks.forEach((track) => {
+            if(!track.isVisible) return;
+
             track.clips.forEach(async (clip) => {
                 clip.isVisible = clip.startTime <= time && clip.startTime + clip.duration >= time;
                 if (clip.isVisible) {

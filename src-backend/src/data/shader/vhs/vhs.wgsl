@@ -1,5 +1,5 @@
 struct VHSParam{
-    seed: f32
+    time: f32
 };
 
 
@@ -18,18 +18,18 @@ fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     var uvn = uv;
 
     // tape wave
-    uvn.x += (noise(vec2f(uvn.y, params.seed)) - 0.5) * 0.005;
-    uvn.x += (noise(vec2f(uvn.y * 100.0, params.seed * 10.0)) - 0.5) * 0.01;
+    uvn.x += (noise(vec2f(uvn.y, params.time)) - 0.5) * 0.005;
+    uvn.x += (noise(vec2f(uvn.y * 100.0, params.time * 10.0)) - 0.5) * 0.01;
 
     // tape crease
-    let tcPhase = clamp((sin(uvn.y * 8.0 - params.seed * PI * 1.2) - 0.92) * noise(vec2f(params.seed)), 0.0, 0.01) * 10.0;
-    let tcNoise = max(noise(vec2f(uvn.y * 100.0, params.seed * 10.0)) - 0.5, 0.0);
+    let tcPhase = clamp((sin(uvn.y * 8.0 - params.time * PI * 1.2) - 0.92) * noise(vec2f(params.time)), 0.0, 0.01) * 10.0;
+    let tcNoise = max(noise(vec2f(uvn.y * 100.0, params.time * 10.0)) - 0.5, 0.0);
     uvn.x = uvn.x - tcNoise * tcPhase;
 
     // switching noise
     let snPhase = smoothstep(0.03, 0.0, uvn.y);
     uvn.y += snPhase * 0.3;
-    uvn.x += snPhase * ((noise(vec2f(uv.y * 100.0, params.seed * 10.0)) - 0.5) * 0.2);
+    uvn.x += snPhase * ((noise(vec2f(uv.y * 100.0, params.time * 10.0)) - 0.5) * 0.2);
 
     var col = tex2D(uvn);
     col = col * (1.0 - tcPhase);
@@ -46,7 +46,7 @@ fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     col = col * 0.6;
 
     // ac beat
-    col = col * (1.0 + clamp(noise(vec2f(0.0, uv.y + params.seed * 0.2)) * 0.6 - 0.25, 0.0, 0.1));
+    col = col * (1.0 + clamp(noise(vec2f(0.0, uv.y + params.time * 0.2)) * 0.6 - 0.25, 0.0, 0.1));
 
     return vec4(col, 1.0);
 }

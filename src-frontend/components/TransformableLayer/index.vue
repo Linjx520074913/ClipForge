@@ -63,6 +63,7 @@ const props = defineProps({
 const emit = defineEmits<{
     (e: 'update:selected', value: boolean): void;
     (e: 'onStatusChange', { trackId: string, clipId: string, value: boolean }): void;
+    (e: 'update:size', { w: number, h: number }): void;
 }>();
 
 const rootRef = ref<HTMLElement | null>(null);
@@ -72,7 +73,7 @@ const anchorRef = ref<HTMLDivElement | null>(null);
 
 const anchorStyle = ref({ left: '0px', top: '0px', width: '0px', height: '0px', zIndex: 1});
 
-let { cornerAnchors, anchorCls, startResize } = useResize(props, rootRef, anchorStyle);
+let { cornerAnchors, anchorCls, startResize } = useResize(props, emit, rootRef, anchorStyle);
 
 let { startMove } = useMove(props, emit, rootRef, anchorStyle)
 

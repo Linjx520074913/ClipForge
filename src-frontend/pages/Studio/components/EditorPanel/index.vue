@@ -34,7 +34,7 @@
                                 v-model:selected="clip.isEditing"
                                 :zIndex=track.order
                                 :to="'.stage-canvas'"
-                                :size="clip.transformation.size"
+                                v-model:size="clip.transformation.size"
                                 :pos="clip.transformation.position"
                                 :class="[clip.isVisible? '' : 'hidden']"
                                 :trackId="track.id"

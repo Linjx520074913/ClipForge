@@ -6,7 +6,7 @@ export function useMouse(props: any, emit: any){
 
     // 当前时间对应的位置
     let pos = computed(() => {
-        return `${props.timeMs / 1000 * props.pxPerSec}px`;
+        return `${props.timeMs / 1000 * props.pxPerSec - 3}px`;
     });
 
     function onMouseDown(e: MouseEvent){

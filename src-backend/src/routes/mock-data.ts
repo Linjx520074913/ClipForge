@@ -11,6 +11,8 @@ import OldFilmParams from "../data/shader/oldfilm/params.json";
 
 import VHSParams from "../data/shader/vhs/params.json";
 
+import CountryParams from "../data/shader/country/params.json";
+
 export function loadShader(relativePath: string): string {
     const fullPath = path.join(process.cwd(), relativePath);
     return fs.readFileSync(fullPath, 'utf-8');
@@ -41,6 +43,12 @@ export function useMockData(){
             name: 'VHS',
             code: loadShader('src/data/shader/vhs/vhs.wgsl'),
             params: VHSParams,
+            actived: false
+        },
+        {
+            name: '乡村风',
+            code: loadShader('src/data/shader/country/country.wgsl'),
+            params: CountryParams,
             actived: false
         }
     ];

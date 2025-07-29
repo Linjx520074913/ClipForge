@@ -1,3 +1,11 @@
+/*
+ * @Description: 
+ * @Version: 2.0
+ * @Author: linjingxiong
+ * @Date: 2025-07-29 09:34:52
+ * @LastEditors: linjingxiong
+ * @LastEditTime: 2025-07-29 09:34:53
+ */
 import { GPUContext } from './GPUContext';
 import { ShaderParamPack } from './Type';
 import { ShaderSpecSchema } from './Schema';
@@ -93,13 +101,14 @@ export class RendererUnit{
                     break;
             }
         }
-        if(uniformValues.length == 0){
-            return;
-        }
 
         if(runtime?.includes('time')){
             // TODO: 替换成时间
             uniformValues.push(Math.random());
+        }
+
+        if(uniformValues.length == 0){
+            return;
         }
        
         const floatArray = new Float32Array(uniformValues)

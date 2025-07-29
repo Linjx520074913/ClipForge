@@ -42,6 +42,7 @@ let transformStart = { left: 0, top: 0, x: 0, y: 0, w: 0, h: 0 };
 
 export function useResize(
     props: any,
+    emit: any,
     rootRef: Ref<HTMLElement | null>,
     anchorStyle: Ref<AnchorStyle>
 ){
@@ -131,6 +132,8 @@ export function useResize(
 
         root.style.width = `${newW}px`
         root.style.height = `${newH}px`;
+
+        emit('update:size', { w: newW, h: newH });
 
         updateAnchorStyle(rootRef, props, anchorStyle);
     }
