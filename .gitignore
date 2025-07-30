@@ -9,6 +9,8 @@ lerna-debug.log*
 
 doc/.vitepress/cache/
 
+build/
+
 .vitepress/
 
 node_modules
