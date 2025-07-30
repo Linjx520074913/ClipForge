@@ -45,6 +45,13 @@ const selectAll = ref(false);
 
 const assetManager = computed(() => { return VideoStudio.data.clipEngine?.getAssetManager(); });
 
+/**
+ * NOTE: 
+ * 1、浏览器元素拖拽（Drag & Drop）会自动生成拖拽预览，这是浏览器行为
+ * 2、Tauri 的 WebView （Windows 是 WebView2，Mac 是 WKWebView）默认不生成预览图
+ * 
+ * 所以 Tauri 想要达到同样的效果，要添加自定义预览图
+ */
 function handleDragStart(event: DragEvent, asset: Asset){
     console.error('=========', asset)
     // dataTransfer 不能传对象，要先序列化

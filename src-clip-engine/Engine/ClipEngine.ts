@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 import { ClipFrameExtractor } from './Extractor/ClipFrameExtractor';
 import { VideoTrack } from './Track/VideoTrack';
-import { FFmpegEngine } from './FFmpeg';
 import { EffectChain } from './EffectChain';
 
 class TrackGraph{
@@ -52,17 +51,13 @@ export class ClipEngine {
 
     private trackRuntime: Map<string, TrackRuntime> = new Map();
 
-    private _ffmpeg: FFmpegEngine;
-
     private rendering: boolean = false;
 
-    private constructor(ctx: GPUContext, ffmpeg: FFmpegEngine) {
+    private constructor(ctx: GPUContext, ffmpeg?: any) {
         this.ctx = ctx;
         this.timeDriver = new TimeDriver(30000);
         this.assetManager = new AssetManager();
         this._eventBus = new EventBus<EngineEvent>();
-        this._ffmpeg = ffmpeg;
-
         this.timeDriver.on("start", (time) =>
         this._eventBus.emit("time:start", time)
         );
@@ -80,8 +75,7 @@ export class ClipEngine {
 
     static async create(): Promise<ClipEngine> {
         const ctx = await GPUContext.create();
-        const ffmpeg = await FFmpegEngine.create();
-        return new ClipEngine(ctx, ffmpeg);
+        return new ClipEngine(ctx);
     }
 
     getContext(): GPUContext {
@@ -98,7 +92,6 @@ export class ClipEngine {
         return this._eventBus;
     }
     get ffmpeg() {
-        return this._ffmpeg;
     }
 
     getAssetManager(): AssetManager {
