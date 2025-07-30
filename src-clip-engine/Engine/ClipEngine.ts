@@ -35,7 +35,7 @@ interface TrackRuntime {
 
 interface ClipRuntime {
     id: string;
-    rendeer: BaseTrack;
+    renderer: BaseTrack;
     extractor: ClipFrameExtractor;
 }
 
@@ -259,8 +259,14 @@ export class ClipEngine {
         if (!url) {
         throw new Error(`[ ClipEngine ] : get asset failed ${clip.id}`);
         }
-        extractor.initialize(url).then(() => {
-        this.timeDriver.seek(0);
+        extractor.initialize(url).then(async (id) => {
+            // this.timeDriver.seek(0);
+            // 渲染第一帧
+            
+            console.error('+++++FFFFFFFFFFFFFFFF')
+            const frame = await extractor.getFrame(0);
+            console.error('#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@', frame)
+            this.trackRuntime.get(trackId).get(clip.id).renderer.render(frame);
         });
 
         if (!this.trackRuntime.get(trackId)) {
@@ -320,7 +326,6 @@ export class ClipEngine {
                                 effectChain.add(effect);
                             });
                             renderer.render(frame);
-                            frame?.close();
                         }
                     }
                 }
