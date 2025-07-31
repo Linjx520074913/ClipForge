@@ -1,23 +1,24 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 
-set(Target "FFmpeg")
+project(ffmpeg_demo)
 
-# 项目名称
-project(FFmpeg)
-
-# 设置 C++ 标准
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# 添加可执行文件
-add_executable(${Target} src/main.cpp)
+set(FFMPEG_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/deps/ffmpeg/include)
+set(FFMPEG_LIB_DIR     ${PROJECT_SOURCE_DIR}/deps/ffmpeg/lib)
 
+include_directories(${FFMPEG_INCLUDE_DIR})
+link_directories(${FFMPEG_LIB_DIR})
 
-# 添加头文件搜索路径
-target_include_directories(${Target} PRIVATE "deps/ffmpeg/include")
+add_executable(${PROJECT_NAME} src/main.cpp)
 
-# 添加库文件搜索路径
-target_link_directories(${Target} PRIVATE "deps/ffmpeg/lib")
-
-# 链接FFmpeg相关库
-target_link_libraries(${Target} PRIVATE avformat avcodec avutil swscale)
+target_link_libraries(
+    ${PROJECT_NAME} PRIVATE
+    avcodec
+    avformat
+    avfilter
+    avdevice
+    avutil
+    swresample
+    swscale
+)
