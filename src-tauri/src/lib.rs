@@ -1,5 +1,7 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-use tauri::{Manager, PhysicalSize, PhysicalPosition};
+use tauri::{Manager};
+
+mod ffi;
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -8,6 +10,7 @@ fn greet(name: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    println!("{}", ffi::call_hello());
     tauri::Builder::default()
     .setup(|app| {
         #[cfg(debug_assertions)] // 仅在调试构建时包含此代码
