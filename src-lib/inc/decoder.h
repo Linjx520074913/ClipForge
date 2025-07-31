@@ -16,7 +16,24 @@
 #define DECODER_API DLL_IMPORT
 #endif
 
-// ✅ 导出 hello_world 接口
-DECODER_API const char* hello_world();
+#include <iostream>
+#include <opencv2/opencv.hpp>
+
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
+#include <libavutil/imgutils.h>
+}
+
+struct FFMpegVersion {
+    int major;
+    int minor;
+    int micro;
+};
+
+DECODER_API FFMpegVersion get_ffmpeg_version();
+
+DECODER_API void show_frames();
 
 #endif // DECODER_DLL_H

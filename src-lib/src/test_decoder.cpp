@@ -1,8 +1,16 @@
 #include <iostream>
+#include <format>
 #include "decoder.h"
 
+using namespace std;
+
 int main() {
-    // ✅ 直接调用函数（静态链接 .lib）
-    std::cout << "DLL returned: " << hello_world() << std::endl;
+    FFMpegVersion v = get_ffmpeg_version();
+
+    cout << std::format("{} {} {}", v.major, v.minor, v.micro) << endl;
+    show_frames();
+    while (true) {
+
+    }
     return 0;
 }

@@ -1,13 +1,13 @@
-#[link(name = "FrameDLL")] // 不要写扩展名
-extern "C" {
-    fn hello_world() -> *const i8;
+#[repr(C)]
+pub struct FFMpegVersion {
+    pub major: i32,
+    pub minor: i32,
+    pub micro: i32
 }
 
-use std::ffi::CStr;
+#[link(name = "FrameDLL")] // 不要写扩展名
+extern "C" {
+    pub fn get_ffmpeg_version() -> FFMpegVersion;
 
-pub fn call_hello() -> String {
-    unsafe {
-        let c_str = hello_world();
-        CStr::from_ptr(c_str).to_str().unwrap().to_string()
-    }
+    pub fn show_frames(); 
 }

@@ -10,7 +10,15 @@ fn greet(name: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    println!("{}", ffi::call_hello());
+    let version = unsafe { ffi::get_ffmpeg_version() };
+    println!(
+        "FFmpeg version: {}.{}.{}",
+        version.major, version.minor, version.micro
+    );
+
+    unsafe { ffi::show_frames() };
+
+
     tauri::Builder::default()
     .setup(|app| {
         #[cfg(debug_assertions)] // 仅在调试构建时包含此代码
