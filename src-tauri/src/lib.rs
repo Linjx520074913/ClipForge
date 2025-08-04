@@ -1,5 +1,5 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-use tauri::{Manager};
+use tauri::{ Manager, WindowUrl };
 
 mod ffi;
 
