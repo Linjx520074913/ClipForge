@@ -1,10 +1,11 @@
 #pragma once
+
 #include <opencv2/opencv.hpp>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 #include <deque>
 #include <memory>
-#include <mutex>
-#include <thread>
-#include <condition_variable>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -22,42 +23,39 @@ public:
     VideoDecoder();
     ~VideoDecoder();
 
-    bool Initialize(const char* file_name);
+    bool Initialize(const char* file_path);
     void Uninitialize();
 
-    // 获取某时间点帧（会自动触发seek）
-    std::shared_ptr<cv::Mat> GetFrame(int time_ms, int timeout_ms = 100);
+    std::shared_ptr<cv::Mat> GetFrame(int time_ms, int timeout_ms);
 
 private:
-    void Cleanup();
     void DecodeThreadLoop();
-    void DecodeNextFrames(bool do_seek = false);
+    void DecodeWindow(int64_t start_pts_us);
+    void Cleanup();
 
 private:
-    AVFormatContext* format_context_ = nullptr;
-    AVCodecContext* codec_context_ = nullptr;
-    SwsContext* sws_context_ = nullptr;
+    AVFormatContext* format_ctx_ = nullptr;
+    AVCodecContext* codec_ctx_ = nullptr;
+    int video_stream_index_ = -1;
+    SwsContext* sws_ctx_ = nullptr;
+    AVPixelFormat current_src_pix_fmt_ = AV_PIX_FMT_NONE;
 
     std::thread decode_thread_;
     std::mutex mutex_;
+    std::condition_variable cv_decode_;
     std::condition_variable cv_frame_;
 
-    int video_stream_index_ = -1;
-    AVPixelFormat current_src_pix_fmt_ = AV_PIX_FMT_NONE;
+    std::deque<VideoFrame> frame_buffer_;
+    const size_t max_cache_frames_ = 60;
 
     bool is_running_ = false;
+    bool need_decode_ = false;
 
-    // 帧缓存
-    std::deque<VideoFrame> frame_buffer_;
-    const size_t max_cache_frames_ = 150; // ~6秒
+    int64_t target_pts_us_ = 0;
 
-    // seek 控制
-    bool request_seek_ = false;
-    int64_t seek_target_us_ = 0;
+    int64_t current_window_start_us_ = 0;
+    int64_t current_window_end_us_ = 0;
 
-    // 上次解码位置
-    int64_t last_pts_us_ = 0;
-
-    static constexpr int64_t kDropToleranceUs = 40000;  // 40ms
-    static constexpr int64_t kSeekThresholdUs = 2000000; // 2秒
+    static constexpr int64_t kDecodeWindowUs = 5 * 1000 * 1000; // 5秒窗口
+    static constexpr int64_t kDropToleranceUs = 40 * 1000;      // 40ms 容忍误差
 };
