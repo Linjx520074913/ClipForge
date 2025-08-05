@@ -1,0 +1,39 @@
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "useDefineForClassFields": true,
+        "module": "ESNext",
+        "lib": ["ES2020", "DOM", "DOM.Iterable", "WebWorker"],
+        "skipLibCheck": true,
+
+        /* Bundler mode */
+        "moduleResolution": "node",
+        "allowImportingTsExtensions": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "jsx": "preserve",
+        "types": ["node", "vue", "vite/client"],
+
+        /* Linting */
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true,
+        "baseUrl": ".",
+        "paths":{
+            "@frontend/test/*":       ["src-frontend/test/*"         ],
+            "@frontend/api/*":        ["src-frontend/api/*"          ],
+            "@frontend/assets*":      ["src-frontend/assets/*"       ],
+            "@frontend/avcore/*":     ["src-frontend/module/avcore/*"],
+            "@frontend/components/*": ["src-frontend/components/*"   ],
+            "@frontend/router*":      ["src-frontend/router/*"       ],
+            "@frontend/store*":       ["src-frontend/store/*"        ],
+            "@frontend/page/*":       ["src-frontend/page/*"         ],
+            "@frontend/pages/*":      ["src-frontend/pages/*"        ],
+            "clip-engine":            ["src-clip-engine"             ]
+        }
+    },
+    "include": ["global.d.ts", "src-frontend/**/*.ts", "src-frontend/**/*.d.ts", "src-frontend/**/*.tsx", "src-frontend/**/*.vue", "src-frontend/assets/data/mock-router-graph.json"],
+    "references": [{ "path": "./tsconfig.node.json" }]
+}

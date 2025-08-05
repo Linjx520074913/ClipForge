@@ -1,0 +1,20 @@
+{
+  "name": "clip-engine",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@webgpu/types": "^0.1.47",
+    "jest": "^30.0.4",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.3.3"
+  },
+  "scripts": {
+    "test": "npx jest"
+  },
+  "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "ffprobe-wasm": "^0.3.1"
+  }
+}

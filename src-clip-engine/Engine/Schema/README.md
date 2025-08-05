@@ -1,0 +1,1 @@
+## Schema 是用来描述结构定义/数据模型的，后续可以有 track.schema.ts, clip.schema.ts, effect.schema.ts等等

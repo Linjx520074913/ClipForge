@@ -1,0 +1,4 @@
+src-rust-ffmpeg/target
+node_modules/
+.vitepress
+*.mp4

@@ -1,0 +1,19 @@
+{
+    "files.associations": {
+        "plyconfig.json": "jsonc"
+    },
+    "tailwindCSS.includeLanguages": {
+    "vue": "html",
+    "typescript": "javascript",
+    "typescriptreact": "javascript"
+  },
+  "tailwindCSS.experimental.classRegex": [
+    ["class:\\s*`([^`]*)`", 1],       // 对应 class:`bg-red-500`
+    ["className=\\{?`([^`]*)`", 1],   // 对应 className={`bg-red-500`}
+    ["tw`([^`]*)`", 1]                // 支持使用 twin.macro 或类似语法
+],
+"liveServer.settings.port": 5501,
+"volar.useWorkspaceTsdk": false,
+"volar.takeOverMode.enabled": false,
+"typescript.validate.enable": false
+}

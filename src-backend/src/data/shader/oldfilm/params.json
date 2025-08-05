@@ -1,0 +1,15 @@
+{
+    "binding": 2,
+    "entries": {
+        "sepia": {  "label": "sepia", "value": 0.3, "type": "f32", "min": 0, "max": 1, "step": 0.01 },
+        "noise": {  "label": "noise", "value": 0.3, "type": "f32", "min": 0, "max": 1, "step": 0.01 },
+        "noiseSize": {  "label": "noiseSize", "value": 1, "type": "f32", "min": 1, "max": 10, "step": 0.01 },
+        "scratch": {  "label": "scratch", "value": -0.45, "type": "f32", "min": -1, "max": 1, "step": 0.01 },
+        "scratchDensity": {  "label": "scratchDensity", "value": 0.3, "type": "f32", "min": 0, "max": 1, "step": 0.01 },
+        "scratchWidth": {  "label": "scratchWidth", "value": 4, "type": "f32", "min": 1, "max": 20, "step": 1 },
+        "vignetting": {  "label": "vignetting", "value": 0.3, "type": "f32", "min": 0, "max": 1, "step": 0.01 },
+        "vignettingAlpha": {  "label": "vignettingAlpha", "value": 1, "type": "f32", "min": 0, "max": 1, "step": 0.01 },
+        "vignettingBlur": {  "label": "vignettingBlur", "value": 0.3, "type": "f32", "min": 0, "max": 1, "step": 0.01 }
+    },
+    "runtime": ["time"]
+}
