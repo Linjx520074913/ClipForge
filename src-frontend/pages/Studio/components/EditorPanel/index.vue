@@ -1,9 +1,9 @@
 <template>
     <div class="flex flex-row w-full h-full">
-        <div class="flex flex-col flex-1 min-w-[300px] h-full rounded-[15px] shadow-sm border bg-white">
+        <div class="flex flex-col flex-1 min-w-[300px] h-full rounded-[15px] shadow-sm border">
             <!-- 主渲染区域 -->
             <div 
-                class="stage-canvas w-full h-3/4 relative border-b border-b-gray-300 grid place-items-center" 
+                class="stage-canvas w-full h-3/4 rel+ative border-b border-b-gray-300 grid place-items-center"
                 ref="stageCanvasRef"
             >
                 <!-- 顶部工具条 -->
@@ -207,5 +207,13 @@ onBeforeUnmount(() => {
     border-style: solid;
     border-image-source: repeating-linear-gradient(135deg, #092FFF 0 6px, transparent 6px 12px);
     border-image-slice: 1;
+}
+
+.canvas-container {
+    /* background: radial-gradient(
+        circle at center,
+        transparent 40%,
+        rgba(0, 0, 0, 0.8) 40.1%
+    ); */
 }
 </style>

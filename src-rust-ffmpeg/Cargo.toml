@@ -9,4 +9,5 @@ wgpu = "0.20"
 image = "0.24"
 pollster = "0.3"
 bytemuck = "1.13"
+tokio = { version = "1", features = ["full"] }
 futures-intrusive = "0.4"
