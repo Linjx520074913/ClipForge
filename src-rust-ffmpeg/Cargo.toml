@@ -5,10 +5,10 @@ edition = "2024"
 build = "build.rs"
 
 [dependencies]
-image = "0.23"
-winit = "0.26"
-cgmath = "0.18"
-env_logger = "0.9"
-log = "0.4"
-wgpu = "0.12"
-pollster = "0.2"
+image      = "0.25"         # ✅ 最新图像处理库，兼容性好
+winit      = "0.30.0"       # ✅ 适用于 wgpu 0.26
+wgpu       = "26.0.1"       # ✅ 最新稳定版，来自 crates.io
+cgmath     = "0.18"         # ✅ 常用 3D 数学库
+env_logger = "0.11"         # ✅ 与 log 0.4 兼容
+log        = "0.4"          # ✅ 标准日志库
+pollster   = "0.4.0"        # ✅ 异步阻塞工具，适配 wgpu 初始化
