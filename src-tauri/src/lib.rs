@@ -18,7 +18,7 @@ pub fn run() {
             let window = app.get_webview_window("main").unwrap();
             window.maximize().unwrap();  // 最大化窗口
 
-            let engine = async_runtime::block_on(Engine::init(window));
+            let engine = async_runtime::block_on(Engine::new(window));
         }
         Ok(())
     })
