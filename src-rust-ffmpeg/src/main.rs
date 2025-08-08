@@ -3,12 +3,13 @@ use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
 use winit::window::{Window, WindowId};
 
-mod engine;
+mod core;
+use core::engine::Engine;
 
 #[derive(Default)]
 struct App {
     window: Option<Window>,
-    engine: Option<engine::Engine>
+    engine: Option<Engine>
 
 }
 
@@ -19,7 +20,7 @@ impl ApplicationHandler for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         let window = event_loop.create_window(Window::default_attributes()).unwrap();
         
-        let engine = pollster::block_on(engine::Engine::new(&window));
+        let engine = pollster::block_on(Engine::new(&window));
 
         self.window = Some(window);
         self.engine = Some(engine);

@@ -5,6 +5,9 @@ use wgpu::{
     DeviceDescriptor, Features, Limits, MemoryHints, Trace, TextureUsages, PresentMode
 };
 use winit::window::Window;
+
+use super::renderer;
+
 pub struct RenderUnit;
 pub struct Compositor;
 
@@ -16,6 +19,8 @@ pub struct Engine {
     config:  SurfaceConfiguration,
 
     track_renderers: Vec<RenderUnit>,
+
+    scene_renderer: RenderUnit
 
     compositor: Compositor
 }
