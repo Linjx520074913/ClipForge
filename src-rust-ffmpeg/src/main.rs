@@ -3,9 +3,13 @@ use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
 use winit::window::{Window, WindowId};
 
+mod engine;
+
 #[derive(Default)]
 struct App {
     window: Option<Window>,
+    engine: Option<engine::Engine>
+
 }
 
 impl ApplicationHandler for App {
@@ -13,7 +17,12 @@ impl ApplicationHandler for App {
      * 应用恢复，创建窗口
      */
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        self.window = Some(event_loop.create_window(Window::default_attributes()).unwrap());
+        let window = event_loop.create_window(Window::default_attributes()).unwrap();
+        
+        let engine = pollster::block_on(engine::Engine::new(&window));
+
+        self.window = Some(window);
+        self.engine = Some(engine);
     }
 
     /**
@@ -48,7 +57,16 @@ impl ApplicationHandler for App {
     }
 }
 
+fn init_env_logger() {
+    env_logger::Builder::new()
+        .filter_level(log::LevelFilter::Info)
+        .init();
+    log::info!("Starting application : init_env_logger done");
+}
+
 fn main() {
+    init_env_logger();
+
     let event_loop = EventLoop::new().unwrap();
 
     // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
@@ -56,5 +74,5 @@ fn main() {
     event_loop.set_control_flow(ControlFlow::Poll);
 
     let mut app = App::default();
-    event_loop.run_app(&mut app);
+    event_loop.run_app(&mut app).expect("Failed to run app");
 }
