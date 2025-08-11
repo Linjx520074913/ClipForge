@@ -17,7 +17,8 @@ fn vs_main(@builtin(vertex_index) idx: u32) -> @builtin(position) vec4f {
 
 @fragment
 fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
-    let textureSize = vec2f(textureDimensions(myTexture));
+    // let textureSize = vec2f(textureDimensions(myTexture));
+    let textureSize = vec2f(800.0, 600.0);
     let uv = pos.xy / textureSize;
     let pixelSize = vec2(params.size, params.size);
 

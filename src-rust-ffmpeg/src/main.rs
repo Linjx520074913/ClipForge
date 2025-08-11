@@ -5,12 +5,23 @@ use winit::window::{Window, WindowId};
 
 mod core;
 use core::engine::Engine;
+use core::renderer::{
+    Renderer, ShaderDescriptor, ShaderParam, ShaderParamPack
+};
+
+use indexmap::IndexMap;
+
+use image::{GenericImageView};
+
+use std::time::Instant;
+
 
 #[derive(Default)]
 struct App {
     window: Option<Window>,
-    engine: Option<Engine>
-
+    engine: Option<Engine>,
+    value : f32,
+    input_texture: Option<wgpu::Texture>
 }
 
 impl ApplicationHandler for App {
@@ -24,6 +35,49 @@ impl ApplicationHandler for App {
 
         self.window = Some(window);
         self.engine = Some(engine);
+        self.value  = 0.0;
+
+        let img = image::open("E://123.jpg").expect("Failed to open image");
+        let (width, height) = img.dimensions();
+        let rgba = img.to_rgba8();
+
+        let texture_size = wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers: 1,
+        };
+
+        let engine_ref = self.engine.as_ref().unwrap();
+        
+        // 3. 创建输入纹理
+        let input_texture = engine_ref.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("Input Texture"),
+            size: texture_size,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
+        });
+
+        engine_ref.queue.write_texture(
+            wgpu::TexelCopyTextureInfo  {
+                texture: &input_texture,
+                mip_level: 0,
+                origin: wgpu::Origin3d::ZERO,
+                aspect: wgpu::TextureAspect::All,
+            },
+            &rgba,
+            wgpu::TexelCopyBufferLayout  {
+                offset: 0,
+                bytes_per_row: Some(4 * width),
+                rows_per_image: Some(height),
+            },
+            texture_size,
+        );
+        self.input_texture = Some(input_texture);
+
     }
 
     /**
@@ -37,7 +91,40 @@ impl ApplicationHandler for App {
             },
             WindowEvent::RedrawRequested => {
                 
-                // 调用 WGPU 渲染逻辑
+                let engine = self.engine.as_ref().unwrap();
+                self.value += 0.04;
+
+                let entries = IndexMap::from([
+                    (String::from("size"), ShaderParam {
+                        value: self.value,
+                        label: String::from("size"),
+                        min: 0.0,
+                        max: 20.0,
+                        step: 0.1
+                    })
+                ]);
+                let shader_desc = ShaderDescriptor {
+                    id: Some(String::from("Id")),
+                    name: String::from("Test"),
+                    code: String::from(include_str!("./shaders/mosaic.wgsl")),
+                    params: ShaderParamPack {
+                        binding: 2,
+                        // entries: IndexMap::new(),
+                        entries: entries,
+                        runtime: vec!["update".to_string()]
+                    },
+                    enabled: true,
+                };
+                let test = Renderer::new(engine.device.clone(), engine.queue.clone(), &shader_desc);
+                let frame = engine.surface.get_current_texture().unwrap();
+                let surface_view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
+
+                if let Some(ref input_texture) = self.input_texture {
+                    test.process(input_texture, &surface_view);
+                } else {
+                    eprintln!("Error: input_texture not initialized");
+                }
+                frame.present();
 
                 // Redraw the application.
                 //
