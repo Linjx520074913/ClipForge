@@ -36,6 +36,7 @@ impl ApplicationHandler for App {
                 event_loop.exit();
             },
             WindowEvent::RedrawRequested => {
+                
                 // 调用 WGPU 渲染逻辑
 
                 // Redraw the application.
