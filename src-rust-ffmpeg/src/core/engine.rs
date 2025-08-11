@@ -117,6 +117,22 @@ impl Engine {
     fn initialize_scene_renderer(&mut self) {
 
         // 场景渲染器使用的是 rawshader 直接输出图像，不需要额外的 params
+        let entries = IndexMap::from([
+            (String::from("width"), ShaderParam {
+                value: self.config.width as f32,
+                label: String::from("width"),
+                min: 0.0,
+                max: 20.0,
+                step: 0.1
+            }),
+            (String::from("height"), ShaderParam {
+                value: self.config.height as f32,
+                label: String::from("height"),
+                min: 0.0,
+                max: 20.0,
+                step: 0.1
+            }),
+        ]);
         self.scene_renderer = Some(Renderer::new(
             self.device.clone(),
             self.queue.clone(),
@@ -126,7 +142,7 @@ impl Engine {
                 code: String::from(include_str!("./shaders/RawShader.wgsl")),
                 params: ShaderParamPack {
                     binding: 2,
-                    entries: IndexMap::new(),
+                    entries: entries,
                     runtime: vec!["update".to_string()]
                 },
                 enabled: true,
@@ -186,7 +202,8 @@ impl Engine {
         let surface_view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
         let scene_renderer = self.scene_renderer.as_mut().unwrap();
-        // scene_renderer.set_param_value("size", 10.0);
+        scene_renderer.set_param_value("width", self.config.width as f32);
+        scene_renderer.set_param_value("height", self.config.height as f32);
         scene_renderer.process(self.input_texture.as_ref().unwrap(), &surface_view);
 
         frame.present();
