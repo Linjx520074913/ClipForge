@@ -16,18 +16,6 @@
     #define WRAPPER_API DLL_IMPORT
 #endif
 
-#include <iostream>
-#include <opencv2/opencv.hpp>
-
-extern "C" {
-    #include <libavcodec/avcodec.h>
-    #include <libavformat/avformat.h>
-    #include <libswscale/swscale.h>
-    #include <libavutil/imgutils.h>
-}
-
-
-
 WRAPPER_API const char* get_version();
 
 WRAPPER_API void get_media_meta(const char* filePath);

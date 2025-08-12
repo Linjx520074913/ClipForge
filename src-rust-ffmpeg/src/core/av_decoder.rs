@@ -4,7 +4,7 @@ use std::os::raw::c_char;
 use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct StreamInfo {
+pub struct AVStreamInfo {
     pub index: i32,
     pub r#type: String,
     pub codec_id: i32,
@@ -13,7 +13,7 @@ pub struct StreamInfo {
     pub height: i32,
     pub fps: f64,
     pub sample_rate: i32,
-    pub metadata: HashMap<String, String>
+    pub entries: HashMap<String, String>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -21,8 +21,8 @@ pub struct AVMetadata {
     pub file_path: String,
     pub duration: f64,
     pub bit_rate: i32,
-    pub metadata: HashMap<String, String>,
-    pub streams: Vec<StreamInfo>
+    pub entries: HashMap<String, String>,
+    pub streams: Vec<AVStreamInfo>
 }
 
 #[link(name="ffmpeg_wrapper", kind="dylib")]
@@ -49,6 +49,9 @@ impl AVDecoder {
         }
     }
 
+    /**
+     * 获取版本号
+     */
     pub fn get_version() -> String {
         unsafe {
             let version = CStr::from_ptr(get_version()).to_str().unwrap();
