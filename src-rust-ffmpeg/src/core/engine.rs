@@ -1,4 +1,3 @@
-use env_logger::init;
 use indexmap::IndexMap;
 use wgpu::{
     Device, Queue, Surface, SurfaceConfiguration, 
@@ -12,6 +11,7 @@ use std::{ sync::Arc };
 use image::{ GenericImageView };
 
 use super::renderer::{ Renderer, ShaderDescriptor, ShaderParamPack, ShaderParam };
+use super::av_decoder::{ AVDecoder, AVMetadata };
 
 pub struct RenderUnit;
 pub struct Compositor;
@@ -35,6 +35,9 @@ pub struct Engine {
 impl Engine {
 
     pub async fn new(window: &Window) -> Self {
+        let av_decoder = AVDecoder::new();
+        
+
         let size = window.inner_size();
         
         let instance = Instance::new(&InstanceDescriptor {
@@ -195,9 +198,11 @@ impl Engine {
 
     }
 
+    /**
+     * 渲染
+     */
     pub fn render_frame(&mut self) {
 
-        println!("Rendering frame...");
         let frame = self.surface.get_current_texture().expect("Failed to acquire next swap chain texture");
         let surface_view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
 

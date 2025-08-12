@@ -10,7 +10,10 @@ set(FFMPEG_LIB_DIR     ${PROJECT_SOURCE_DIR}/deps/ffmpeg/lib)
 set(OPENCV_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/deps/opencv/release/include)
 set(OPENCV_LIB_DIR     ${PROJECT_SOURCE_DIR}/deps/opencv/release/x64/vc15/lib)
 
+set(DEPS_INCLUDE_DIR   ${PROJECT_SOURCE_DIR}/deps)
+
 include_directories(
+    ${DEPS_INCLUDE_DIR}
     ${PROJECT_SOURCE_DIR}/inc
     ${FFMPEG_INCLUDE_DIR}
     ${OPENCV_INCLUDE_DIR}
@@ -36,5 +39,5 @@ target_link_libraries(
 
 set_target_properties(${PROJECT_NAME} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-add_executable(sample src/test_decoder.cpp ./src/video_decoder.cpp)
-target_link_libraries(sample PRIVATE ${PROJECT_NAME})
+add_executable(sample src/test_decoder.cpp ./src/video_decoder.cpp src/ffmpeg_wrapper.cpp)
+target_link_libraries(sample PRIVATE)

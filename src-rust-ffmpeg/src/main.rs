@@ -5,16 +5,6 @@ use winit::window::{Window, WindowId};
 
 mod core;
 use core::engine::Engine;
-use core::renderer::{
-    Renderer, ShaderDescriptor, ShaderParam, ShaderParamPack
-};
-
-use indexmap::IndexMap;
-
-use image::{GenericImageView};
-
-use std::time::Instant;
-
 
 #[derive(Default)]
 struct App {
