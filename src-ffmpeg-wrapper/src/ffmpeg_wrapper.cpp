@@ -25,55 +25,6 @@ void free_av_meta_data(const char* ptr)
     return AVDecoder::free_av_meta_data(ptr);
 }
 
-
-void get_media_meta(const char* filePath)
-{
-    AVFormatContext *fmt_ctx = NULL;
-    int ret;
-    
-    // 打开视频文件
-    ret = avformat_open_input(&fmt_ctx, filePath, NULL, NULL);
-    if (ret != 0) {
-        printf("无法打开视频文件\n");
-        return;
-    }
-    
-    // 获取视频文件中每个流的详细信息
-    ret = avformat_find_stream_info(fmt_ctx, NULL);
-    if (ret < 0) {
-        printf("无法获取视频流信息\n");
-        return;
-    }
-    
-    for (unsigned i = 0; i < fmt_ctx->nb_streams; i++) {
-        AVStream *st = fmt_ctx->streams[i];
-        AVCodecParameters *par = st->codecpar;
-    
-        if (par->codec_type == AVMEDIA_TYPE_VIDEO) {
-            printf("Video Stream %d: %dx%d, codec id: %d, fps: %.2f\n",
-                   i, par->width, par->height, par->codec_id,
-                   av_q2d(st->avg_frame_rate));
-        }
-        else if (par->codec_type == AVMEDIA_TYPE_AUDIO) {
-            printf("Audio Stream %d: sample_rate=%d, codec id: %d\n",
-                   i, par->sample_rate, par->codec_id);
-        }
-        else {
-            printf("Other Stream %d: codec id %d\n", i, par->codec_id);
-        }
-    }
-    
-    // 获取元数据（metadata）
-    AVDictionaryEntry *tag = NULL;
-    while ((tag = av_dict_get(fmt_ctx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
-        printf("%s=%s\n", tag->key, tag->value);
-    }
-    
-    // 关闭输入文件
-    avformat_close_input(&fmt_ctx);
-}
-
-
 AVFormatContext *fmt_ctx = nullptr;
 AVCodecContext *video_dec_ctx = nullptr;
 int videoStreamIdx = -1;

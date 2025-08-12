@@ -1,12 +1,14 @@
 #include "av_decoder.h"
 
+#include <opencv2/opencv.hpp>
+
 using namespace std;
 
 const char* AVDecoder::get_version()
 {
     return av_version_info();
 }
-    
+
 const char* AVDecoder::get_av_meta_data(const char* file_path)
 {
     AVFormatContext* fmt_ctx = nullptr;
@@ -92,5 +94,132 @@ void AVDecoder::free_av_meta_data(const char* ptr)
 {
     if(ptr) {
         free((void*)ptr);
+    }
+}
+
+void AVDecoder::open_video(const char* file_path)
+{
+    if(avformat_open_input(&fmt_ctx_, file_path, nullptr, nullptr) < 0) {
+        cerr << "Failed to open input file : " << file_path << endl;
+        return;
+    }
+
+    if(avformat_find_stream_info(fmt_ctx_, nullptr) < 0) {
+        cerr << "Failed to find stream info" << endl;
+        cleanup();
+        return;
+    }
+
+    best_video_stream_idx_ = av_find_best_stream(fmt_ctx_, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
+    if(best_video_stream_idx_ < 0) {
+        cerr << "No video stream found" << endl;
+        cleanup();
+        return;
+    }
+
+    AVStream* stream = fmt_ctx_->streams[best_video_stream_idx_];
+    const AVCodec* decoder = avcodec_find_decoder(stream->codecpar->codec_id);
+    if(!decoder) {
+        cerr << "Decoder not found" << endl;
+        cleanup();
+        return;
+    }
+
+    codec_ctx_ = avcodec_alloc_context3(decoder);
+    if(!codec_ctx_) {
+        cerr << "Failed to allocate codec context" << endl;
+        cleanup();
+        return;
+    }
+
+    if(avcodec_parameters_to_context(codec_ctx_, stream->codecpar) < 0) {
+        cerr << "Failed to copy codec paramters" << endl;
+        cleanup();
+        return;
+    }
+
+    if(avcodec_open2(codec_ctx_, decoder, nullptr) < 0) {
+        cerr << "Failed to open codec" << endl;
+        cleanup();
+        return;
+    }
+
+    sws_ctx_ = nullptr;
+
+    decode_thread_ = std::thread(&AVDecoder::decode_loop, this);
+}
+
+void AVDecoder::decode_loop()
+{
+    AVPacket* pkt       = av_packet_alloc();
+    AVFrame*  frame_raw = av_frame_alloc();
+
+    sws_ctx_ = nullptr;
+
+    cv::namedWindow("AVDecoder", cv::WINDOW_NORMAL);
+
+    auto decode_and_show = [&](AVPacket* p){
+        if(avcodec_send_packet(codec_ctx_, p) < 0) return;
+
+        while(avcodec_receive_frame(codec_ctx_, frame_raw) == 0) {
+            if (!sws_ctx_) {
+                sws_ctx_ = sws_getContext(
+                    frame_raw->width, frame_raw->height, static_cast<AVPixelFormat>(frame_raw->format),
+                    frame_raw->width, frame_raw->height, AV_PIX_FMT_BGR24,
+                    SWS_BILINEAR, nullptr, nullptr, nullptr
+                );
+                if (!sws_ctx_) {
+                    cerr << "Failed to create SwsContext" << endl;
+                    exit(-1);
+                }
+            }
+
+            int width = frame_raw->width;
+            int height = frame_raw->height;
+
+            cv::Mat mat(height, width, CV_8UC3);
+
+            uint8_t* dst_data[4] = { mat.data, nullptr, nullptr, nullptr };
+            int dst_linesize[4] = { static_cast<int>(mat.step[0]), 0, 0, 0 };
+
+            sws_scale(sws_ctx_, frame_raw->data, frame_raw->linesize, 0, height, dst_data, dst_linesize);
+
+            cv::imshow("AVDecoder", mat);
+            if (cv::waitKey(1) == 'q') exit(0);
+        }
+    };
+
+    while(av_read_frame(fmt_ctx_, pkt) >= 0) {
+        if(pkt->stream_index == best_video_stream_idx_) {
+            decode_and_show(pkt);
+        }
+        av_packet_unref(pkt);
+    }
+
+    av_frame_free(&frame_raw);
+    av_packet_free(&pkt);
+}
+
+void AVDecoder::close_video()
+{
+    cleanup();
+}
+
+void AVDecoder::cleanup()
+{
+    if(codec_ctx_) {
+        avcodec_free_context(&codec_ctx_);
+        codec_ctx_ = nullptr;
+    }
+    if(fmt_ctx_) {
+        avformat_close_input(&fmt_ctx_);
+        fmt_ctx_ = nullptr;
+    }
+    if(sws_ctx_) {
+        sws_freeContext(sws_ctx_);
+        sws_ctx_ = nullptr;
+    }
+    if(decode_thread_.joinable()) {
+        decode_thread_.join();
     }
 }

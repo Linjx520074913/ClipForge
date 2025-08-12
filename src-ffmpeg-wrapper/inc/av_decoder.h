@@ -12,6 +12,11 @@ extern "C" {
 #include <vector>
 #include <string>
 #include <iostream>
+#include <thread>
+#include <mutex>
+#include <deque>
+#include <memory>
+#include <condition_variable>
 #include <nlohmann/json.hpp>
 
 // 表示单个媒体流的信息（视频、音频或其他类型）
@@ -51,13 +56,32 @@ public:
     AVDecoder() = default;
     ~AVDecoder() = default;
 
+    void open_video(const char* file_path);
+    void close_video();
+
+    void get_frame(int millisecond);
+
+    void decode_loop();
+
+    /**
+     * @brief 释放资源
+     * 
+     */
+    void cleanup();
+
 public:
     static const char* get_version();
     static const char* get_av_meta_data(const char* file_path);
     static void free_av_meta_data(const char* ptr);
 
 private:
+    std::thread decode_thread_;
 
+    AVFormatContext* fmt_ctx_ = nullptr;
+    AVCodecContext*  codec_ctx_ = nullptr;
+    SwsContext*      sws_ctx_ = nullptr;
+
+    int best_video_stream_idx_ = -1;
 };
 
 #endif

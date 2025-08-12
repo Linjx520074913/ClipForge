@@ -1,12 +1,17 @@
 #include "video_decoder.h"
+#include "av_decoder.h"
 #include "ffmpeg_wrapper.h"
-#include <opencv2/opencv.hpp>
 #include <iostream>
 #include <chrono>
 #include <thread>
 
 int main() {
-    get_av_meta_data("E://test.MP4");
+    // get_av_meta_data("E://test.MP4");
+    AVDecoder avdecoder;
+    avdecoder.open_video("E://test.MP4");
+    while(true) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
     // VideoDecoder decoder;
     // if (!decoder.Initialize("E://test.MP4")) {
     //     std::cerr << "Failed to initialize decoder" << std::endl;

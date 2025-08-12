@@ -17,16 +17,12 @@
 #endif
 
 WRAPPER_API const char* get_version();
-
-WRAPPER_API void get_media_meta(const char* filePath);
-
-WRAPPER_API void open_video(const char* filePath);
-
-WRAPPER_API void get_frame(int millisecond);
-
-WRAPPER_API void close_video();
-
 WRAPPER_API const char* get_av_meta_data(const char* file_path);
 WRAPPER_API void        free_av_meta_data(const char* ptr);
+
+WRAPPER_API void open_video(const char* filePath);
+WRAPPER_API void close_video();
+WRAPPER_API void get_frame(int millisecond);
+
 
 #endif
