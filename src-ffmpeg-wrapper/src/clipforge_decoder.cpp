@@ -1,15 +1,15 @@
-#include "av_decoder.h"
+#include "clipforge_decoder.h"
 
 #include <opencv2/opencv.hpp>
 
 using namespace std;
 
-const char* AVDecoder::get_version()
+const char* CFDecoder::get_version()
 {
     return av_version_info();
 }
 
-const char* AVDecoder::get_av_meta_data(const char* file_path)
+const char* CFDecoder::get_av_meta_data(const char* file_path)
 {
     AVFormatContext* fmt_ctx = nullptr;
     if (avformat_open_input(&fmt_ctx, file_path, nullptr, nullptr) < 0) {
@@ -23,7 +23,7 @@ const char* AVDecoder::get_av_meta_data(const char* file_path)
         return nullptr;
     }
 
-    AVMetadata meta;
+    CFMetadata meta;
     meta.file_path = file_path;
     meta.duration = (fmt_ctx->duration > 0) ? (fmt_ctx->duration / (double)AV_TIME_BASE) : 0.0;
     meta.bit_rate = fmt_ctx->bit_rate;
@@ -42,7 +42,7 @@ const char* AVDecoder::get_av_meta_data(const char* file_path)
     for (unsigned int i = 0; i < fmt_ctx->nb_streams; i++) {
         AVStream* stream = fmt_ctx->streams[i];
         AVCodecParameters* par = stream->codecpar;
-        AVStreamInfo si;
+        CFStreamInfo si;
         si.index = i;
         si.codec_id = par->codec_id;
 
@@ -90,14 +90,14 @@ const char* AVDecoder::get_av_meta_data(const char* file_path)
     return buffer;
 }
 
-void AVDecoder::free_av_meta_data(const char* ptr)
+void CFDecoder::free_av_meta_data(const char* ptr)
 {
     if(ptr) {
         free((void*)ptr);
     }
 }
 
-void AVDecoder::open_video(const char* file_path)
+void CFDecoder::open_video(const char* file_path)
 {
     if(avformat_open_input(&fmt_ctx_, file_path, nullptr, nullptr) < 0) {
         cerr << "Failed to open input file : " << file_path << endl;
@@ -146,17 +146,15 @@ void AVDecoder::open_video(const char* file_path)
 
     sws_ctx_ = nullptr;
 
-    decode_thread_ = std::thread(&AVDecoder::decode_loop, this);
+    decode_thread_ = std::thread(&CFDecoder::decode_loop, this);
 }
 
-void AVDecoder::decode_loop()
+void CFDecoder::decode_loop()
 {
     AVPacket* pkt       = av_packet_alloc();
     AVFrame*  frame_raw = av_frame_alloc();
 
     sws_ctx_ = nullptr;
-
-    cv::namedWindow("AVDecoder", cv::WINDOW_NORMAL);
 
     auto decode_and_show = [&](AVPacket* p){
         if(avcodec_send_packet(codec_ctx_, p) < 0) return;
@@ -165,7 +163,7 @@ void AVDecoder::decode_loop()
             if (!sws_ctx_) {
                 sws_ctx_ = sws_getContext(
                     frame_raw->width, frame_raw->height, static_cast<AVPixelFormat>(frame_raw->format),
-                    frame_raw->width, frame_raw->height, AV_PIX_FMT_BGR24,
+                    frame_raw->width, frame_raw->height, AV_PIX_FMT_BGRA,
                     SWS_BILINEAR, nullptr, nullptr, nullptr
                 );
                 if (!sws_ctx_) {
@@ -177,15 +175,24 @@ void AVDecoder::decode_loop()
             int width = frame_raw->width;
             int height = frame_raw->height;
 
-            cv::Mat mat(height, width, CV_8UC3);
+            cv::Mat mat(height, width, CV_8UC4);
 
             uint8_t* dst_data[4] = { mat.data, nullptr, nullptr, nullptr };
             int dst_linesize[4] = { static_cast<int>(mat.step[0]), 0, 0, 0 };
 
             sws_scale(sws_ctx_, frame_raw->data, frame_raw->linesize, 0, height, dst_data, dst_linesize);
 
-            cv::imshow("AVDecoder", mat);
-            if (cv::waitKey(1) == 'q') exit(0);
+            // cv::imshow("CFDecoder", mat);
+            // if (cv::waitKey(1) == 'q') exit(0);
+            {
+                std::unique_lock<std::mutex> lock(queue_mutex_);
+                queue_cv_.wait(lock, [&]{ return frame_queue_.size() < max_queue_size_ || stop_requested_; });
+                if(stop_requested_) return;
+
+                frame_queue_.push(std::move(mat));
+            }
+
+            queue_cv_.notify_all();
         }
     };
 
@@ -200,12 +207,59 @@ void AVDecoder::decode_loop()
     av_packet_free(&pkt);
 }
 
-void AVDecoder::close_video()
+// void CFDecoder::get_frame(cv::Mat& frame)
+// {
+//     std::unique_lock<std::mutex> lock(queue_mutex_);
+//     queue_cv_.wait(lock, [&]{ return !frame_queue_.empty() || stop_requested_; });
+
+//     if(frame_queue_.empty() && stop_requested_) {
+//         return;
+//     }
+
+//     frame = std::move(frame_queue_.front());
+//     frame_queue_.pop();
+//     queue_cv_.notify_all();
+// }
+
+CFFrame* CFDecoder::get_frame()
+{
+    std::unique_lock<std::mutex> lock(queue_mutex_);
+    queue_cv_.wait(lock, [&]{ return !frame_queue_.empty() || stop_requested_; });
+
+    if(frame_queue_.empty() && stop_requested_) {
+        return nullptr;
+    }
+
+    cv::Mat cur = std::move(frame_queue_.front());
+    frame_queue_.pop();
+    queue_cv_.notify_all();
+
+    CFFrame* frame = new CFFrame();
+    frame->width = cur.cols;
+    frame->height= cur.rows;
+    size_t data_size = cur.cols * cur.rows * cur.channels();
+    frame->length = data_size;
+    cout << "FFFFFFFFFF " << data_size << endl;
+    frame->data = new uint8_t[data_size];
+    memcpy(frame->data, cur.data, data_size);
+
+    return frame;
+}
+
+void CFDecoder::free_frame(const CFFrame* ptr)
+{
+    if(ptr) {
+        delete[] ptr->data;
+        delete ptr;
+    }
+}
+
+void CFDecoder::close_video()
 {
     cleanup();
 }
 
-void AVDecoder::cleanup()
+void CFDecoder::cleanup()
 {
     if(codec_ctx_) {
         avcodec_free_context(&codec_ctx_);

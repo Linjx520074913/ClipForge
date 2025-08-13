@@ -1,47 +1,57 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 fn main() {
-    // 原始 DLL/Lib 目录
     let lib_path = PathBuf::from("F:/ClipForge/src-ffmpeg-wrapper/build/Release");
     println!("cargo:rustc-link-search=native={}", lib_path.display());
 
-    // 目标目录
     let profile = std::env::var("PROFILE").unwrap();
     let target_dir = PathBuf::from(
         std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".into())
     )
     .join(&profile);
 
-    // 遍历源目录所有文件
-    if let Ok(entries) = fs::read_dir(&lib_path) {
+    copy_recursively(&lib_path, &target_dir);
+}
+
+fn copy_recursively(src_dir: &Path, dst_dir: &Path) {
+    if let Ok(entries) = fs::read_dir(src_dir) {
         for entry in entries.flatten() {
-            let src = entry.path();
-            if src.is_file() {
-                let filename = src.file_name().unwrap().to_string_lossy().to_string();
+            let src_path = entry.path();
+            let dst_path = dst_dir.join(entry.file_name());
 
-                // 只覆盖 ffmpeg_wrapper.dll 和 ffmpeg_wrapper.lib
-                if filename.eq_ignore_ascii_case("ffmpeg_wrapper.dll") 
-                    || filename.eq_ignore_ascii_case("ffmpeg_wrapper.lib") 
-                {
-                    let dst = target_dir.join(&filename);
+            if src_path.is_dir() {
+                // 创建目标目录
+                if let Err(e) = fs::create_dir_all(&dst_path) {
+                    println!("cargo:warning=Failed to create directory {}: {}", dst_path.display(), e);
+                    continue;
+                }
+                // 递归
+                copy_recursively(&src_path, &dst_path);
+            } else if src_path.is_file() {
+                let filename = src_path.file_name().unwrap().to_string_lossy().to_string();
 
-                    // 如果目标文件存在，先删除
-                    if dst.exists() {
-                        if let Err(e) = fs::remove_file(&dst) {
-                            println!("cargo:warning=Failed to remove {}: {}", dst.display(), e);
+                let is_wrapper = filename.eq_ignore_ascii_case("ffmpeg_wrapper.dll")
+                    || filename.eq_ignore_ascii_case("ffmpeg_wrapper.lib");
+
+                let need_copy = is_wrapper || !dst_path.exists();
+
+                if need_copy {
+                    if is_wrapper && dst_path.exists() {
+                        // 强制覆盖 wrapper
+                        if let Err(e) = fs::remove_file(&dst_path) {
+                            println!("cargo:warning=Failed to remove {}: {}", dst_path.display(), e);
                         }
                     }
 
-                    // 再复制
-                    match fs::copy(&src, &dst) {
-                        Ok(_) => println!("cargo:warning=Copied {} -> {}", src.display(), dst.display()),
-                        Err(e) => println!("cargo:warning=Failed to copy {}: {}", src.display(), e),
+                    match fs::copy(&src_path, &dst_path) {
+                        Ok(_) => println!("cargo:warning=Copied {} -> {}", src_path.display(), dst_path.display()),
+                        Err(e) => println!("cargo:warning=Failed to copy {}: {}", src_path.display(), e),
                     }
                 }
             }
         }
     } else {
-        println!("cargo:warning=Failed to read directory {}", lib_path.display());
+        println!("cargo:warning=Failed to read directory {}", src_dir.display());
     }
 }

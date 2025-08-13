@@ -23,7 +23,7 @@ link_directories(
     ${OPENCV_LIB_DIR}
 )
 
-add_library(${PROJECT_NAME} SHARED src/ffmpeg_wrapper.cpp src/av_decoder.cpp)
+add_library(${PROJECT_NAME} SHARED src/ffmpeg_wrapper.cpp src/clipforge_decoder.cpp)
 
 target_link_libraries(
     ${PROJECT_NAME} PRIVATE
@@ -39,5 +39,5 @@ target_link_libraries(
 
 set_target_properties(${PROJECT_NAME} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-add_executable(sample src/test_decoder.cpp ./src/video_decoder.cpp src/ffmpeg_wrapper.cpp src/av_decoder.cpp)
+add_executable(sample src/test_decoder.cpp ./src/video_decoder.cpp src/ffmpeg_wrapper.cpp src/clipforge_decoder.cpp)
 target_link_libraries(sample PRIVATE)

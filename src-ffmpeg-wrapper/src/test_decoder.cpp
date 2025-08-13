@@ -1,5 +1,5 @@
 #include "video_decoder.h"
-#include "av_decoder.h"
+#include "clipforge_decoder.h"
 #include "ffmpeg_wrapper.h"
 #include <iostream>
 #include <chrono>
@@ -7,10 +7,19 @@
 
 int main() {
     // get_av_meta_data("E://test.MP4");
-    AVDecoder avdecoder;
-    avdecoder.open_video("E://test.MP4");
+    CFDecoder decoder;
+    decoder.open_video("E://test.MP4");
     while(true) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    
+        CFFrame* frame = decoder.get_frame();
+        if(frame){
+            cv::Mat mat(frame->height, frame->width, CV_8UC4, frame->data);
+
+            cv::imshow("Video", mat);
+            cv::waitKey(1);
+            decoder.free_frame(frame);
+        }
     }
     // VideoDecoder decoder;
     // if (!decoder.Initialize("E://test.MP4")) {

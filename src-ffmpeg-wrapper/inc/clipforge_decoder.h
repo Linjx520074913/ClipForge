@@ -1,5 +1,5 @@
-#ifndef AV_DECODER_H_
-#define AV_DECODER_H_
+#ifndef CLIP_FORGE_DECODER_H_
+#define CLIP_FORGE_DECODER_H_
 
 extern "C" {
     #include <libavcodec/avcodec.h>
@@ -19,8 +19,13 @@ extern "C" {
 #include <condition_variable>
 #include <nlohmann/json.hpp>
 
+#include <opencv2/opencv.hpp>
+
+
+// 项目叫 ClipForge，采用 CF 为前缀
+
 // 表示单个媒体流的信息（视频、音频或其他类型）
-struct AVStreamInfo {
+struct CFStreamInfo {
     int index = -1;                             // 媒体流的索引号
     std::string type;                           // 流的类型，如 "video"（视频）、"audio"（音频）、"other"（其他）
     int codec_id = 0;                           // 流所使用的编码格式 ID
@@ -34,32 +39,43 @@ struct AVStreamInfo {
 };
 
 // 表示整个媒体文件的元数据信息
-struct AVMetadata {
+struct CFMetadata {
     std::string file_path;                      // 媒体文件的路径
     double duration = 0.0;                      // 媒体文件总时长，单位秒
     int bit_rate = 0;                           // 媒体文件整体比特率，单位比特每秒
     std::map<std::string, std::string> entries; // 媒体文件级别的元数据键值对集合
-    std::vector<AVStreamInfo> streams;          // 媒体文件级别的元数据键值对集合
+    std::vector<CFStreamInfo> streams;          // 媒体文件级别的元数据键值对集合
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AVStreamInfo,
+struct CFFrame {
+    int width;
+    int height;
+    int length;
+    uint8_t* data;
+};
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(CFStreamInfo,
     index, type, codec_id, codec_name, width, height, fps, sample_rate, entries, is_best)
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AVMetadata,
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(CFMetadata,
     file_path, duration, bit_rate, entries, streams)
 
 
-class AVDecoder
+class CFDecoder
 {
 
 public:
-    AVDecoder() = default;
-    ~AVDecoder() = default;
+    CFDecoder() = default;
+    ~CFDecoder() = default;
 
     void open_video(const char* file_path);
     void close_video();
 
-    void get_frame(int millisecond);
+    // void get_frame(int millisecond);
+    // void get_frame(cv::Mat& frame);
+
+    CFFrame* get_frame();
+    void free_frame(const CFFrame* ptr);
 
     void decode_loop();
 
@@ -76,6 +92,12 @@ public:
 
 private:
     std::thread decode_thread_;
+    std::mutex queue_mutex_;
+    std::condition_variable queue_cv_;
+
+    std::queue<cv::Mat> frame_queue_;
+    size_t max_queue_size_ = 100;
+    std::atomic<bool> stop_requested_ { false };
 
     AVFormatContext* fmt_ctx_ = nullptr;
     AVCodecContext*  codec_ctx_ = nullptr;

@@ -1,9 +1,6 @@
 use indexmap::IndexMap;
 use wgpu::{
-    Device, Queue, Surface, SurfaceConfiguration, 
-    Instance, InstanceDescriptor, Backends, InstanceFlags, MemoryBudgetThresholds,
-    BackendOptions, RequestAdapterOptions, PowerPreference, TextureView,
-    DeviceDescriptor, Features, Limits, MemoryHints, Trace, TextureUsages, PresentMode
+    BackendOptions, Backends, Device, DeviceDescriptor, Features, Instance, InstanceDescriptor, InstanceFlags, Limits, MemoryBudgetThresholds, MemoryHints, PowerPreference, PresentMode, Queue, RequestAdapterOptions, Surface, SurfaceConfiguration, Texture, TextureUsages, TextureView, Trace
 };
 use winit::window::Window;
 use std::{ sync::Arc };
@@ -11,7 +8,7 @@ use std::{ sync::Arc };
 use image::{ GenericImageView };
 
 use super::renderer::{ Renderer, ShaderDescriptor, ShaderParamPack, ShaderParam };
-use super::av_decoder::{ AVDecoder, AVMetadata };
+use super::cf_decoder::{ CFDecoder, CFMetadata };
 
 pub struct RenderUnit;
 pub struct Compositor;
@@ -29,14 +26,17 @@ pub struct Engine {
 
     compositor: Compositor,
 
-    input_texture: Option<wgpu::Texture>
+    input_texture: Option<wgpu::Texture>,
+
+    pub decoder: CFDecoder
 }
 
 impl Engine {
 
     pub async fn new(window: &Window) -> Self {
-        let av_decoder = AVDecoder::new();
-        
+
+        let decoder = CFDecoder::new();
+        decoder.open_video("E://test.MP4");
 
         let size = window.inner_size();
         
@@ -106,7 +106,8 @@ impl Engine {
             track_renderers: Vec::new(),
             scene_renderer,
             compositor: Compositor,
-            input_texture
+            input_texture,
+            decoder
         };
 
         engine.initialize_input_texture();
@@ -198,20 +199,68 @@ impl Engine {
 
     }
 
+    pub fn create_texture(&self, width: u32, height: u32, data: &[u8]) -> Texture{
+        let texture_size = wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers: 1,
+        };
+
+        let input_texture = self.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("Input Texture"),
+            size: texture_size,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
+        });
+
+        self.queue.write_texture(
+            wgpu::TexelCopyTextureInfo  {
+                texture: &input_texture,
+                mip_level: 0,
+                origin: wgpu::Origin3d::ZERO,
+                aspect: wgpu::TextureAspect::All,
+            },
+            &data,
+            wgpu::TexelCopyBufferLayout  {
+                offset: 0,
+                bytes_per_row: Some(4 * width),
+                rows_per_image: Some(height),
+            },
+            texture_size,
+        );
+
+        input_texture
+    }
+
     /**
      * 渲染
      */
     pub fn render_frame(&mut self) {
 
-        let frame = self.surface.get_current_texture().expect("Failed to acquire next swap chain texture");
-        let surface_view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
+        let frame_ptr = self.decoder.get_current_frame();
+        unsafe {
+            let frame_ref = &*frame_ptr;
+            let data_ptr: *const u8 = frame_ref.data;
+            let len = frame_ref.length as usize;
 
-        let scene_renderer = self.scene_renderer.as_mut().unwrap();
-        scene_renderer.set_param_value("width", self.config.width as f32);
-        scene_renderer.set_param_value("height", self.config.height as f32);
-        scene_renderer.process(self.input_texture.as_ref().unwrap(), &surface_view);
+            let data_slice: &[u8] = std::slice::from_raw_parts(data_ptr, len);
 
-        frame.present();
+            let input_texture = self.create_texture(frame_ref.width, frame_ref.height, data_slice);
+        
+            let frame = self.surface.get_current_texture().expect("Failed to acquire next swap chain texture");
+            let surface_view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
+
+            let scene_renderer = self.scene_renderer.as_mut().unwrap();
+            scene_renderer.set_param_value("width", self.config.width as f32);
+            scene_renderer.set_param_value("height", self.config.height as f32);
+            scene_renderer.process(&input_texture, &surface_view);
+
+            frame.present();
+        }
 
     }
 }
