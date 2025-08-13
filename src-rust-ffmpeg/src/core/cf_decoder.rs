@@ -43,7 +43,7 @@ unsafe extern "C" {
     pub fn close_video();
 
     pub fn get_current_frame() -> *const CFFrame;
-    pub fn free_frame(frame: *mut CFFrame);
+    pub fn free_frame(frame: *const CFFrame);
 }
 
 pub struct CFDecoder {
@@ -100,27 +100,15 @@ impl CFDecoder {
         }
     }
 
-    // pub fn get_current_frame(&self) {
-    //     unsafe {
-    //         let frame_ptr = get_current_frame();
-    //         if !frame_ptr.is_null() {
-    //             let frame = &*frame_ptr;
-    //             let len = frame.length as usize;
-
-    //             // 这里不复制，直接创建slice引用，确保调用期间内存有效
-    //             let data_slice = std::slice::from_raw_parts(frame.data, len);
-
-    //             // 处理数据...
-    //             println!("########## {} {} {}", frame.width, frame.height, len);
-
-    //             free_frame(frame_ptr);
-    //         }
-    //     }
-    // }
-
     pub fn get_current_frame(&self) -> *const CFFrame {
         unsafe {
             get_current_frame()
+        }
+    }
+
+    pub fn free_frame(&self, frame: *const CFFrame) {
+        unsafe {
+            free_frame(frame);
         }
     }
 }

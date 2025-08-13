@@ -260,6 +260,8 @@ impl Engine {
             scene_renderer.process(&input_texture, &surface_view);
 
             frame.present();
+
+            self.decoder.free_frame(frame_ptr);
         }
 
     }
