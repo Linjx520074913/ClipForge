@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(ffmpeg_wrapper)
+project(cfcore)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -14,7 +14,7 @@ set(DEPS_INCLUDE_DIR   ${PROJECT_SOURCE_DIR}/deps)
 
 include_directories(
     ${DEPS_INCLUDE_DIR}
-    ${PROJECT_SOURCE_DIR}/inc
+    ${PROJECT_SOURCE_DIR}/include
     ${FFMPEG_INCLUDE_DIR}
     ${OPENCV_INCLUDE_DIR}
 )
@@ -23,7 +23,7 @@ link_directories(
     ${OPENCV_LIB_DIR}
 )
 
-add_library(${PROJECT_NAME} SHARED src/ffmpeg_wrapper.cpp src/clipforge_decoder.cpp)
+add_library(${PROJECT_NAME} SHARED src/CFDecoder.cpp src/CFFrameCache.cpp)
 
 target_link_libraries(
     ${PROJECT_NAME} PRIVATE
@@ -39,5 +39,15 @@ target_link_libraries(
 
 set_target_properties(${PROJECT_NAME} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-add_executable(sample src/test_decoder.cpp ./src/video_decoder.cpp src/ffmpeg_wrapper.cpp src/clipforge_decoder.cpp)
-target_link_libraries(sample PRIVATE)
+add_executable(sample examples/sample.cpp src/CFDecoder.cpp src/CFFrameCache.cpp)
+target_link_libraries(
+    sample PRIVATE
+    avcodec
+    avformat
+    avfilter
+    avdevice
+    avutil
+    swresample
+    swscale
+    opencv_world455
+)
