@@ -2,6 +2,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 fn main() {
+    println!("cargo:rustc-link-search=native=target/debug");
+    println!("cargo:rustc-link-lib=dylib=cfcore");
+    
     let lib_path = PathBuf::from("F:/ClipForge/src-ffmpeg-wrapper/build/Release");
     println!("cargo:rustc-link-search=native={}", lib_path.display());
 

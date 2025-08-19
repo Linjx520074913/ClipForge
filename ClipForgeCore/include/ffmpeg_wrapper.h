@@ -16,16 +16,16 @@
     #define WRAPPER_API DLL_IMPORT
 #endif
 
-#include "clipforge_decoder.h"
+#include "CFTypes.h"
 
-WRAPPER_API const char* get_version();
-WRAPPER_API const char* get_meta_data(const char* file_path);
-WRAPPER_API void        free_meta_data(const char* ptr);
+// WRAPPER_API const char* get_version();
+// WRAPPER_API const char* get_meta_data(const char* file_path);
+// WRAPPER_API void        free_meta_data(const char* ptr);
 
 WRAPPER_API void open_video(const char* file_path);
 WRAPPER_API void close_video();
-WRAPPER_API void get_frame(int millisecond);
-WRAPPER_API CFFrame* get_current_frame();
+// WRAPPER_API void get_frame(int millisecond);
+WRAPPER_API CFFrame* get_current_frame(double millisecond);
 WRAPPER_API void     free_frame(CFFrame* frame);
 
 

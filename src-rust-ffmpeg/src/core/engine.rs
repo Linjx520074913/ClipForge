@@ -28,7 +28,9 @@ pub struct Engine {
 
     input_texture: Option<wgpu::Texture>,
 
-    pub decoder: CFDecoder
+    pub decoder: CFDecoder,
+
+    pub start_time: Option<std::time::Instant>
 }
 
 impl Engine {
@@ -98,6 +100,8 @@ impl Engine {
         let scene_renderer = None;
         let input_texture = None;
 
+        let start_time = None;
+
         let mut engine = Self {
             device,
             queue,
@@ -107,7 +111,8 @@ impl Engine {
             scene_renderer,
             compositor: Compositor,
             input_texture,
-            decoder
+            decoder,
+            start_time
         };
 
         engine.initialize_input_texture();
@@ -241,14 +246,21 @@ impl Engine {
      */
     pub fn render_frame(&mut self) {
 
-        let frame_ptr = self.decoder.get_current_frame();
+        if(self.start_time.is_none()) {
+            self.start_time = Some(std::time::Instant::now());
+        }
+
+        let timestamp = self.start_time.unwrap().elapsed().as_millis() as i64;
+        let frame_ptr = self.decoder.get_current_frame(timestamp);
+        if frame_ptr.is_null() {
+            return;
+        }
         unsafe {
             let frame_ref = &*frame_ptr;
             let data_ptr: *const u8 = frame_ref.data;
             let len = frame_ref.length as usize;
 
             let data_slice: &[u8] = std::slice::from_raw_parts(data_ptr, len);
-
             let input_texture = self.create_texture(frame_ref.width, frame_ref.height, data_slice);
         
             let frame = self.surface.get_current_texture().expect("Failed to acquire next swap chain texture");

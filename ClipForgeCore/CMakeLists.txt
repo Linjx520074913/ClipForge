@@ -23,7 +23,7 @@ link_directories(
     ${OPENCV_LIB_DIR}
 )
 
-add_library(${PROJECT_NAME} SHARED src/CFDecoder.cpp src/CFFrameCache.cpp)
+add_library(${PROJECT_NAME} SHARED src/CFPlayer.cpp src/CFWrapper.cpp)
 
 target_link_libraries(
     ${PROJECT_NAME} PRIVATE
@@ -35,13 +35,16 @@ target_link_libraries(
     swresample
     swscale
     opencv_world455
+    Dbghelp
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-add_executable(sample examples/sample.cpp src/CFDecoder.cpp src/CFFrameCache.cpp)
+# add_executable(sample examples/sample.cpp src/CFDecoder.cpp src/CFFrameCache.cpp)
+add_executable(sample examples/sample.cpp)
 target_link_libraries(
     sample PRIVATE
+    ${PROJECT_NAME}
     avcodec
     avformat
     avfilter

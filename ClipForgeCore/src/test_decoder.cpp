@@ -10,7 +10,7 @@ int main() {
     CFDecoder decoder;
     decoder.open_video("E://test.MP4");
     while(true) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     
         CFFrame* frame = decoder.get_frame();
         if(frame){
