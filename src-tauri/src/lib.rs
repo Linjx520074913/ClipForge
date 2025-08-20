@@ -1,6 +1,11 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 use tauri::{ async_runtime, Manager };
 
+use winit::application::ApplicationHandler;
+use winit::event::WindowEvent;
+use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
+use winit::window::{Window, WindowId};
+
 mod core;
 use core::engine::Engine;
 
@@ -18,7 +23,7 @@ pub fn run() {
             let window = app.get_webview_window("main").unwrap();
             window.maximize().unwrap();  // 最大化窗口
 
-            let engine = async_runtime::block_on(Engine::new(window));
+            // let engine = async_runtime::block_on(Engine::new(window));
         }
         Ok(())
     })

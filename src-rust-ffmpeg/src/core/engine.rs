@@ -38,7 +38,7 @@ impl Engine {
     pub async fn new(window: &Window) -> Self {
 
         let decoder = CFDecoder::new();
-        decoder.open_video("E://test.MP4");
+        decoder.open_video("E://123.MP4");
 
         let size = window.inner_size();
         
@@ -250,11 +250,13 @@ impl Engine {
             self.start_time = Some(std::time::Instant::now());
         }
 
-        let timestamp = self.start_time.unwrap().elapsed().as_millis() as i64;
-        let frame_ptr = self.decoder.get_current_frame(timestamp);
+        let timestamp = self.start_time.unwrap().elapsed().as_millis() as f64;
+        println!("render frame {}", timestamp);
+        let frame_ptr = self.decoder.get_current_frame(timestamp as f64);
         if frame_ptr.is_null() {
             return;
         }
+        
         unsafe {
             let frame_ref = &*frame_ptr;
             let data_ptr: *const u8 = frame_ref.data;

@@ -1,5 +1,6 @@
-struct Params{
-    size: f32
+struct Params {
+    width: f32,
+    height: f32
 };
 
 @group(0) @binding(0) var mySampler: sampler;
@@ -17,14 +18,11 @@ fn vs_main(@builtin(vertex_index) idx: u32) -> @builtin(position) vec4f {
 
 @fragment
 fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
-    // let textureSize = vec2f(textureDimensions(myTexture));
-    let textureSize = vec2f(800.0, 600.0);
-    let uv = pos.xy / textureSize;
-    let pixelSize = vec2(params.size, params.size);
+    // let size = vec2f(textureDimensions(myTexture));
+    let size = vec2f(params.width, params.height);
+    let uv = pos.xy / size;
 
-    // 计算马赛克采样点
-    let blockUV = floor(uv * textureSize / pixelSize) * pixelSize / textureSize;
+    let color = textureSample(myTexture, mySampler, uv);
 
-    let color = textureSample(myTexture, mySampler, blockUV);
     return vec4f(color.rgb, 1.0);
 }

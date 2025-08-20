@@ -10,7 +10,7 @@ void cf_player_open(const char* file_path)
     player.open(file_path);
 }
 
-void cv_player_close()
+void cf_player_close()
 {
     player.close();
 }

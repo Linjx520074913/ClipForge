@@ -1,196 +1,272 @@
-use crate::core::renderer_unit::RendererUnit;
+use indexmap::IndexMap;
+use wgpu::{
+    BackendOptions, Backends, Device, DeviceDescriptor, Features, Instance, InstanceDescriptor, InstanceFlags, Limits, MemoryBudgetThresholds, MemoryHints, PowerPreference, PresentMode, Queue, RequestAdapterOptions, Surface, SurfaceConfiguration, Texture, TextureUsages, TextureView, Trace
+};
+use tauri::WebviewWindow;
+use std::{ sync::Arc };
 
-use super::renderer_unit;
+use image::{ GenericImageView };
 
-use std::sync::Mutex;
-use tauri::{window, WebviewWindow};
-use wgpu::{util::DeviceExt, Limits};
+use super::renderer::{ Renderer, ShaderDescriptor, ShaderParamPack, ShaderParam };
+use super::cf_decoder::{ CFDecoder, CFMetadata };
 
-use std::sync::Arc;
+pub struct RenderUnit;
+pub struct Compositor;
 
-use image::{GenericImageView, ImageBuffer, Rgba};
-use futures_intrusive::channel::shared::oneshot_channel;
+pub struct Engine {
+    pub device: Arc<Device>,
+    pub queue:  Arc<Queue>,
 
+    pub surface: Surface<'static>,
+    config:  SurfaceConfiguration,
 
-fn align_to(value: u32, alignment: u32) -> u32 {
-    ((value + alignment - 1) / alignment) * alignment
+    track_renderers: Vec<RenderUnit>,
+
+    scene_renderer: Option<Renderer>,
+
+    compositor: Compositor,
+
+    input_texture: Option<wgpu::Texture>,
+
+    pub decoder: CFDecoder,
+
+    pub start_time: Option<std::time::Instant>
 }
 
-pub struct Engine<'win> {
-    pub device: Arc<wgpu::Device>,
-    pub queue: Arc<wgpu::Queue>,
 
-    pub surface: wgpu::Surface<'win>,
+impl Engine {
 
-    pub unit: RendererUnit
-    
-}
-
-impl Engine<'_> {
     pub async fn new(window: WebviewWindow) -> Self {
-        let size = window.inner_size().unwrap();
-        print!("init window size = {} x {}", size.width, size.height);
 
+        let decoder = CFDecoder::new();
+        decoder.open_video("E://test.MP4");
+
+        let size = window.inner_size().unwrap();
+        
         let instance = wgpu::Instance::default();
         let surface = instance.create_surface(window).unwrap();
+
         let adapter = instance
-            .request_adapter(&wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::HighPerformance,
-                force_fallback_adapter: false,
-                compatible_surface: Some(&surface)
+            .request_adapter(&RequestAdapterOptions {
+                power_preference: PowerPreference::HighPerformance,
+                compatible_surface: Some(&surface),
+                force_fallback_adapter: false
             })
             .await
             .expect("Failed to find an appropriate adapter");
-        print!("Find adapter");
-
-        let limits = wgpu::Limits {
-            max_storage_buffers_per_shader_stage: 8,
-            ..Default::default()
-        };
-
+        
         let (device, queue) = adapter
             .request_device(
-                &wgpu::DeviceDescriptor {
-                    label: None,
-                    required_features: wgpu::Features::empty(),
-                    required_limits: limits
-                }, None)
+            &DeviceDescriptor {
+                    label: Some("Engine Device"),
+                    required_features: Features::empty(),
+                    required_limits: Limits::default(),
+                    memory_hints: MemoryHints::default(),   // 内存使用提示
+                    trace: Trace::default()                 // 用于 GPU 调试追踪
+                },
+            )
             .await
             .expect("Failed to create device");
-        print!("Create device");
-
+        
         let device = Arc::new(device);
         let queue = Arc::new(queue);
+        let surface_caps = surface.get_capabilities(&adapter);
+        let surface_format = wgpu::TextureFormat::Rgba8UnormSrgb;
 
-        let shader_code: &str = include_str!("shaders/mosaic.wgsl");
-        let size = 10.0;
-        let unit = RendererUnit::new(device.clone(), queue.clone(), shader_code, size);
+        let config = SurfaceConfiguration {
+            usage: TextureUsages::RENDER_ATTACHMENT,
+            format: surface_format,
+            width: size.width,
+            height: size.height,
+            present_mode: PresentMode::Fifo,
+            alpha_mode: surface_caps.alpha_modes[0],               // 取默认的透明度模式
+            view_formats: vec![],
+            desired_maximum_frame_latency: 2                       // 性能与延迟的调节开关
+        };
 
-        let img = image::open("E://test.jpg").expect("打开图片失败").to_rgba8();
+        // 格式为 Bgra8UnormSrgb
+        surface.configure(&device, &config);
+        
+        log::info!("Engine initialized: {}x{}, format: {:?}", size.width, size.height, surface_format);
+
+        let scene_renderer = None;
+        let input_texture = None;
+
+        let start_time = None;
+
+        let mut engine = Self {
+            device,
+            queue,
+            surface,
+            config,
+            track_renderers: Vec::new(),
+            scene_renderer,
+            compositor: Compositor,
+            input_texture,
+            decoder,
+            start_time
+        };
+
+        engine.initialize_input_texture();
+        engine.initialize_scene_renderer();
+        engine
+    }
+
+    /**
+     * 初始化场景渲染器，经过 engine 处理后的图像最终由 scene_renderer 渲染到屏幕
+     */
+    fn initialize_scene_renderer(&mut self) {
+
+        // 场景渲染器使用的是 rawshader 直接输出图像，不需要额外的 params
+        let entries = IndexMap::from([
+            (String::from("width"), ShaderParam {
+                value: self.config.width as f32,
+                label: String::from("width"),
+                min: 0.0,
+                max: 20.0,
+                step: 0.1
+            }),
+            (String::from("height"), ShaderParam {
+                value: self.config.height as f32,
+                label: String::from("height"),
+                min: 0.0,
+                max: 20.0,
+                step: 0.1
+            }),
+        ]);
+        self.scene_renderer = Some(Renderer::new(
+            self.device.clone(),
+            self.queue.clone(),
+            &ShaderDescriptor {
+                id: Some(String::from("Id")),
+                name: String::from("Scene Renderer"),
+                code: String::from(include_str!("./shaders/RawShader.wgsl")),
+                params: ShaderParamPack {
+                    binding: 2,
+                    entries: entries,
+                    runtime: vec!["update".to_string()]
+                },
+                enabled: true,
+            }
+        ));
+    }
+
+    /**
+     * 初始化输入纹理
+     */
+    fn initialize_input_texture(&mut self) {
+        let img = image::open("E://123.jpg").expect("Failed to open image");
         let (width, height) = img.dimensions();
-        let size = wgpu::Extent3d {
+        let rgba = img.to_rgba8();
+
+        let texture_size = wgpu::Extent3d {
             width,
             height,
             depth_or_array_layers: 1,
         };
-        let input_texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("InputTexture"),
-            size,
+
+        let input_texture = self.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("Input Texture"),
+            size: texture_size,
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::TEXTURE_BINDING,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             view_formats: &[],
         });
-        queue.write_texture(
-            wgpu::ImageCopyTexture {
+
+        self.queue.write_texture(
+            wgpu::TexelCopyTextureInfo  {
                 texture: &input_texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
                 aspect: wgpu::TextureAspect::All,
             },
-            &img,
-            wgpu::ImageDataLayout {
+            &rgba,
+            wgpu::TexelCopyBufferLayout  {
                 offset: 0,
                 bytes_per_row: Some(4 * width),
                 rows_per_image: Some(height),
             },
-            size,
+            texture_size,
         );
-    
-        // 4. 创建输出纹理（render target）
-        let output_texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("OutputTexture"),
-            size,
+
+        self.input_texture = Some(input_texture);
+
+    }
+
+    pub fn create_texture(&self, width: u32, height: u32, data: &[u8]) -> Texture{
+        let texture_size = wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers: 1,
+        };
+
+        let input_texture = self.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("Input Texture"),
+            size: texture_size,
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             view_formats: &[],
         });
 
-        unit.process(&input_texture, &output_texture);
-        // 8. 处理 COPY_BYTES_PER_ROW_ALIGNMENT 对齐
-    const COPY_BYTES_PER_ROW_ALIGNMENT: u32 = 256;
-    let bytes_per_pixel = 4;
-    let unaligned_bytes_per_row = width * bytes_per_pixel;
-    let aligned_bytes_per_row = align_to(unaligned_bytes_per_row, COPY_BYTES_PER_ROW_ALIGNMENT);
-
-    let buffer_size = (aligned_bytes_per_row * height) as wgpu::BufferAddress;
-
-    // 9. 创建缓冲区用来读取结果
-    let output_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("Output Buffer"),
-        size: buffer_size,
-        usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
-        mapped_at_creation: false,
-    });
-
-    // 10. 创建命令编码器，拷贝纹理到缓冲区
-    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some("Readback Encoder"),
-    });
-
-    encoder.copy_texture_to_buffer(
-        wgpu::ImageCopyTexture {
-            texture: &output_texture,
-            mip_level: 0,
-            origin: wgpu::Origin3d::ZERO,
-            aspect: wgpu::TextureAspect::All,
-        },
-        wgpu::ImageCopyBuffer {
-            buffer: &output_buffer,
-            layout: wgpu::ImageDataLayout {
+        self.queue.write_texture(
+            wgpu::TexelCopyTextureInfo  {
+                texture: &input_texture,
+                mip_level: 0,
+                origin: wgpu::Origin3d::ZERO,
+                aspect: wgpu::TextureAspect::All,
+            },
+            &data,
+            wgpu::TexelCopyBufferLayout  {
                 offset: 0,
-                bytes_per_row: Some(aligned_bytes_per_row),
+                bytes_per_row: Some(4 * width),
                 rows_per_image: Some(height),
             },
-        },
-        size,
-    );
+            texture_size,
+        );
 
-    queue.submit(Some(encoder.finish()));
-
-    // 11. 等待映射完成
-    let buffer_slice = output_buffer.slice(..);
-    let (sender, receiver) = oneshot_channel();
-    buffer_slice.map_async(wgpu::MapMode::Read, move |v| sender.send(v).unwrap());
-    device.poll(wgpu::Maintain::Wait);
-    receiver.receive().await.unwrap().unwrap();
-
-    // 12. 读取数据，去除行尾对齐填充
-    let data = buffer_slice.get_mapped_range();
-
-    // 克隆数据，断开对映射内存的引用
-    let mut pixels = Vec::with_capacity((width * height * bytes_per_pixel) as usize);
-    for chunk in data.chunks(aligned_bytes_per_row as usize) {
-        pixels.extend_from_slice(&chunk[..(unaligned_bytes_per_row as usize)]);
+        input_texture
     }
 
-    // drop 映射引用，确保没有持有映射内存的引用
-    drop(data);
+    /**
+     * 渲染
+     */
+    pub fn render_frame(&mut self) {
 
-    // 13. 解除映射
-    output_buffer.unmap();
-
-    // 14. 转换为 ImageBuffer 并保存
-    let img_buffer =
-        ImageBuffer::<Rgba<u8>, _>::from_raw(width, height, pixels).expect("创建图像失败");
-    img_buffer.save("output.png").expect("保存图片失败");
-
-    println!("马赛克处理完成，结果保存在 output.png");
-
-        Self {
-            device,
-            queue,
-            surface,
-            unit
+        if(self.start_time.is_none()) {
+            self.start_time = Some(std::time::Instant::now());
         }
-    }
 
-    pub fn render(time_ms: i32) {
-        print!("render");
+        let timestamp = self.start_time.unwrap().elapsed().as_millis() as i64;
+        let frame_ptr = self.decoder.get_current_frame(timestamp);
+        if frame_ptr.is_null() {
+            return;
+        }
+        unsafe {
+            let frame_ref = &*frame_ptr;
+            let data_ptr: *const u8 = frame_ref.data;
+            let len = frame_ref.length as usize;
+
+            let data_slice: &[u8] = std::slice::from_raw_parts(data_ptr, len);
+            let input_texture = self.create_texture(frame_ref.width, frame_ref.height, data_slice);
+        
+            let frame = self.surface.get_current_texture().expect("Failed to acquire next swap chain texture");
+            let surface_view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
+
+            let scene_renderer = self.scene_renderer.as_mut().unwrap();
+            scene_renderer.set_param_value("width", self.config.width as f32);
+            scene_renderer.set_param_value("height", self.config.height as f32);
+            scene_renderer.process(&input_texture, &surface_view);
+
+            frame.present();
+
+            self.decoder.free_frame(frame_ptr);
+        }
+
     }
 }
