@@ -9,6 +9,11 @@ use winit::window::{Window, WindowId};
 mod core;
 use core::engine::Engine;
 
+use std::sync::Arc;
+use std::time::Instant;
+use tokio::time::{sleep, Duration};
+use tokio::sync::Mutex;
+
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
@@ -23,7 +28,29 @@ pub fn run() {
             let window = app.get_webview_window("main").unwrap();
             window.maximize().unwrap();  // 最大化窗口
 
-            // let engine = async_runtime::block_on(Engine::new(window));
+            let engine = async_runtime::block_on(Engine::new(window));
+            let engine = Arc::new(Mutex::new(engine)); // 包装 Mutex
+            app.manage(engine.clone());
+
+            let app_handle = app.app_handle().clone();
+
+            async_runtime::spawn(async move {
+                let engine = app_handle.state::<Arc<Mutex<Engine>>>();
+                loop {
+                    let t = Instant::now();
+
+                    {
+                        // 获取可变锁
+                        let mut eng = engine.lock().await;
+                        eng.render_frame(); // ✅ 可以调用 &mut self 方法
+                    }
+
+                    println!("Frame rendered in: {}ms", t.elapsed().as_millis());
+
+                    // 避免 CPU 占满
+                    sleep(Duration::from_millis(16)).await;
+                }
+            });
         }
         Ok(())
     })
