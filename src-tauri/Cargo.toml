@@ -33,7 +33,7 @@ log        = "0.4"          # ✅ 标准日志库
 pollster   = "0.4.0"        # ✅ 异步阻塞工具，适配 wgpu 初始化
 indexmap   = "2.10.0"       # ✅ 高效索引映射
 bytemuck   = "1.14.0"       # ✅ 高性能字节操作
-serde = {version = "1.0", features = ["derive"]} # ✅ 序列化/反序列化
+serde = {version = "1.0", features = ["derive"] } # ✅ 序列化/反序列化
 serde_json = "1.0"          # ✅ JSON 序列化/反序列化
 
 [profile.dev]

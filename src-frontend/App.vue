@@ -1,14 +1,14 @@
 <template>
-    <div class="flex flex-col h-screen bg-[#F0F0F5] select-none box-border">
+    <div class="flex flex-col h-screen bg-transparent select-none box-border">
         <!-- <HomePage class="w-full h-screen bg-white-100 select-none"/> -->
         <!-- <TestClipEngine/> -->
-        <AppHeader 
+        <!-- <AppHeader 
             class="w-full h-[56px]" 
             style="padding: 8px 12px 8px 16px"
         />
         <Studio
             class="w-full flex-1 h-0 mb-[5px]"    
-        />
+        /> -->
     </div>
 </template>
 

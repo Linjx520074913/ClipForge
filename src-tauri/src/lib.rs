@@ -26,7 +26,7 @@ pub fn run() {
         #[cfg(debug_assertions)] // 仅在调试构建时包含此代码
         {
             let window = app.get_webview_window("main").unwrap();
-            window.maximize().unwrap();  // 最大化窗口
+            // window.maximize().unwrap();  // 最大化窗口
 
             let engine = async_runtime::block_on(Engine::new(window));
             let engine = Arc::new(Mutex::new(engine)); // 包装 Mutex

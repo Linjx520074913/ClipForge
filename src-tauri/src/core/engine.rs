@@ -39,7 +39,7 @@ impl Engine {
     pub async fn new(window: WebviewWindow) -> Self {
 
         let decoder = CFDecoder::new();
-        decoder.open_video("E://test.MP4");
+        decoder.open_video("D://123.MP4");
 
         let size = window.inner_size().unwrap();
         
@@ -107,7 +107,7 @@ impl Engine {
             start_time
         };
 
-        engine.initialize_input_texture();
+        // engine.initialize_input_texture();
         engine.initialize_scene_renderer();
         engine
     }
@@ -247,6 +247,8 @@ impl Engine {
         if frame_ptr.is_null() {
             return;
         }
+
+        println!("################## render");
         unsafe {
             let frame_ref = &*frame_ptr;
             let data_ptr: *const u8 = frame_ref.data;
