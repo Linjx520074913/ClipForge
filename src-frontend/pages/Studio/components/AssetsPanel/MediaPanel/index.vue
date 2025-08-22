@@ -3,7 +3,9 @@
         <div class="flex flex-row space-x-[1px] ml-[16px] mr-[16px] cursor-pointer text-white">
             <!-- 导入按钮 -->
             <div
-                class="w-5/6 h-[32px] flex-x-center bg-purple hover:bg-dark-purple font-bold text-[15px] rounded-l-[5px]">
+                class="w-5/6 h-[32px] flex-x-center bg-purple hover:bg-dark-purple font-bold text-[15px] rounded-l-[5px]"
+                @click="open_file_async"
+            >
                 导入媒体
             </div>
             <span class="flex-1 material-symbols-outlined flex-x-center bg-purple hover:bg-dark-purple rounded-r-[5px]">arrow_drop_down</span>
@@ -40,6 +42,7 @@ import { Asset } from 'clip-engine';
 defineOptions({ name: 'MediaPanel' });
 
 import { VideoStudio } from '@frontend/store/videostudio';
+import { open_file_async } from '@frontend/api/tauri-api';
 
 const selectAll = ref(false);
 

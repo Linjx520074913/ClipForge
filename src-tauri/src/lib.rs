@@ -1,4 +1,6 @@
+use serde::de::value::Error;
 use tauri::{Manager, WebviewWindowBuilder, PhysicalSize, WindowEvent, LogicalPosition, Position};
+use wgpu::rwh::HasDisplayHandle;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use std::time::Instant;
@@ -6,6 +8,8 @@ use tokio::time::{sleep, Duration};
 
 mod core;
 use core::engine::Engine;
+
+use tauri_plugin_dialog::DialogExt;
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -45,11 +49,23 @@ fn set_render_window_size(app_handle: tauri::AppHandle, w: f32, h: f32) {
     });
 }
 
+#[tauri::command]
+fn open_file_async(app_handle: tauri::AppHandle) {
+    let file_path = app_handle.dialog().file().blocking_pick_file();
+    if let Some(path) = file_path {
+        println!("open_file_async {:?}", path);
+    }else {
+        println!("open_file_async cancel");
+    }
+    
+}
+
 
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             // 获取主窗口
             let main_window = app.get_webview_window("main").unwrap();
@@ -66,6 +82,7 @@ pub fn run() {
             .shadow(true)
             .always_on_top(false)
             .inner_size(800.0, 600.0)
+            .shadow(false)
             .parent(&main_window)
             .unwrap()          // 先 unwrap parent 的 Result
             .build()           // build 返回 Result<WebviewWindow, Error>
@@ -111,7 +128,12 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, set_render_window_position, set_render_window_size])
+        .invoke_handler(tauri::generate_handler![
+            greet, 
+            set_render_window_position, 
+            set_render_window_size,
+            open_file_async
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -9,12 +9,11 @@ import { Asset } from "clip-engine";
 
 import { VideoStudio } from '@frontend/store/videostudio';
 import { uuidv4 } from 'zod';
-import { useTauriApi } from '@frontend/api/tauri-api';
-
-const {
+import { 
     set_render_window_size,
     set_render_window_position
-} = useTauriApi();
+} from '@frontend/api/tauri-api';
+
 
 export function useVideoStudio(){
 
@@ -75,7 +74,7 @@ export function useVideoStudio(){
         const scale = window.devicePixelRatio;
 
         set_render_window_size(rect.width * scale, rect.height * scale);
-        set_render_window_position(rect.x - 8, rect.y * scale)
+        set_render_window_position(rect.x, rect.y * scale)
         
     }
 
