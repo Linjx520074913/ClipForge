@@ -1,4 +1,4 @@
-use tauri::{Manager, WebviewWindowBuilder, WindowEvent, LogicalPosition, Position};
+use tauri::{Manager, WebviewWindowBuilder, PhysicalSize, WindowEvent, LogicalPosition, Position};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use std::time::Instant;
@@ -11,6 +11,41 @@ use core::engine::Engine;
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
+
+#[tauri::command]
+fn set_render_window_position(app_handle: tauri::AppHandle, x: f32, y: f32) {
+    println!("### set_render_window_position : {} {} ###", x, y);
+    if let Some(tw) = app_handle.get_webview_window("transparent") {
+        let new_pos = tauri::Position::Logical(tauri::LogicalPosition {
+            x: x as f64,
+            y: y as f64,
+        });
+        tw.set_position(new_pos).ok();
+    }
+}
+
+#[tauri::command]
+fn set_render_window_size(app_handle: tauri::AppHandle, w: f32, h: f32) {
+    println!("### set_render_window_size : {} {} ###", w, h);
+    if let Some(tw) = app_handle.get_webview_window("transparent") {
+        let size = PhysicalSize { width: w, height: h };
+        tw.set_size(size).ok();
+    }
+
+    let engine_arc = {
+        // 注意：这里拿的是引用，然后立刻 clone 出独立 Arc
+        let engine_ref = app_handle.state::<Arc<Mutex<Engine>>>();
+        Arc::clone(&engine_ref)
+    };
+
+    // 异步任务安全使用 Arc
+    tauri::async_runtime::spawn(async move {
+        let mut eng = engine_arc.lock().await;
+        eng.resize(w as u32, h as u32);
+    });
+}
+
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -28,12 +63,15 @@ pub fn run() {
             .title("Transparent Window")
             .transparent(true)
             .decorations(false)
+            .shadow(true)
             .always_on_top(false)
             .inner_size(800.0, 600.0)
             .parent(&main_window)
             .unwrap()          // 先 unwrap parent 的 Result
             .build()           // build 返回 Result<WebviewWindow, Error>
             .unwrap();         // 再 unwrap build 的 Result
+
+            transparent_window.set_ignore_cursor_events(true).ok();
 
             // 现在 transparent_window 是 WebviewWindow，可以 clone
             let engine = pollster::block_on(Engine::new(transparent_window.clone()));
@@ -65,7 +103,7 @@ pub fn run() {
                     let t = Instant::now();
                     let mut eng = engine.lock().await;
                     eng.render_frame();
-                    println!("Frame rendered in {}ms", t.elapsed().as_millis());
+                    // println!("Frame rendered in {}ms", t.elapsed().as_millis());
                     sleep(Duration::from_millis(16)).await;
                 }
             });
@@ -73,7 +111,7 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![greet, set_render_window_position, set_render_window_size])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

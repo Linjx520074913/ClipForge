@@ -13,7 +13,7 @@
                 />
                 <!-- 预览区域,根据比例重置过大小 -->
                 <div
-                    class="canvas-container bg-black relative overflow-hidden"
+                    class="canvas-container relative overflow-hidden border-[1px] border-gray-300"
                     ref="canvasContainerRef"
                     @dragover.prevent
                     @drop="onDrop"
@@ -85,6 +85,7 @@ import {
 
 import EditorToolbar from './EditorToolbar/index.vue';
 
+
 defineOptions({ name: 'EditorPanel' });
 
 let {
@@ -139,6 +140,8 @@ function onStatusChange(data: {trackId: string, clipId: string, value: boolean})
         }
     );
 }
+
+
 
 /**
  * 控制 TimeDriver 的播放状态

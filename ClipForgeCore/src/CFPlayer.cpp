@@ -92,7 +92,7 @@ std::shared_ptr<CFFrame> CFPlayer::get_frame(int64_t timestamp)
             [this](const std::shared_ptr<CFFrame>& f) {
                 return seek_pos_ - f.get()->timestamp > v_frames_diff_ / 4;
             }), v_frames_.end());
-        cout << " @@@@@@@@@@@@@@@@@@@ need decoding @@@@@@@@@@@@@@@@@@@@@@" << endl;
+        // cout << " @@@@@@@@@@@@@@@@@@@ need decoding @@@@@@@@@@@@@@@@@@@@@@" << endl;
         need_decode = true;
     }
     if(get_buffer_ts_diff() > v_frames_diff_  && timestamp > v_frames_.back().get()->timestamp) {
@@ -159,7 +159,7 @@ void CFPlayer::decode_video_loop() {
                     cond_v_.wait(lk, [this] {
                         return v_frames_.size() < 2  || get_buffer_ts_diff() < v_frames_diff_;
                     });
-                    cout << "push >>> " << f->timestamp << endl;
+                    // cout << "push >>> " << f->timestamp << endl;
                     v_frames_.push_back(std::move(f));
                 }
             }

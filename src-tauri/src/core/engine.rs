@@ -233,6 +233,14 @@ impl Engine {
         input_texture
     }
 
+    pub fn resize(&mut self, w: u32, h: u32) {
+        if w > 0 && h > 0 {
+            self.config.width  = w;
+            self.config.height = h;
+            self.surface.configure(&self.device, &self.config);
+        }
+    }
+
     /**
      * 渲染
      */
@@ -248,7 +256,6 @@ impl Engine {
             return;
         }
 
-        println!("################## render");
         unsafe {
             let frame_ref = &*frame_ptr;
             let data_ptr: *const u8 = frame_ref.data;
@@ -257,17 +264,31 @@ impl Engine {
             let data_slice: &[u8] = std::slice::from_raw_parts(data_ptr, len);
             let input_texture = self.create_texture(frame_ref.width, frame_ref.height, data_slice);
         
-            let frame = self.surface.get_current_texture().expect("Failed to acquire next swap chain texture");
-            let surface_view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
+            match self.surface.get_current_texture() {
+                Ok(frame) => {
+                    let surface_view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
-            let scene_renderer = self.scene_renderer.as_mut().unwrap();
-            scene_renderer.set_param_value("width", self.config.width as f32);
-            scene_renderer.set_param_value("height", self.config.height as f32);
-            scene_renderer.process(&input_texture, &surface_view);
+                    let scene_renderer = self.scene_renderer.as_mut().unwrap();
+                    scene_renderer.set_param_value("width", self.config.width as f32);
+                    scene_renderer.set_param_value("height", self.config.height as f32);
+                    scene_renderer.process(&input_texture, &surface_view);
 
-            frame.present();
+                    frame.present();
 
-            self.decoder.free_frame(frame_ptr);
+                    self.decoder.free_frame(frame_ptr);
+                }
+                Err(wgpu::SurfaceError::Outdated) | Err(wgpu::SurfaceError::Lost) => {
+                    // 重建 surface
+                }
+                Err(wgpu::SurfaceError::OutOfMemory) => {
+                    panic!("Swap chain out of memory");
+                }
+                Err(e) => {
+                    eprintln!("Dropped frame : {:?}", e);
+                }
+            }
+
+            
         }
 
     }
