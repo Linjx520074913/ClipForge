@@ -14,6 +14,8 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
+#include <libavutil/hwcontext.h>
+#include <libavutil/imgutils.h>
 }
 
 #define CF_A_PAUSE (1 << 0)  // 音频解码暂停，audio decode thread 检测到此状态会暂停音频解码
@@ -48,6 +50,23 @@ public:
     std::shared_ptr<CFFrame> get_frame(int64_t timestamp);
 
 private:
+    AVHWDeviceType get_hw_device(){
+        #if defined(_WIN32)
+            // Window 优先 DXVA2 / D3D11VA / CUDA
+            if(av_hwdevice_find_type_by_name("dxva2") != AV_HWDEVICE_TYPE_NONE)
+                return AV_HWDEVICE_TYPE_DXVA2;
+            if(av_hwdevice_find_type_by_name("d3d11va") != AV_HWDEVICE_TYPE_NONE)
+                return AV_HWDEVICE_TYPE_D3D11VA;
+            if(av_hwdevice_find_type_by_name("cuda") != AV_HWDEVICE_TYPE_NONE)
+                return AV_HWDEVICE_TYPE_CUDA;
+        #elif define(__APPLE__)
+
+        #else
+
+        #endif
+            return AV_HWDEVICE_TYPE_NONE;
+    }
+
     void decode_video_loop();
 
     static double pts_to_ms(int64_t pts, AVRational tb) {

@@ -39,7 +39,8 @@ impl Engine {
     pub async fn new(window: WebviewWindow) -> Self {
 
         let decoder = CFDecoder::new();
-        decoder.open_video("D://test.mp4");
+        // decoder.open_video("D://test.mp4");
+        decoder.open_video("D://video//Q360_20250612_141124_000001.MP4");
 
         let size = window.inner_size().unwrap();
         
