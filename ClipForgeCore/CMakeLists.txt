@@ -12,8 +12,8 @@ set(OPENCV_LIB_DIR     ${PROJECT_SOURCE_DIR}/deps/opencv/release/x64/vc15/lib)
 
 set(DEPS_INCLUDE_DIR   ${PROJECT_SOURCE_DIR}/deps)
 
-set(SDL_INCLUDE_DIR    ${PROJECT_SOURCE_DIR}/deps/sdl3/include)
-set(SDL_LIB_DIR        ${PROJECT_SOURCE_DIR}/deps/sdl3/lib/x64)
+set(SDL_INCLUDE_DIR    ${PROJECT_SOURCE_DIR}/deps/sdl2/include)
+set(SDL_LIB_DIR        ${PROJECT_SOURCE_DIR}/deps/sdl2/lib/x64)
 
 set(GLEW_INCLUDE_DIR   ${PROJECT_SOURCE_DIR}/deps/glew/include)
 set(GLEW_LIB_DIR       ${PROJECT_SOURCE_DIR}/deps/glew/lib/Release/x64)
@@ -47,7 +47,7 @@ target_link_libraries(
     opencv_world455
     Dbghelp
     glew32
-    SDL3
+    SDL2
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -65,5 +65,5 @@ target_link_libraries(
     swresample
     swscale
     opencv_world455
-    SDL3
+    SDL2
 )
