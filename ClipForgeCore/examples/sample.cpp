@@ -1,148 +1,133 @@
-#define SDL_MAIN_HANDLED
-#include <SDL.h>
+#include <windows.h>
+#include <d3d9.h>
+#include <dxva2api.h>
 #include <iostream>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
-#include <libavutil/hwcontext.h>
-#include <libavutil/imgutils.h>
-#include <libswscale/swscale.h>
 }
 
-// 全局硬件设备
-AVBufferRef* hw_device_ctx = nullptr;
-enum AVPixelFormat hw_pix_fmt;
+#pragma comment(lib, "d3d9.lib")
+#pragma comment(lib, "dxva2.lib")
+#pragma comment(lib, "avcodec.lib")
+#pragma comment(lib, "avformat.lib")
+#pragma comment(lib, "avutil.lib")
 
-// 硬件格式回调
-enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelFormat* pix_fmts) {
-    for (const enum AVPixelFormat* p = pix_fmts; *p != -1; ++p)
-        if (*p == hw_pix_fmt) return *p;
+LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    if (msg == WM_DESTROY) PostQuitMessage(0);
+    return DefWindowProc(hWnd, msg, wParam, lParam);
+}
+
+// DXVA2 get_format 回调
+static enum AVPixelFormat get_hw_format(AVCodecContext *ctx, const enum AVPixelFormat *pix_fmts) {
+    for (const enum AVPixelFormat *p = pix_fmts; *p != -1; p++) {
+        if (*p == AV_PIX_FMT_DXVA2_VLD)
+            return *p;
+    }
+    std::cerr << "No DXVA2 format found" << std::endl;
     return AV_PIX_FMT_NONE;
 }
 
-// 初始化 NVDEC
-int init_hw_decoder(AVCodecContext* ctx) {
-    AVHWDeviceType type = av_hwdevice_find_type_by_name("cuda");
-    if (av_hwdevice_ctx_create(&hw_device_ctx, type, nullptr, nullptr, 0) < 0) {
-        std::cerr << "Failed to create HW device\n";
-        return -1;
-    }
-    ctx->hw_device_ctx = av_buffer_ref(hw_device_ctx);
-    return 0;
-}
+int main(int argc, char* argv[]) {
+    const char* filename = "D://video//Q360_19700103_032841_000001_Output(11).mp4";
 
-int main() {
-    const char* filename = "D://video//Q360_20250612_141124_000001.MP4";
-
+    // ------------------- FFmpeg 初始化 -------------------
     avformat_network_init();
     AVFormatContext* fmt_ctx = nullptr;
-    if (avformat_open_input(&fmt_ctx, filename, nullptr, nullptr) != 0) {
-        std::cerr << "Cannot open input file.\n";
-        return -1;
-    }
-    avformat_find_stream_info(fmt_ctx, nullptr);
+    if (avformat_open_input(&fmt_ctx, filename, nullptr, nullptr) < 0) return -1;
+    if (avformat_find_stream_info(fmt_ctx, nullptr) < 0) return -1;
 
-    int video_index = -1;
-    for (unsigned i = 0; i < fmt_ctx->nb_streams; ++i)
-        if (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-            video_index = i;
-            break;
-        }
-    if (video_index < 0) { std::cerr << "No video stream.\n"; return -1; }
+    int video_stream = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
+    if (video_stream < 0) return -1;
 
-    AVCodecParameters* codecpar = fmt_ctx->streams[video_index]->codecpar;
-    const AVCodec* decoder = avcodec_find_decoder(codecpar->codec_id);
-    AVCodecContext* dec_ctx = avcodec_alloc_context3(decoder);
-    avcodec_parameters_to_context(dec_ctx, codecpar);
+    AVCodecParameters* codecpar = fmt_ctx->streams[video_stream]->codecpar;
+    const AVCodec* codec = avcodec_find_decoder(codecpar->codec_id);
+    AVCodecContext* codec_ctx = avcodec_alloc_context3(codec);
+    avcodec_parameters_to_context(codec_ctx, codecpar);
 
-    hw_pix_fmt = AV_PIX_FMT_CUDA;
-    dec_ctx->get_format = get_hw_format;
-    if (init_hw_decoder(dec_ctx) < 0) return -1;
-    avcodec_open2(dec_ctx, decoder, nullptr);
-
-    AVPacket* pkt = av_packet_alloc();
-    AVFrame* hw_frame = av_frame_alloc();
-    AVFrame* sw_frame = av_frame_alloc();
-    AVFrame* rgb_frame = av_frame_alloc();
-
-    // sws 将 CPU NV12 -> RGB24
-    struct SwsContext* sws_ctx = sws_getContext(
-        dec_ctx->width, dec_ctx->height, AV_PIX_FMT_NV12,
-        dec_ctx->width, dec_ctx->height, AV_PIX_FMT_RGB24,
-        SWS_BILINEAR, nullptr, nullptr, nullptr
-    );
-    if (!sws_ctx) { std::cerr << "Failed to create SwsContext\n"; return -1; }
-
-    int num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24, dec_ctx->width, dec_ctx->height, 1);
-    uint8_t* buffer = (uint8_t*)av_malloc(num_bytes);
-    av_image_fill_arrays(rgb_frame->data, rgb_frame->linesize, buffer, AV_PIX_FMT_RGB24,
-        dec_ctx->width, dec_ctx->height, 1);
-
-    // SDL2 初始化
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        std::cerr << "SDL_Init Error: " << SDL_GetError() << "\n";
+    // DXVA2 硬解
+    AVBufferRef* hw_device_ctx = nullptr;
+    if (av_hwdevice_ctx_create(&hw_device_ctx, AV_HWDEVICE_TYPE_DXVA2, nullptr, nullptr, 0) >= 0) {
+        codec_ctx->hw_device_ctx = hw_device_ctx;
+        codec_ctx->get_format = get_hw_format;
+        std::cout << "DXVA2 hardware decoding enabled\n";
+    } else {
+        std::cerr << "Failed to create DXVA2 device\n";
         return -1;
     }
 
-    SDL_Window* window = SDL_CreateWindow("NVDEC + SDL2",
-        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        dec_ctx->width, dec_ctx->height,
-        SDL_WINDOW_RESIZABLE);
-    if (!window) { std::cerr << "SDL_CreateWindow failed: " << SDL_GetError() << std::endl; return -1; }
+    if (avcodec_open2(codec_ctx, codec, nullptr) < 0) return -1;
 
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    SDL_Texture* texture = SDL_CreateTexture(renderer,
-        SDL_PIXELFORMAT_RGB24,
-        SDL_TEXTUREACCESS_STREAMING,
-        dec_ctx->width,
-        dec_ctx->height);
+    AVPacket pkt;
+    AVFrame* frame = av_frame_alloc();
 
-    SDL_Event e;
+    // ------------------- 创建窗口 -------------------
+    WNDCLASS wc = {};
+    wc.lpfnWndProc = WndProc;
+    wc.hInstance = GetModuleHandle(NULL);
+    wc.lpszClassName = "D3DWindowClass";
+    RegisterClass(&wc);
+
+    HWND hwnd = CreateWindow(wc.lpszClassName, "DXVA2 Direct Display",
+                             WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+                             1280, 720, nullptr, nullptr, wc.hInstance, nullptr);
+    ShowWindow(hwnd, SW_SHOW);
+
+    // ------------------- 用 FFmpeg 的 D3DDevice -------------------
+    // 取第一帧 DXVA2 surface 来获取 FFmpeg D3DDevice
+    IDirect3DDevice9* ffmpegDev = nullptr;
+    bool dev_ready = false;
+
+    MSG msg;
     bool running = true;
+    while (running) {
+        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+            if (msg.message == WM_QUIT) running = false;
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
 
-    while (av_read_frame(fmt_ctx, pkt) >= 0 && running) {
-        if (pkt->stream_index == video_index) {
-            if (avcodec_send_packet(dec_ctx, pkt) < 0) continue;
-            while (avcodec_receive_frame(dec_ctx, hw_frame) == 0) {
-                // 硬件帧拷贝到 CPU
-                if (av_hwframe_transfer_data(sw_frame, hw_frame, 0) < 0) {
-                    std::cerr << "Error transferring frame to CPU\n";
-                    continue;
-                }
+        if (av_read_frame(fmt_ctx, &pkt) >= 0) {
+            if (pkt.stream_index == video_stream) {
+                avcodec_send_packet(codec_ctx, &pkt);
+                while (avcodec_receive_frame(codec_ctx, frame) == 0) {
+                    if (frame->format != AV_PIX_FMT_DXVA2_VLD) continue;
 
-                // CPU NV12 -> RGB24
-                sws_scale(sws_ctx, sw_frame->data, sw_frame->linesize, 0, dec_ctx->height,
-                    rgb_frame->data, rgb_frame->linesize);
+                    IDirect3DSurface9* pSurface = (IDirect3DSurface9*)frame->data[3];
+                    if (!pSurface) continue;
 
-                // 更新 SDL2 纹理显示
-                SDL_UpdateTexture(texture, nullptr, rgb_frame->data[0], rgb_frame->linesize[0]);
-                SDL_RenderClear(renderer);
-                SDL_RenderCopy(renderer, texture, nullptr, nullptr);
-                SDL_RenderPresent(renderer);
+                    // 拿 FFmpeg 内部 D3DDevice（只做一次）
+                    if (!dev_ready) {
+                        pSurface->GetDevice(&ffmpegDev);
+                        dev_ready = true;
+                    }
 
-                while (SDL_PollEvent(&e)) {
-                    if (e.type == SDL_QUIT) running = false;
+                    // 创建或获取窗口 BackBuffer
+                    D3DPRESENT_PARAMETERS d3dpp = {};
+                    d3dpp.Windowed = TRUE;
+                    d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
+                    d3dpp.hDeviceWindow = hwnd;
+
+                    // 直接 StretchRect 到窗口 BackBuffer
+                    IDirect3DSurface9* backbuffer = nullptr;
+                    ffmpegDev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
+                    ffmpegDev->StretchRect(pSurface, nullptr, backbuffer, nullptr, D3DTEXF_LINEAR);
+                    backbuffer->Release();
+
+                    ffmpegDev->Present(nullptr, nullptr, hwnd, nullptr);
                 }
             }
+            av_packet_unref(&pkt);
         }
-        av_packet_unref(pkt);
     }
 
-    // 清理
-    sws_freeContext(sws_ctx);
-    av_free(buffer);
-    av_frame_free(&rgb_frame);
-    av_frame_free(&sw_frame);
-    av_frame_free(&hw_frame);
-    av_packet_free(&pkt);
-    avcodec_free_context(&dec_ctx);
+    // ------------------- 清理 -------------------
+    av_frame_free(&frame);
+    avcodec_free_context(&codec_ctx);
     avformat_close_input(&fmt_ctx);
 
-    SDL_DestroyTexture(texture);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    if (ffmpegDev) ffmpegDev->Release();
 
     return 0;
 }
