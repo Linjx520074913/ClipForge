@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.25)
+set(CMAKE_TOOLCHAIN_FILE "D:/code/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE FILEPATH "Vcpkg toolchain file")
 project(cfcore)
+
+
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CUDA_STANDARD 17)
-set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-set(CMAKE_CUDA_ARCHITECTURES native)
+
+find_package(websocketpp CONFIG REQUIRED)
 
 # ---------- 外部依赖路径 ----------
 set(DEPS_DIR ${PROJECT_SOURCE_DIR}/deps)
@@ -18,6 +20,7 @@ set(FFMPEG_LIB_DIR     ${DEPS_DIR}/ffmpeg/lib)
 set(OPENCV_INCLUDE_DIR ${DEPS_DIR}/opencv/release/include)
 set(OPENCV_LIB_DIR     ${DEPS_DIR}/opencv/release/x64/vc15/lib)
 
+find_package(ZLIB REQUIRED)
 
 # ---------- include / link ----------
 include_directories(
@@ -52,21 +55,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     d3dcompiler
 )
 
-set_target_properties(${PROJECT_NAME} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
-
 # ---------- 示例可执行 ----------
 add_executable(sample
     examples/sample.cpp
-)
-
-# NVCC 编译选项
-set_target_properties(sample PROPERTIES
-    CUDA_SEPARABLE_COMPILATION ON
-    CUDA_ARCHITECTURES "native"
-)
-
-target_compile_options(sample PRIVATE
-    $<$<COMPILE_LANGUAGE:CUDA>:--use_fast_math>
 )
 
 target_link_libraries(sample PRIVATE
@@ -82,4 +73,5 @@ target_link_libraries(sample PRIVATE
     d3d11
     dxgi
     d3dcompiler
+    websocketpp::websocketpp
 )

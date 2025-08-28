@@ -14,6 +14,8 @@ import {
     set_render_window_position
 } from '@frontend/api/tauri-api';
 
+import { wssocket } from "@frontend/api/ws-api";
+
 
 export function useVideoStudio(){
 
@@ -73,9 +75,12 @@ export function useVideoStudio(){
         const rect = canvasContainerRef.value.getBoundingClientRect();
         const scale = window.devicePixelRatio;
 
-        set_render_window_size(rect.width * scale, rect.height * scale);
-        set_render_window_position(rect.x, rect.y * scale)
-        
+        // set_render_window_size(rect.width * scale, rect.height * scale);
+        // set_render_window_position(rect.x, rect.y * scale)
+        const x = (window.screenX + rect.x) * scale;
+        const y = (window.screenY + rect.y) * scale;
+        wssocket.send({event: 'set_size', data: { w: rect.width * scale, h: rect.height * scale }});
+        wssocket.send({event: 'set_pos',  data: { x, y }});
     }
 
     function addResizeObserver(){
