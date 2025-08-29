@@ -40,6 +40,20 @@ int Application::init_websocket()
                 if(!ws_callback_) {
                     ws_callback_(j);
                 }
+
+                const std::string event = j["event"];
+                if(event == "set_size") {
+                    int width  = j["data"]["w"];
+                    int height = j["data"]["h"];
+
+                    std::cout << "W = " << width << " H = " << height << std::endl;
+
+                    // 调整窗口大小
+                    if(hwnd_) {
+                        SetWindowPos(hwnd_, nullptr, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER);
+                    }
+                }
+
             } catch (std::exception& e) {
                 std::cerr << "JSON parse error: " << e.what() << std::endl;
             }
@@ -121,6 +135,7 @@ LRESULT CALLBACK Application::wndproc(HWND hwnd, UINT message, WPARAM wparam, LP
         case WM_PAINT:
             break;
         case WM_DESTROY:
+            PostQuitMessage(0);
             break;
         case WM_SIZE:
             break;
