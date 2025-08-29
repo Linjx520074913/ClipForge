@@ -50,30 +50,24 @@ void Decoder::open_video(const char* file_path, AVFrameCallback callback)
         int height= v_codec_ctx->height;
 
         
-        while(true) {
-            AVPacket* pkt = av_packet_alloc();
-            int ret = av_read_frame(fmt_ctx_, pkt);
-            if(0 == ret) {
-                auto codec_ctx = codec_map_[pkt->stream_index];
-                if(pkt->stream_index == AVMEDIA_TYPE_VIDEO && 0 == avcodec_send_packet(codec_ctx, pkt)) {
-                    AVFrame* frame= av_frame_alloc();
-                    if(0 == avcodec_receive_frame(codec_ctx, frame)) {
-                        av_packet_unref(pkt);
-                        // 回调
-                        if(callback) {
-                            callback(frame);
-                        }
-                        av_frame_free(&frame);
-                    }else {
-                        av_frame_unref(frame);
-                    }
+        AVPacket* pkt = av_packet_alloc();
+        while(av_read_frame(fmt_ctx_, pkt) >= 0) {
+            auto codec_ctx = codec_map_[pkt->stream_index];
+            if(pkt->stream_index == v_stream_idx && avcodec_send_packet(codec_ctx, pkt) == 0) {
+                AVFrame* frame = av_frame_alloc();
+                if(avcodec_receive_frame(codec_ctx, frame) == 0 && callback) {
+                    callback(frame);
                 }
-            }else {
-                std::cerr << "##" << std::endl;
-                break;
+                av_frame_free(&frame);
             }
+            av_packet_unref(pkt);
         }
+        av_packet_free(&pkt);
 
+        for(auto& kv : codec_map_) {
+            avcodec_free_context(&kv.second);
+        }
+        
         avcodec_free_context(&v_codec_ctx);
         avformat_close_input(&fmt_ctx_);
     });
