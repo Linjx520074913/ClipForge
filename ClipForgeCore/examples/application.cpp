@@ -3,6 +3,8 @@
 
 #include "application.h"
 
+#include <thread>
+
 typedef websocketpp::server<websocketpp::config::asio> server;
 
 Application::Application()
@@ -95,24 +97,20 @@ int Application::init_window()
     return 0;
 }
 
-int Application::run(IRenderer* renderer)
+int Application::run()
 {
-    renderer->init();
-
     MSG msg = {};
     while(msg.message != WM_QUIT) {
         while(PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
-        }
-        if(renderer) renderer->render(); // 每帧渲染
+        }// 每帧渲染
     }
     return 0;
 }
 
 LRESULT CALLBACK Application::wndproc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 {
-    IRenderer* renderer = reinterpret_cast<IRenderer*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
     switch (message){
         case WM_CREATE:
             {
@@ -125,9 +123,6 @@ LRESULT CALLBACK Application::wndproc(HWND hwnd, UINT message, WPARAM wparam, LP
         case WM_DESTROY:
             break;
         case WM_SIZE:
-            if(renderer) {
-                renderer->resize();
-            }
             break;
         default:
             break;

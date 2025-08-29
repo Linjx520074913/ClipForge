@@ -205,22 +205,28 @@ void Dx11Renderer::init_shader()
 
     // Create Texture
     D3D11_TEXTURE2D_DESC tex_desc = {};
-    tex_desc.Width            = width;
-    tex_desc.Height           = height;
+    tex_desc.Width            = 3840;
+    tex_desc.Height           = 1608;
     tex_desc.MipLevels        = 1;
     tex_desc.ArraySize        = 1;
-    tex_desc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    tex_desc.Format           = DXGI_FORMAT_NV12;
     tex_desc.SampleDesc.Count = 1;
-    tex_desc.Usage            = D3D11_USAGE_IMMUTABLE;
+    tex_desc.Usage            = D3D11_USAGE_DEFAULT;
     tex_desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
+    tex_desc.MiscFlags        = D3D11_RESOURCE_MISC_SHARED; // 共享纹理
 
     D3D11_SUBRESOURCE_DATA tex_sub_data = {};
     tex_sub_data.pSysMem = tex_bytes;
     tex_sub_data.SysMemPitch = bytes_per_row;
 
-    device_->CreateTexture2D(&tex_desc, &tex_sub_data, &texture_);
+    device_->CreateTexture2D(&tex_desc, nullptr, &texture_);
 
     device_->CreateShaderResourceView(texture_, nullptr, &texture_srv_);
+
+    IDXGIResource* dxgires = nullptr;
+    texture_->QueryInterface(__uuidof(IDXGIResource), (void**)&dxgires);
+    dxgires->GetSharedHandle(&shared_tex_handle_);
+    dxgires->Release();
 
     free(tex_bytes);
 

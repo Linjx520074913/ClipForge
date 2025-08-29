@@ -1,43 +1,29 @@
 #pragma once
-
 #include "renderer.h"
 #include <d3d11.h>
 #include <d3d11_1.h>
-#include <wrl/client.h>  // ComPtr 
+#include <wrl/client.h>
+#include <d3dcompiler.h>
 
 using Microsoft::WRL::ComPtr;
-using namespace Microsoft::WRL;
 
-#include <d3dcompiler.h>
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "d3dcompiler.lib")
-
-/**
- *  Win32 窗口
-    ↓
-    D3D11CreateDeviceAndSwapChain()
-    ↓
-    [设备]       [上下文]      [交换链]
-    ↓            ↓             ↓
-    创建资源   绑定资源+绘制   管理后台缓冲
-    ↓
-    渲染循环：
-    1. ClearRenderTargetView()
-    2. Draw()
-    3. swapChain->Present()
-    ↓
-    屏幕显示
- */
 
 class Dx11Renderer : public IRenderer
 {
 public:
     Dx11Renderer(int w, int h, HWND hwnd) : IRenderer(w, h, hwnd) {}
-    
+
     void init();
     void render();
     void destroy();
     void resize();
+
+    // 上传 AVFrame 的 Y 分量
+    void updateYTexture(uint8_t* y_data, int width, int height);
+
+    HANDLE get_shared_texture() { return shared_tex_handle_; }
 
 protected:
     void init_buffer();
@@ -46,23 +32,21 @@ protected:
     void init_sampler();
 
 private:
-    ID3D11Device1* device_;
-    ID3D11DeviceContext1* ctx_;
-    IDXGISwapChain1* swap_chain_;
-    ID3D11RenderTargetView* rtv_;
+    ID3D11Device1* device_ = nullptr;
+    ID3D11DeviceContext1* ctx_ = nullptr;
+    IDXGISwapChain1* swap_chain_ = nullptr;
+    ID3D11RenderTargetView* rtv_ = nullptr;
 
-    ID3D11VertexShader* v_shader_;
-    ID3D11PixelShader* p_shader_;
-    ID3D11InputLayout* input_layout_;
+    ID3D11VertexShader* v_shader_ = nullptr;
+    ID3D11PixelShader* p_shader_ = nullptr;
+    ID3D11InputLayout* input_layout_ = nullptr;
 
-    ID3D11Buffer* v_buffer_;
-    UINT num_, stride_, offset_;
+    ID3D11Buffer* v_buffer_ = nullptr;
+    UINT num_ = 0, stride_ = 0, offset_ = 0;
 
-    ID3D11SamplerState* sampler_state_;
-    ID3D11ShaderResourceView* texture_srv_;
+    ID3D11SamplerState* sampler_state_ = nullptr;
+    ID3D11ShaderResourceView* texture_srv_ = nullptr;
 
-    ID3D11Texture2D* texture_;
-
-    ComPtr<ID3D11Buffer> i_buffer_;
-
+    ID3D11Texture2D* texture_ = nullptr;
+    HANDLE shared_tex_handle_ = nullptr;
 };

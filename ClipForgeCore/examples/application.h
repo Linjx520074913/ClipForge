@@ -14,7 +14,7 @@ public:
     Application();
     ~Application(){}
 
-    int run(IRenderer* render);
+    int run();
     void set_ws_callback(WSMessageCallback callback);
 
 protected:

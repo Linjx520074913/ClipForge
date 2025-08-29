@@ -36,6 +36,7 @@ add_executable(sample
     examples/sample.cpp
     examples/application.cpp
     examples/dx11renderer.cpp
+    examples/decoder.cpp
 )
 
 target_link_libraries(sample PRIVATE
