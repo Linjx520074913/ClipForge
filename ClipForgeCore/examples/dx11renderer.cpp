@@ -3,6 +3,11 @@
 
 #include <assert.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+#define DEBUG_BUILD
+
 void Dx11Renderer::init() {
     // Create D3D11 Device and Context
     ID3D11Device* base_device;
@@ -145,7 +150,7 @@ void Dx11Renderer::init_shader()
         D3D11_INPUT_ELEMENT_DESC desc[] = 
         {
             { "POS", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "COL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+            { "TEX", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
         };
 
         hr = device_->CreateInputLayout(desc, ARRAYSIZE(desc), vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(), &input_layout_);
@@ -155,13 +160,16 @@ void Dx11Renderer::init_shader()
 
     // Create Vertex Buffer
     {
-        // x y r g b a
+        // x y u v
         float data[] = {
-            0,    0.5,  0, 1, 0, 1,
-            0.5,  -0.5, 1, 0, 0, 1,
-            -0.5, -0.5, 0, 0, 1, 1
+            -1, 1, 0, 0,
+            1, -1, 1, 1,
+            -1, -1, 0, 1,
+            -1, 1, 0, 0,
+            1, 1, 1, 0,
+            1, -1, 1, 1
         };
-        stride_ = 6 * sizeof(float);
+        stride_ = 4 * sizeof(float);
         num_ = sizeof(data) / stride_;
         offset_ = 0;
 
@@ -175,6 +183,47 @@ void Dx11Renderer::init_shader()
         hr = device_->CreateBuffer(&v_buffer_desc, &v_sub_data, &v_buffer_);
         assert(SUCCEEDED(hr));
     }
+
+    // Create Samler State
+    D3D11_SAMPLER_DESC sampler_desc = {};
+    sampler_desc.Filter   = D3D11_FILTER_MIN_MAG_MIP_POINT;
+    sampler_desc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+    sampler_desc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+    sampler_desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+    sampler_desc.BorderColor[0] = 1.0f;
+    sampler_desc.BorderColor[1] = 1.0f;
+    sampler_desc.BorderColor[2] = 1.0f;
+    sampler_desc.BorderColor[3] = 1.0f;
+    sampler_desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    
+    device_->CreateSamplerState(&sampler_desc, &sampler_state_);
+
+    // Load Image
+    int width, height, channels, req_comp = 4;
+    unsigned char* tex_bytes = stbi_load("D://testTexture.png", &width, &height,&channels, req_comp);
+    int bytes_per_row = 4 * width;
+
+    // Create Texture
+    D3D11_TEXTURE2D_DESC tex_desc = {};
+    tex_desc.Width            = width;
+    tex_desc.Height           = height;
+    tex_desc.MipLevels        = 1;
+    tex_desc.ArraySize        = 1;
+    tex_desc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    tex_desc.SampleDesc.Count = 1;
+    tex_desc.Usage            = D3D11_USAGE_IMMUTABLE;
+    tex_desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
+
+    D3D11_SUBRESOURCE_DATA tex_sub_data = {};
+    tex_sub_data.pSysMem = tex_bytes;
+    tex_sub_data.SysMemPitch = bytes_per_row;
+
+    device_->CreateTexture2D(&tex_desc, &tex_sub_data, &texture_);
+
+    device_->CreateShaderResourceView(texture_, nullptr, &texture_srv_);
+
+    free(tex_bytes);
+
 }
 
 void Dx11Renderer::init_texture() {
@@ -183,16 +232,25 @@ void Dx11Renderer::init_texture() {
 }
 
 void Dx11Renderer::init_sampler() {
-    D3D11_SAMPLER_DESC sampDesc = {};
-    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    sampDesc.MinLOD = 0;
-    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+    
+}
 
-    device_->CreateSamplerState(&sampDesc, sampler_.GetAddressOf());
+void Dx11Renderer::resize()
+{
+    ctx_->OMSetRenderTargets(0, 0, 0);
+    rtv_->Release();
+
+    HRESULT res = swap_chain_->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+    assert(SUCCEEDED(res));
+    
+    ID3D11Texture2D* d3d11FrameBuffer;
+    res = swap_chain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&d3d11FrameBuffer);
+    assert(SUCCEEDED(res));
+
+    res = device_->CreateRenderTargetView(d3d11FrameBuffer, NULL, &rtv_);
+    assert(SUCCEEDED(res));
+    d3d11FrameBuffer->Release();
+
 }
 
 void Dx11Renderer::render()
@@ -212,6 +270,9 @@ void Dx11Renderer::render()
 
     ctx_->VSSetShader(v_shader_, nullptr, 0);
     ctx_->PSSetShader(p_shader_, nullptr, 0);
+
+    ctx_->PSSetShaderResources(0, 1, &texture_srv_);
+    ctx_->PSSetSamplers(0, 1, &sampler_state_);
 
     ctx_->IASetVertexBuffers(0, 1, &v_buffer_, &stride_, &offset_);
 

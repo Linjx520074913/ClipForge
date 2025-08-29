@@ -37,6 +37,7 @@ public:
     void init();
     void render();
     void destroy();
+    void resize();
 
 protected:
     void init_buffer();
@@ -57,10 +58,11 @@ private:
     ID3D11Buffer* v_buffer_;
     UINT num_, stride_, offset_;
 
-    ComPtr<ID3D11SamplerState> sampler_;
-    ComPtr<ID3D11ShaderResourceView> texture_srv_;
+    ID3D11SamplerState* sampler_state_;
+    ID3D11ShaderResourceView* texture_srv_;
+
+    ID3D11Texture2D* texture_;
 
     ComPtr<ID3D11Buffer> i_buffer_;
-    ComPtr<ID3D11Texture2D> texture;
 
 };

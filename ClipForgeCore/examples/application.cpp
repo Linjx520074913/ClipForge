@@ -105,7 +105,6 @@ int Application::run(IRenderer* renderer)
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
-        std::cout << "renderer = " << renderer << std::endl;
         if(renderer) renderer->render(); // 每帧渲染
     }
     return 0;
@@ -124,6 +123,11 @@ LRESULT CALLBACK Application::wndproc(HWND hwnd, UINT message, WPARAM wparam, LP
         case WM_PAINT:
             break;
         case WM_DESTROY:
+            break;
+        case WM_SIZE:
+            if(renderer) {
+                renderer->resize();
+            }
             break;
         default:
             break;

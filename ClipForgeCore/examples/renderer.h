@@ -7,6 +7,7 @@ public:
     virtual void init()    = 0;
     virtual void render()  = 0;
     virtual void destroy() = 0;
+    virtual void resize()  = 0;
 
 protected:
     IRenderer(int w, int h, HWND hwnd) : width_(w), height_(h), hwnd_(hwnd) {}
