@@ -221,8 +221,6 @@ void Dx11Renderer::init_shader()
 
     device_->CreateTexture2D(&tex_desc, nullptr, &texture_);
 
-    // device_->CreateShaderResourceView(texture_, nullptr, &texture_srv_);
-
     IDXGIResource* dxgires = nullptr;
     texture_->QueryInterface(__uuidof(IDXGIResource), (void**)&dxgires);
     dxgires->GetSharedHandle(&shared_tex_handle_);
@@ -240,6 +238,18 @@ void Dx11Renderer::init_shader()
         texture_,
         &y_plane_desc,
         &y_srv_
+    );
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC const uv_plane_desc = CD3D11_SHADER_RESOURCE_VIEW_DESC(
+        texture_,
+        D3D11_SRV_DIMENSION_TEXTURE2D,
+        DXGI_FORMAT_R8G8_UNORM
+    );
+
+    device_->CreateShaderResourceView(
+        texture_,
+        &uv_plane_desc,
+        &uv_srv_
     );
 
 }
@@ -290,6 +300,7 @@ void Dx11Renderer::render()
     ctx_->PSSetShader(p_shader_, nullptr, 0);
 
     ctx_->PSSetShaderResources(0, 1, &y_srv_);
+    ctx_->PSSetShaderResources(1, 1, &uv_srv_);
     ctx_->PSSetSamplers(0, 1, &sampler_state_);
 
     ctx_->IASetVertexBuffers(0, 1, &v_buffer_, &stride_, &offset_);

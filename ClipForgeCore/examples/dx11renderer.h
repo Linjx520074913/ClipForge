@@ -42,8 +42,9 @@ private:
     UINT num_ = 0, stride_ = 0, offset_ = 0;
 
     ID3D11SamplerState* sampler_state_ = nullptr;
-    ID3D11ShaderResourceView* texture_srv_ = nullptr;
+    
     ID3D11ShaderResourceView* y_srv_ = nullptr;
+    ID3D11ShaderResourceView* uv_srv_ = nullptr;
 
     ID3D11Texture2D* texture_ = nullptr;
     HANDLE shared_tex_handle_ = nullptr;
