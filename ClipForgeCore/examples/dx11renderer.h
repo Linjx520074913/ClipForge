@@ -20,9 +20,6 @@ public:
     void destroy();
     void resize();
 
-    // 上传 AVFrame 的 Y 分量
-    void updateYTexture(uint8_t* y_data, int width, int height);
-
     HANDLE get_shared_texture() { return shared_tex_handle_; }
 
 protected:
@@ -46,6 +43,7 @@ private:
 
     ID3D11SamplerState* sampler_state_ = nullptr;
     ID3D11ShaderResourceView* texture_srv_ = nullptr;
+    ID3D11ShaderResourceView* y_srv_ = nullptr;
 
     ID3D11Texture2D* texture_ = nullptr;
     HANDLE shared_tex_handle_ = nullptr;

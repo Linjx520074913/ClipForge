@@ -24,6 +24,6 @@ VS_Output vs_main(VS_Input input)
 
 float4 ps_main(VS_Output input) : SV_Target
 {
-    float4 texColor = mytexture.Sample(mysampler, input.uv);
-    return texColor;
+    float y = mytexture.Sample(mysampler, input.uv);
+    return float4(y, y, y, 1);
 }
