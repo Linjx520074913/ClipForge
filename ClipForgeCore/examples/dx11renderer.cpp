@@ -1,5 +1,4 @@
-#include "Dx11Renderer.h"
-#include "start.h"  // 里面有 STAR_RGBA_DATA
+#include "Dx11Renderer.h"// 里面有 STAR_RGBA_DATA
 #include <iostream>
 
 #include <assert.h>
@@ -87,107 +86,100 @@ void Dx11Renderer::init() {
         assert(SUCCEEDED(hr));
         frame_buffer->Release();
     }
+
+    init_shader();
 }
 
 void Dx11Renderer::init_buffer() {
-    struct Vertex { float x, y, z; float u, v; };
-    const Vertex vertices[] = {
-        { -1,  1, 0, 0, 0 },
-        {  1,  1, 0, 1, 0 },
-        {  1, -1, 0, 1, 1 },
-        { -1, -1, 0, 0, 1 }
-    };
-    D3D11_BUFFER_DESC bd = {};
-    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bd.ByteWidth = sizeof(vertices);
-    D3D11_SUBRESOURCE_DATA sd = { vertices };
-    device_->CreateBuffer(&bd, &sd, &v_buffer_);
-
-    stride_ = sizeof(Vertex);
-    offset_ = 0;
-
-    const UINT16 indices[] = { 0, 1, 2, 0, 2, 3 };
-    D3D11_BUFFER_DESC ibd = {};
-    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    ibd.ByteWidth = sizeof(indices);
-    D3D11_SUBRESOURCE_DATA isd = { indices };
-    device_->CreateBuffer(&ibd, &isd, &i_buffer_);
+    
 }
 
-void Dx11Renderer::init_shader() {
-    ComPtr<ID3DBlob> vsBlob, psBlob, errorBlob;
+void Dx11Renderer::init_shader()
+{
+    // create vertex shader
+    ID3DBlob* vs_blob;
+    HRESULT hr;
+    {
+        ID3DBlob* shader_compile_errors_blob;
+        hr = D3DCompileFromFile(L"D:/ClipForge/ClipForgeCore/examples/shaders.hlsl", nullptr, nullptr, "vs_main", "vs_5_0", 0, 0, &vs_blob, &shader_compile_errors_blob);
+        if(FAILED(hr)) {
+            const char* msg = NULL;
+            if(hr == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) {
+                msg = "Could not compile shader, file not found";
+            } else if(shader_compile_errors_blob) {
+                msg = (const char*)shader_compile_errors_blob->GetBufferPointer();
+                shader_compile_errors_blob->Release();
+            }
+            MessageBoxA(0, msg, "Shader Compiler Error", MB_ICONERROR | MB_OK);
+            return;
+        }
 
-    // Vertex Shader
-    const char* vsSrc = R"(
-    struct VSInput { float3 pos : POSITION; float2 uv : TEXCOORD; };
-    struct PSInput { float4 pos : SV_POSITION; float2 uv : TEXCOORD; };
-    PSInput VSMain(VSInput input) {
-        PSInput o; 
-        o.pos = float4(input.pos, 1.0); 
-        o.uv = input.uv; 
-        return o; 
+        hr = device_->CreateVertexShader(vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(), nullptr, &v_shader_);
+        assert(SUCCEEDED(hr));
     }
-    )";
 
-    HRESULT hr = D3DCompile(
-        vsSrc, strlen(vsSrc),   // 或者直接 -1
-        nullptr, nullptr, nullptr,
-        "VSMain", "vs_5_0", 0, 0,
-        &vsBlob, &errorBlob
-    );
-    if (FAILED(hr)) std::cerr << (char*)errorBlob->GetBufferPointer() << std::endl;
+    // create pixel shader
+    {
+        ID3DBlob* p_blob;
+        ID3DBlob* shader_compile_errors_blob;
+        hr = D3DCompileFromFile(L"D:/ClipForge/ClipForgeCore/examples/shaders.hlsl", nullptr, nullptr, "ps_main", "ps_5_0", 0, 0, &p_blob, &shader_compile_errors_blob);
+        if(FAILED(hr)) {
+            const char* msg = NULL;
+            if(hr == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) {
+                msg = "Could not compile shader, file not found";
+            } else if(shader_compile_errors_blob) {
+                msg = (const char*)shader_compile_errors_blob->GetBufferPointer();
+                shader_compile_errors_blob->Release();
+            }
+            MessageBoxA(0, msg, "Shader Compiler Error", MB_ICONERROR | MB_OK);
+            return;
+        }
 
-    // Pixel Shader
-    const char* psSrc = R"(
-    Texture2D tex : register(t0);
-    SamplerState samLinear : register(s0);
-
-    struct PSInput { float4 pos : SV_POSITION; float2 uv : TEXCOORD; };
-
-    float4 PSMain(PSInput input) : SV_TARGET {
-        return tex.Sample(samLinear, input.uv);
+        hr = device_->CreatePixelShader(p_blob->GetBufferPointer(), p_blob->GetBufferSize(), nullptr, &p_shader_);
+        assert(SUCCEEDED(hr));
+        p_blob->Release();
     }
-    )";
 
-    hr = D3DCompile(
-        psSrc, strlen(psSrc),            // 或者 strlen(psSrc)
-        nullptr, nullptr, nullptr,
-        "PSMain", "ps_5_0",
-        0, 0,
-        &psBlob, &errorBlob
-    );
-    if (FAILED(hr)) std::cerr << (char*)errorBlob->GetBufferPointer() << std::endl;
+    // Create Input layout
+    {
+        D3D11_INPUT_ELEMENT_DESC desc[] = 
+        {
+            { "POS", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "COL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+        };
 
-    device_->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, vs_.GetAddressOf());
-    device_->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, ps_.GetAddressOf());
+        hr = device_->CreateInputLayout(desc, ARRAYSIZE(desc), vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(), &input_layout_);
+        assert(SUCCEEDED(hr));
+        vs_blob->Release();
+    }
 
-    D3D11_INPUT_ELEMENT_DESC layout[] = {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-    };
-    device_->CreateInputLayout(layout, ARRAYSIZE(layout),
-        vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(),
-        input_layout_.GetAddressOf());
+    // Create Vertex Buffer
+    {
+        // x y r g b a
+        float data[] = {
+            0,    0.5,  0, 1, 0, 1,
+            0.5,  -0.5, 1, 0, 0, 1,
+            -0.5, -0.5, 0, 0, 1, 1
+        };
+        stride_ = 6 * sizeof(float);
+        num_ = sizeof(data) / stride_;
+        offset_ = 0;
+
+        // 以下代码：我要在 GPU 上创建一块固定大小，不可修改，专门用来存顶点数据的缓冲区
+        D3D11_BUFFER_DESC v_buffer_desc = {};
+        v_buffer_desc.ByteWidth = sizeof(data);
+        v_buffer_desc.Usage     = D3D11_USAGE_IMMUTABLE;    // 创建后不可修改，GPU 访问最快
+        v_buffer_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER; // 标记这是顶点缓冲区，GPU 会用它作为输入装配器读取顶点
+        
+        D3D11_SUBRESOURCE_DATA v_sub_data = { data };
+        hr = device_->CreateBuffer(&v_buffer_desc, &v_sub_data, &v_buffer_);
+        assert(SUCCEEDED(hr));
+    }
 }
 
 void Dx11Renderer::init_texture() {
 
-    D3D11_TEXTURE2D_DESC tdesc = {};
-    tdesc.Width = 32;
-    tdesc.Height = 32;
-    tdesc.MipLevels = 1;
-    tdesc.ArraySize = 1;
-    tdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    tdesc.SampleDesc.Count = 1;
-    tdesc.Usage = D3D11_USAGE_DEFAULT;
-    tdesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-    D3D11_SUBRESOURCE_DATA initData = {};
-    initData.pSysMem = STAR_RGBA_DATA;
-    initData.SysMemPitch = 32 * 4;
-
-    device_->CreateTexture2D(&tdesc, &initData, &texture);
-    device_->CreateShaderResourceView(texture.Get(), nullptr, &texture_srv_);
+   
 }
 
 void Dx11Renderer::init_sampler() {
@@ -208,6 +200,22 @@ void Dx11Renderer::render()
     FLOAT bg_color[4] = { 0.1, 0.2, 0.6, 1.0 };
     ctx_->ClearRenderTargetView(rtv_, bg_color);
 
+    RECT rect;
+    GetClientRect(hwnd_, &rect);
+    D3D11_VIEWPORT viewport = { 0, 0, (FLOAT)(rect.right - rect.left), (FLOAT)(rect.bottom - rect.top), 0, 1 };
+    ctx_->RSSetViewports(1, &viewport);
+
+    ctx_->OMSetRenderTargets(1, &rtv_, nullptr);
+
+    ctx_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    ctx_->IASetInputLayout(input_layout_);
+
+    ctx_->VSSetShader(v_shader_, nullptr, 0);
+    ctx_->PSSetShader(p_shader_, nullptr, 0);
+
+    ctx_->IASetVertexBuffers(0, 1, &v_buffer_, &stride_, &offset_);
+
+    ctx_->Draw(num_, 0);
     swap_chain_->Present(1, 0);
 }
 

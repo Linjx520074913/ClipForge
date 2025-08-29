@@ -9,6 +9,7 @@ using Microsoft::WRL::ComPtr;
 using namespace Microsoft::WRL;
 
 #include <d3dcompiler.h>
+#pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 
 /**
@@ -49,17 +50,17 @@ private:
     IDXGISwapChain1* swap_chain_;
     ID3D11RenderTargetView* rtv_;
 
-    ComPtr<ID3D11VertexShader> vs_;
-    ComPtr<ID3D11PixelShader> ps_;
-    ComPtr<ID3D11InputLayout> input_layout_;
+    ID3D11VertexShader* v_shader_;
+    ID3D11PixelShader* p_shader_;
+    ID3D11InputLayout* input_layout_;
+
+    ID3D11Buffer* v_buffer_;
+    UINT num_, stride_, offset_;
 
     ComPtr<ID3D11SamplerState> sampler_;
     ComPtr<ID3D11ShaderResourceView> texture_srv_;
 
-    ComPtr<ID3D11Buffer> v_buffer_;
     ComPtr<ID3D11Buffer> i_buffer_;
-    UINT stride_;
-    UINT offset_;
     ComPtr<ID3D11Texture2D> texture;
 
 };
