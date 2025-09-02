@@ -2,6 +2,8 @@
 
 #include <Windows.h>
 #include "renderer.h"
+#include <map>
+#include <string>
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
@@ -14,8 +16,8 @@ public:
     Application();
     ~Application(){}
 
-    int run();
-    void set_ws_callback(WSMessageCallback callback);
+    int run(IRenderer* renderer);
+    void subscribe(std::string event, WSMessageCallback callback);
 
 protected:
     int init_websocket();
@@ -26,5 +28,6 @@ public:
     HWND hwnd_;
 
 private:
-    WSMessageCallback ws_callback_;
+    IRenderer* renderer_;
+    std::map<std::string, WSMessageCallback> callback_;
 };

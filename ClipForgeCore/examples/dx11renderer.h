@@ -4,29 +4,46 @@
 #include <d3d11_1.h>
 #include <wrl/client.h>
 #include <d3dcompiler.h>
+#include <DirectXMath.h>
 
 using Microsoft::WRL::ComPtr;
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 
+struct Transform {
+    DirectX::XMMATRIX transform;
+};
+
 class Dx11Renderer : public IRenderer
 {
 public:
-    Dx11Renderer(int w, int h, HWND hwnd) : IRenderer(w, h, hwnd) {}
+    Dx11Renderer(int w, int h, HWND hwnd) : IRenderer(w, h, hwnd) {
+        init();
+    }
 
-    void init();
+    /**
+     * 渲染硬解码帧
+     */
+    void render_hardware_frame(ID3D11Texture2D* frame, int t_index);
+    /**
+     * 渲染软解码帧
+     */
+    void render_software_frame();
+
+    void update_transform(float tx, float ty, float scale, float angle, float win_w, float win_h, float video_w, float video_h);
+    
     void render();
     void destroy();
     void resize();
 
-    HANDLE get_shared_texture() { return shared_tex_handle_; }
-
 protected:
-    void init_buffer();
-    void init_shader();
-    void init_texture();
+    void init();
+    void init_vertex_buffer();
+    void init_constant_buffer();
     void init_sampler();
+    void init_shader();
+    void init_texture(int w, int h);
 
 private:
     ID3D11Device1* device_ = nullptr;
@@ -48,4 +65,6 @@ private:
 
     ID3D11Texture2D* texture_ = nullptr;
     HANDLE shared_tex_handle_ = nullptr;
+
+    ID3D11Buffer* transform_;
 };

@@ -92,11 +92,134 @@ void Dx11Renderer::init() {
         frame_buffer->Release();
     }
 
+    init_vertex_buffer();
+    init_constant_buffer();
+    init_sampler();
     init_shader();
 }
 
-void Dx11Renderer::init_buffer() {
+void Dx11Renderer::init_vertex_buffer()
+{
+    // Create Vertex Buffer
+    // x y u v
+    float data[] = {
+        -1, 1, 0, 0,
+        1, -1, 1, 1,
+        -1, -1, 0, 1,
+        -1, 1, 0, 0,
+        1, 1, 1, 0,
+        1, -1, 1, 1
+    };
+    stride_ = 4 * sizeof(float);
+    num_ = sizeof(data) / stride_;
+    offset_ = 0;
+
+    // 以下代码：我要在 GPU 上创建一块固定大小，不可修改，专门用来存顶点数据的缓冲区
+    D3D11_BUFFER_DESC v_buffer_desc = {};
+    v_buffer_desc.ByteWidth = sizeof(data);
+    v_buffer_desc.Usage     = D3D11_USAGE_IMMUTABLE;    // 创建后不可修改，GPU 访问最快
+    v_buffer_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER; // 标记这是顶点缓冲区，GPU 会用它作为输入装配器读取顶点
     
+    D3D11_SUBRESOURCE_DATA v_sub_data = { data };
+    HRESULT hr = device_->CreateBuffer(&v_buffer_desc, &v_sub_data, &v_buffer_);
+    assert(SUCCEEDED(hr));
+}
+
+void Dx11Renderer::init_constant_buffer()
+{
+    D3D11_BUFFER_DESC desc = {};
+    desc.Usage = D3D11_USAGE_DYNAMIC;
+    desc.ByteWidth = sizeof(Transform);
+    desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+    HRESULT hr = device_->CreateBuffer(&desc, nullptr, &transform_);
+    assert(SUCCEEDED(hr));
+
+}
+
+void Dx11Renderer::init_texture(int w, int h)
+{
+    // Create Texture
+    D3D11_TEXTURE2D_DESC tex_desc = {};
+    if(texture_) {
+        texture_->GetDesc(&tex_desc);
+        // 分辨率发生改变,释放资源，重新创建纹理
+        if(w != tex_desc.Width || h != tex_desc.Height) {
+            if(y_srv_) {
+                y_srv_->Release();
+                y_srv_ = nullptr;
+            }
+            if(uv_srv_) {
+                uv_srv_->Release();
+                uv_srv_ = nullptr;
+            }
+            texture_->Release();
+            texture_ = nullptr;
+        }
+        // 分辨率未改变，直接返回
+        else if(w == tex_desc.Width && h == tex_desc.Height) {
+            return;
+        }
+    }
+
+    tex_desc.Width            = w;
+    tex_desc.Height           = h;
+    tex_desc.MipLevels        = 1;
+    tex_desc.ArraySize        = 1;
+    tex_desc.Format           = DXGI_FORMAT_NV12;
+    tex_desc.SampleDesc.Count = 1;
+    tex_desc.Usage            = D3D11_USAGE_DEFAULT;
+    tex_desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
+    tex_desc.MiscFlags        = D3D11_RESOURCE_MISC_SHARED; // 共享纹理
+
+    device_->CreateTexture2D(&tex_desc, nullptr, &texture_);
+
+    IDXGIResource* dxgires = nullptr;
+    texture_->QueryInterface(__uuidof(IDXGIResource), (void**)&dxgires);
+    dxgires->GetSharedHandle(&shared_tex_handle_);
+    dxgires->Release();
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC const y_plane_desc = CD3D11_SHADER_RESOURCE_VIEW_DESC(
+        texture_,
+        D3D11_SRV_DIMENSION_TEXTURE2D,
+        DXGI_FORMAT_R8_UNORM
+    );
+
+    device_->CreateShaderResourceView(
+        texture_,
+        &y_plane_desc,
+        &y_srv_
+    );
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC const uv_plane_desc = CD3D11_SHADER_RESOURCE_VIEW_DESC(
+        texture_,
+        D3D11_SRV_DIMENSION_TEXTURE2D,
+        DXGI_FORMAT_R8G8_UNORM
+    );
+
+    device_->CreateShaderResourceView(
+        texture_,
+        &uv_plane_desc,
+        &uv_srv_
+    );
+}
+
+void Dx11Renderer::init_sampler()
+{
+    // Create Samler State
+    D3D11_SAMPLER_DESC sampler_desc = {};
+    sampler_desc.Filter   = D3D11_FILTER_MIN_MAG_MIP_POINT;
+    sampler_desc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+    sampler_desc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+    sampler_desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+    sampler_desc.BorderColor[0] = 1.0f;
+    sampler_desc.BorderColor[1] = 1.0f;
+    sampler_desc.BorderColor[2] = 1.0f;
+    sampler_desc.BorderColor[3] = 1.0f;
+    sampler_desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    
+    device_->CreateSamplerState(&sampler_desc, &sampler_state_);
 }
 
 void Dx11Renderer::init_shader()
@@ -158,109 +281,8 @@ void Dx11Renderer::init_shader()
         vs_blob->Release();
     }
 
-    // Create Vertex Buffer
-    {
-        // x y u v
-        float data[] = {
-            -1, 1, 0, 0,
-            1, -1, 1, 1,
-            -1, -1, 0, 1,
-            -1, 1, 0, 0,
-            1, 1, 1, 0,
-            1, -1, 1, 1
-        };
-        stride_ = 4 * sizeof(float);
-        num_ = sizeof(data) / stride_;
-        offset_ = 0;
-
-        // 以下代码：我要在 GPU 上创建一块固定大小，不可修改，专门用来存顶点数据的缓冲区
-        D3D11_BUFFER_DESC v_buffer_desc = {};
-        v_buffer_desc.ByteWidth = sizeof(data);
-        v_buffer_desc.Usage     = D3D11_USAGE_IMMUTABLE;    // 创建后不可修改，GPU 访问最快
-        v_buffer_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER; // 标记这是顶点缓冲区，GPU 会用它作为输入装配器读取顶点
-        
-        D3D11_SUBRESOURCE_DATA v_sub_data = { data };
-        hr = device_->CreateBuffer(&v_buffer_desc, &v_sub_data, &v_buffer_);
-        assert(SUCCEEDED(hr));
-    }
-
-    // Create Samler State
-    D3D11_SAMPLER_DESC sampler_desc = {};
-    sampler_desc.Filter   = D3D11_FILTER_MIN_MAG_MIP_POINT;
-    sampler_desc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-    sampler_desc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-    sampler_desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-    sampler_desc.BorderColor[0] = 1.0f;
-    sampler_desc.BorderColor[1] = 1.0f;
-    sampler_desc.BorderColor[2] = 1.0f;
-    sampler_desc.BorderColor[3] = 1.0f;
-    sampler_desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
     
-    device_->CreateSamplerState(&sampler_desc, &sampler_state_);
 
-    // Load Image
-    int width, height, channels, req_comp = 4;
-    unsigned char* tex_bytes = stbi_load("D://testTexture.png", &width, &height,&channels, req_comp);
-    int bytes_per_row = 4 * width;
-
-    // Create Texture
-    D3D11_TEXTURE2D_DESC tex_desc = {};
-    tex_desc.Width            = 3840;
-    tex_desc.Height           = 1608;
-    tex_desc.MipLevels        = 1;
-    tex_desc.ArraySize        = 1;
-    tex_desc.Format           = DXGI_FORMAT_NV12;
-    tex_desc.SampleDesc.Count = 1;
-    tex_desc.Usage            = D3D11_USAGE_DEFAULT;
-    tex_desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
-    tex_desc.MiscFlags        = D3D11_RESOURCE_MISC_SHARED; // 共享纹理
-
-    D3D11_SUBRESOURCE_DATA tex_sub_data = {};
-    tex_sub_data.pSysMem = tex_bytes;
-    tex_sub_data.SysMemPitch = bytes_per_row;
-
-    device_->CreateTexture2D(&tex_desc, nullptr, &texture_);
-
-    IDXGIResource* dxgires = nullptr;
-    texture_->QueryInterface(__uuidof(IDXGIResource), (void**)&dxgires);
-    dxgires->GetSharedHandle(&shared_tex_handle_);
-    dxgires->Release();
-
-    free(tex_bytes);
-
-    D3D11_SHADER_RESOURCE_VIEW_DESC const y_plane_desc = CD3D11_SHADER_RESOURCE_VIEW_DESC(
-        texture_,
-        D3D11_SRV_DIMENSION_TEXTURE2D,
-        DXGI_FORMAT_R8_UNORM
-    );
-
-    device_->CreateShaderResourceView(
-        texture_,
-        &y_plane_desc,
-        &y_srv_
-    );
-
-    D3D11_SHADER_RESOURCE_VIEW_DESC const uv_plane_desc = CD3D11_SHADER_RESOURCE_VIEW_DESC(
-        texture_,
-        D3D11_SRV_DIMENSION_TEXTURE2D,
-        DXGI_FORMAT_R8G8_UNORM
-    );
-
-    device_->CreateShaderResourceView(
-        texture_,
-        &uv_plane_desc,
-        &uv_srv_
-    );
-
-}
-
-void Dx11Renderer::init_texture() {
-
-   
-}
-
-void Dx11Renderer::init_sampler() {
-    
 }
 
 void Dx11Renderer::resize()
@@ -278,6 +300,62 @@ void Dx11Renderer::resize()
     res = device_->CreateRenderTargetView(d3d11FrameBuffer, NULL, &rtv_);
     assert(SUCCEEDED(res));
     d3d11FrameBuffer->Release();
+}
+
+void Dx11Renderer::update_transform(float tx, float ty, float scale, float angle, float win_w, float win_h, float video_w, float video_h)
+{
+    using namespace DirectX;
+
+    float win_ratio = win_w / win_h;
+    float video_ratio = video_w / video_h;
+
+    float scale_x = 1.0, scale_y = 1.0;
+    if(win_ratio > video_ratio) {
+        // 窗口更宽 -> 以高为基准，左右留黑
+        scale_x = video_ratio / win_ratio;
+    }else {
+        // 窗口更高 -> 以宽为基准，上下六黑
+        scale_y = win_ratio / video_ratio;
+    }
+
+    XMMATRIX mat = 
+        XMMatrixScaling(scale * scale_x, scale * scale_y, 1.0f)
+      * XMMatrixRotationZ(angle)
+      * XMMatrixTranslation(tx, ty, 0.0f);
+    
+    D3D11_MAPPED_SUBRESOURCE mapped;
+    ctx_->Map(transform_, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+    auto* dst = (Transform*)mapped.pData;
+    dst->transform = XMMatrixTranspose(mat);
+    ctx_->Unmap(transform_, 0);
+}
+
+void Dx11Renderer::render_hardware_frame(ID3D11Texture2D* frame, int t_index)
+{
+    D3D11_TEXTURE2D_DESC desc;
+    frame->GetDesc(&desc);
+    init_texture(desc.Width, desc.Height);
+
+    ComPtr<ID3D11Device> device;
+    frame->GetDevice(device.GetAddressOf());
+
+    ComPtr<ID3D11DeviceContext> ctx;
+    device->GetImmediateContext(ctx.GetAddressOf());
+
+    // 初始化阶段就 OpenSharedResource, 这里直接用 ComPtr 持有即可
+    ComPtr<ID3D11Texture2D> shared;
+    device->OpenSharedResource(shared_tex_handle_, __uuidof(ID3D11Texture2D), (void**)shared.GetAddressOf());
+
+    // 拷贝数据到渲染共享纹理
+    ctx->CopySubresourceRegion(shared.Get(), 0, 0, 0, 0, frame, t_index, 0);
+    ctx->Flush();
+
+    // 调用渲染
+    render();
+}
+
+void Dx11Renderer::render_software_frame()
+{
 
 }
 
@@ -288,8 +366,18 @@ void Dx11Renderer::render()
 
     RECT rect;
     GetClientRect(hwnd_, &rect);
-    D3D11_VIEWPORT viewport = { 0, 0, (FLOAT)(rect.right - rect.left), (FLOAT)(rect.bottom - rect.top), 0, 1 };
+    float win_w = (FLOAT)(rect.right - rect.left);
+    float win_h = (FLOAT)(rect.bottom - rect.top);
+    D3D11_VIEWPORT viewport = { 0, 0, win_w, win_h, 0, 1 };
     ctx_->RSSetViewports(1, &viewport);
+
+    // 获取视频分辨率
+    D3D11_TEXTURE2D_DESC desc;
+    texture_->GetDesc(&desc);
+    float video_w = (float)desc.Width;
+    float video_h = (float)desc.Height;
+
+    update_transform(0.0f, 0.0f, 1.0f, 0.0f, win_w, win_h, video_w, video_h);
 
     ctx_->OMSetRenderTargets(1, &rtv_, nullptr);
 
@@ -298,6 +386,8 @@ void Dx11Renderer::render()
 
     ctx_->VSSetShader(v_shader_, nullptr, 0);
     ctx_->PSSetShader(p_shader_, nullptr, 0);
+
+    ctx_->VSSetConstantBuffers(0, 1, &transform_);
 
     ctx_->PSSetShaderResources(0, 1, &y_srv_);
     ctx_->PSSetShaderResources(1, 1, &uv_srv_);

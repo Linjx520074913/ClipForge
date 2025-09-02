@@ -1,3 +1,7 @@
+cbuffer TransformBuffer : register(b0)
+{
+    float4x4 transform; // 变换矩阵
+};
 
 struct VS_Input
 {
@@ -36,7 +40,7 @@ float3 ConvertYUVtoRGB(float3 yuv)
 VS_Output vs_main(VS_Input input)
 {
     VS_Output output;
-    output.pos = float4(input.pos, 0.0f, 1.0f);
+    output.pos = mul(float4(input.pos, 0.0f, 1.0f), transform);
     output.uv = input.uv;
     return output;
 }

@@ -10,15 +10,38 @@ typedef websocketpp::server<websocketpp::config::asio> server;
 Application::Application()
 {
     hwnd_ = nullptr;
-    ws_callback_ = nullptr;
+    renderer_ = nullptr;
+
+    SetProcessDPIAware();
 
     init_websocket();
     init_window();
+
+    subscribe("set_size", [this](json& data){
+        int width  = data["data"]["w"];
+        int height = data["data"]["h"];
+        std::cout << "W = " << width << " H = " << height << std::endl;
+        if(hwnd_) {
+            SetWindowPos(hwnd_, nullptr, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER);
+        }
+
+        if(renderer_) {
+            renderer_->resize();
+        }
+    });
+    subscribe("set_pos", [this](json& data){
+        int x = data["data"]["x"];
+        int y = data["data"]["y"];
+        RECT rc;
+        GetWindowRect(hwnd_, &rc);
+        SetWindowPos(hwnd_, nullptr, x, y, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER);
+    });
+
 }
 
-void Application::set_ws_callback(WSMessageCallback callback)
+void Application::subscribe(std::string event, WSMessageCallback callback)
 {
-    ws_callback_ = callback;
+    callback_[event] = callback;
 }
 
 int Application::init_websocket()
@@ -37,23 +60,12 @@ int Application::init_websocket()
 
             try {
                 json j = json::parse(payload);
-                if(!ws_callback_) {
-                    ws_callback_(j);
-                }
 
                 const std::string event = j["event"];
-                if(event == "set_size") {
-                    int width  = j["data"]["w"];
-                    int height = j["data"]["h"];
-
-                    std::cout << "W = " << width << " H = " << height << std::endl;
-
-                    // 调整窗口大小
-                    if(hwnd_) {
-                        SetWindowPos(hwnd_, nullptr, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER);
-                    }
+                WSMessageCallback cb = callback_[event];
+                if(cb) {
+                    cb(j);
                 }
-
             } catch (std::exception& e) {
                 std::cerr << "JSON parse error: " << e.what() << std::endl;
             }
@@ -83,6 +95,10 @@ int Application::init_window()
 
     RegisterClassEx(&wc);
 
+    HWND parent = FindWindow(NULL, "Clipforge");
+    if(!parent) { 
+        MessageBoxA(0, "No parent window called clipforge found", "FindWindow", MB_ICONERROR | MB_OK);
+    }
     /**
      * WS_OVERLAPPEDWINDOW 是以下的组合
      * - WS_OVERLAPPED：基础窗口（带标题栏）
@@ -95,24 +111,23 @@ int Application::init_window()
     hwnd_ = CreateWindow(
         wc.lpszClassName,
         wc.lpszClassName,
-        WS_OVERLAPPEDWINDOW,
+        WS_POPUP | WS_VISIBLE,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         300,
         300,
-        nullptr, // 父窗口句柄
+        parent, // 父窗口句柄
         nullptr, // 菜单
         wc.hInstance,
         nullptr  
     );
 
-    ShowWindow(hwnd_, SW_SHOW);
-
     return 0;
 }
 
-int Application::run()
+int Application::run(IRenderer* renderer)
 {
+    renderer_ = renderer_;
     MSG msg = {};
     while(msg.message != WM_QUIT) {
         while(PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
