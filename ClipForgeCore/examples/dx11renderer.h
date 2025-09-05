@@ -67,4 +67,6 @@ private:
     HANDLE shared_tex_handle_ = nullptr;
 
     ID3D11Buffer* transform_;
+
+    bool need_resize_;
 };

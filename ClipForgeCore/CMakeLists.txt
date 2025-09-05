@@ -37,6 +37,7 @@ add_executable(sample
     examples/application.cpp
     examples/dx11renderer.cpp
     examples/decoder.cpp
+    examples/timeline_clock.cpp
 )
 
 target_link_libraries(sample PRIVATE

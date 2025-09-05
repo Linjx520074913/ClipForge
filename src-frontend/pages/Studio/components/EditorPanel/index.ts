@@ -16,6 +16,42 @@ import {
 
 import { wssocket } from "@frontend/api/ws-api";
 
+import { listen } from '@tauri-apps/api/event'
+
+let tauri_wnd_pos = { x: 0, y: 0 };
+let render_wnd_pos = { x: 0, y: 0 };
+
+listen('window-event', (msg) => {
+    console.log('收到窗口事件:', msg.payload);
+    const { event } = msg.payload;
+    switch(event) {
+        case "window-resized":
+            {
+                // const { w, h } = msg.payload;
+                // send_window_size(w, h);
+                send_windos_pos();
+            }
+            break;
+        case "window-moved":
+            {
+                tauri_wnd_pos.x = msg.payload.x;
+                tauri_wnd_pos.y = msg.payload.y;
+                send_windos_pos();
+            }
+            break;
+        default:
+            break;
+    }
+});
+
+function send_window_size(w: number, h: number) {
+    wssocket.send({event: 'set_size', data: { w, h }});
+}
+
+function send_windos_pos() {
+    wssocket.send({event: 'set_pos',  data: { x: render_wnd_pos.x, y: render_wnd_pos.y }});
+}
+
 
 export function useVideoStudio(){
 
@@ -77,10 +113,11 @@ export function useVideoStudio(){
 
         // set_render_window_size(rect.width * scale, rect.height * scale);
         // set_render_window_position(rect.x, rect.y * scale)
-        const x = (window.screenX + rect.x) * scale;
-        const y = (window.screenY + rect.y) * scale;
-        wssocket.send({event: 'set_size', data: { w: rect.width * scale, h: rect.height * scale }});
-        wssocket.send({event: 'set_pos',  data: { x, y }});
+        render_wnd_pos.x = (rect.x) * scale;
+        render_wnd_pos.y = (rect.y) * scale;
+
+        send_window_size(rect.width * scale, rect.height * scale);
+        send_windos_pos()
     }
 
     function addResizeObserver(){

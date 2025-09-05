@@ -8,7 +8,10 @@
 
 #define DEBUG_BUILD
 
-void Dx11Renderer::init() {
+void Dx11Renderer::init()
+{
+    need_resize_ = false;
+
     // Create D3D11 Device and Context
     ID3D11Device* base_device;
     ID3D11DeviceContext* base_ctx;
@@ -287,19 +290,7 @@ void Dx11Renderer::init_shader()
 
 void Dx11Renderer::resize()
 {
-    ctx_->OMSetRenderTargets(0, 0, 0);
-    rtv_->Release();
-
-    HRESULT res = swap_chain_->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
-    assert(SUCCEEDED(res));
-    
-    ID3D11Texture2D* d3d11FrameBuffer;
-    res = swap_chain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&d3d11FrameBuffer);
-    assert(SUCCEEDED(res));
-
-    res = device_->CreateRenderTargetView(d3d11FrameBuffer, NULL, &rtv_);
-    assert(SUCCEEDED(res));
-    d3d11FrameBuffer->Release();
+    need_resize_ = true;
 }
 
 void Dx11Renderer::update_transform(float tx, float ty, float scale, float angle, float win_w, float win_h, float video_w, float video_h)
@@ -366,6 +357,24 @@ void Dx11Renderer::render_software_frame()
 
 void Dx11Renderer::render()
 {
+    if(need_resize_) {
+        ctx_->OMSetRenderTargets(0, 0, 0);
+        rtv_->Release();
+
+        HRESULT res = swap_chain_->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+        assert(SUCCEEDED(res));
+        
+        ID3D11Texture2D* d3d11FrameBuffer;
+        res = swap_chain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&d3d11FrameBuffer);
+        assert(SUCCEEDED(res));
+
+        res = device_->CreateRenderTargetView(d3d11FrameBuffer, NULL, &rtv_);
+        assert(SUCCEEDED(res));
+        d3d11FrameBuffer->Release();
+        
+        need_resize_ = false;
+    }
+
     FLOAT bg_color[4] = { 1.0, 0.0, 0.0, 1.0 };
     ctx_->ClearRenderTargetView(rtv_, bg_color);
 
