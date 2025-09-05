@@ -1,15 +1,21 @@
-use serde::de::value::Error;
-use tauri::{Manager, WebviewWindowBuilder, PhysicalSize, WindowEvent, LogicalPosition, Position};
-use wgpu::rwh::HasDisplayHandle;
-use std::sync::Arc;
-use tokio::sync::Mutex;
-use std::time::Instant;
-use tokio::time::{sleep, Duration};
-
-mod core;
-use core::engine::Engine;
-
+use tauri::{Manager, WindowEvent, Emitter}; // 添加 WindowEvent 和 Emitter
+use serde::Serialize;
 use tauri_plugin_dialog::DialogExt;
+
+// 定义要发送给前端的窗口位置消息结构体
+#[derive(Clone, Serialize)]
+struct WindowPositionMessage {
+    x: i32,
+    y: i32,
+    event: String,
+}
+
+#[derive(Clone, Serialize)]
+struct WindowSizeMessage {
+    w: i32,
+    h: i32,
+    event: String,
+}
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -17,50 +23,14 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-fn set_render_window_position(app_handle: tauri::AppHandle, x: f32, y: f32) {
-    println!("### set_render_window_position : {} {} ###", x, y);
-    if let Some(tw) = app_handle.get_webview_window("transparent") {
-        let new_pos = tauri::Position::Logical(tauri::LogicalPosition {
-            x: x as f64,
-            y: y as f64,
-        });
-        tw.set_position(new_pos).ok();
-    }
-}
-
-#[tauri::command]
-fn set_render_window_size(app_handle: tauri::AppHandle, w: f32, h: f32) {
-    println!("### set_render_window_size : {} {} ###", w, h);
-    if let Some(tw) = app_handle.get_webview_window("transparent") {
-        let size = PhysicalSize { width: w, height: h };
-        tw.set_size(size).ok();
-    }
-
-    let engine_arc = {
-        // 注意：这里拿的是引用，然后立刻 clone 出独立 Arc
-        let engine_ref = app_handle.state::<Arc<Mutex<Engine>>>();
-        Arc::clone(&engine_ref)
-    };
-
-    // 异步任务安全使用 Arc
-    tauri::async_runtime::spawn(async move {
-        let mut eng = engine_arc.lock().await;
-        eng.resize(w as u32, h as u32);
-    });
-}
-
-#[tauri::command]
 fn open_file_async(app_handle: tauri::AppHandle) {
     let file_path = app_handle.dialog().file().blocking_pick_file();
     if let Some(path) = file_path {
         println!("open_file_async {:?}", path);
-    }else {
+    } else {
         println!("open_file_async cancel");
     }
-    
 }
-
-
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -69,59 +39,49 @@ pub fn run() {
         .setup(|app| {
             // 获取主窗口
             let main_window = app.get_webview_window("main").unwrap();
+            
+            // 克隆 AppHandle 用于在事件回调中使用
+            let app_handle = app.app_handle().clone();
+            
             main_window.maximize().unwrap(); // 带顶部栏
 
-            let transparent_window = tauri::WebviewWindowBuilder::new(
-                app,
-                "transparent",
-                tauri::WebviewUrl::App("about:blank".into())
-            )
-            .title("Transparent Window")
-            .transparent(true)
-            .decorations(false)
-            .shadow(true)
-            .always_on_top(false)
-            .inner_size(800.0, 600.0)
-            .shadow(false)
-            .parent(&main_window)
-            .unwrap()          // 先 unwrap parent 的 Result
-            .build()           // build 返回 Result<WebviewWindow, Error>
-            .unwrap();         // 再 unwrap build 的 Result
-
-            transparent_window.set_ignore_cursor_events(true).ok();
-
-            // 现在 transparent_window 是 WebviewWindow，可以 clone
-            let engine = pollster::block_on(Engine::new(transparent_window.clone()));
-            let engine = Arc::new(Mutex::new(engine));
-            app.manage(engine.clone());
-
-            let app_handle_clone = app.app_handle().clone();
-
-            // 主窗口移动时让子窗口跟随
-            main_window.on_window_event({
-                let app_handle = app_handle_clone.clone();
-                move |event| {
-                    if let WindowEvent::Moved(pos) = event {
-                        if let Some(tw) = app_handle.get_webview_window("transparent") {
-                            let new_pos = Position::Logical(LogicalPosition {
-                                x: pos.x as f64,
-                                y: pos.y as f64,
-                            });
-                            tw.set_position(new_pos).ok();
+            // 监听窗口事件
+            main_window.on_window_event(move |event| {
+                match event {
+                    WindowEvent::Moved(position) => {
+                        println!("窗口移动到位置: x={}, y={}", position.x, position.y);
+                        
+                        // 创建要发送的消息
+                        let message = WindowPositionMessage {
+                            x: position.x,
+                            y: position.y,
+                            event: "window-moved".to_string(),
+                        };
+                        
+                        // 发送消息到前端
+                        if let Err(e) = app_handle.emit("window-event", message) {
+                            eprintln!("发送窗口移动事件失败: {}", e);
                         }
                     }
-                }
-            });
-
-            // 异步渲染循环
-            tauri::async_runtime::spawn(async move {
-                let engine = app_handle_clone.state::<Arc<Mutex<Engine>>>();
-                loop {
-                    let t = Instant::now();
-                    let mut eng = engine.lock().await;
-                    eng.render_frame();
-                    // println!("Frame rendered in {}ms", t.elapsed().as_millis());
-                    sleep(Duration::from_millis(16)).await;
+                    WindowEvent::Resized(size) => {
+                        println!("窗口调整大小: {}x{}", size.width, size.height);
+                        
+                        // 也可以发送调整大小的事件
+                        let message = WindowSizeMessage {
+                            w: size.width as i32,
+                            h: size.height as i32,
+                            event: "window-resized".to_string(),
+                        };
+                        
+                        if let Err(e) = app_handle.emit("window-event", message) {
+                            eprintln!("发送窗口调整大小事件失败: {}", e);
+                        }
+                    }
+                    WindowEvent::Focused(focused) => {
+                    }
+                    _ => {
+                        // 可以处理其他窗口事件
+                    }
                 }
             });
 
@@ -129,9 +89,7 @@ pub fn run() {
         })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
-            greet, 
-            set_render_window_position, 
-            set_render_window_size,
+            greet,
             open_file_async
         ])
         .run(tauri::generate_context!())

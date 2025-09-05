@@ -306,22 +306,27 @@ void Dx11Renderer::update_transform(float tx, float ty, float scale, float angle
 {
     using namespace DirectX;
 
-    float win_ratio = win_w / win_h;
+    float win_ratio   = win_w / win_h;
     float video_ratio = video_w / video_h;
 
-    float scale_x = 1.0, scale_y = 1.0;
-    if(win_ratio > video_ratio) {
-        // 窗口更宽 -> 以高为基准，左右留黑
-        scale_x = video_ratio / win_ratio;
-    }else {
-        // 窗口更高 -> 以宽为基准，上下六黑
-        scale_y = win_ratio / video_ratio;
+    // 计算适合的缩放因子，保持宽高比
+    float scale_factor;
+    if (win_ratio > video_ratio) {
+        // 窗口更宽，以高度为准
+        scale_factor = win_h / video_h;
+    } else {
+        // 窗口更高或相等，以宽度为准
+        scale_factor = win_w / video_w;
     }
 
+    // 将屏幕坐标转换为NDC坐标，需要除以窗口尺寸的一半
+    float ndc_scale_x = (scale_factor * video_w) / (win_w / 2.0f);
+    float ndc_scale_y = (scale_factor * video_h) / (win_h / 2.0f);
+    
     XMMATRIX mat = 
-        XMMatrixScaling(scale * scale_x, scale * scale_y, 1.0f)
-      * XMMatrixRotationZ(angle)
-      * XMMatrixTranslation(tx, ty, 0.0f);
+        XMMatrixScaling(ndc_scale_x, ndc_scale_y, 1.0f)
+      * XMMatrixRotationZ(0)
+      * XMMatrixTranslation(0, 0, 0.0f);
     
     D3D11_MAPPED_SUBRESOURCE mapped;
     ctx_->Map(transform_, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
@@ -361,7 +366,7 @@ void Dx11Renderer::render_software_frame()
 
 void Dx11Renderer::render()
 {
-    FLOAT bg_color[4] = { 0.1, 0.2, 0.6, 1.0 };
+    FLOAT bg_color[4] = { 1.0, 0.0, 0.0, 1.0 };
     ctx_->ClearRenderTargetView(rtv_, bg_color);
 
     RECT rect;

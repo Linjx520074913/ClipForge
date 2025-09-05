@@ -32,9 +32,12 @@ Application::Application()
     subscribe("set_pos", [this](json& data){
         int x = data["data"]["x"];
         int y = data["data"]["y"];
+        POINT pt = { x, y };
+        ClientToScreen(GetParent(hwnd_), &pt);
+
         RECT rc;
         GetWindowRect(hwnd_, &rc);
-        SetWindowPos(hwnd_, nullptr, x, y, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER);
+        SetWindowPos(hwnd_, nullptr, pt.x, pt.y, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER);
     });
 
 }
@@ -127,7 +130,7 @@ int Application::init_window()
 
 int Application::run(IRenderer* renderer)
 {
-    renderer_ = renderer_;
+    renderer_ = renderer;
     MSG msg = {};
     while(msg.message != WM_QUIT) {
         while(PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
