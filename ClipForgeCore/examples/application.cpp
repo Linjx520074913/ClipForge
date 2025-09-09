@@ -22,7 +22,7 @@ Application::Application()
         int height = data["data"]["h"];
         std::cout << "W = " << width << " H = " << height << std::endl;
         if(hwnd_) {
-            SetWindowPos(hwnd_, nullptr, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER);
+            SetWindowPos(hwnd_, nullptr, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS);
         }
 
         if(renderer_) {
@@ -54,8 +54,9 @@ int Application::init_websocket()
 
         echo_server.init_asio();
 
-        echo_server.set_open_handler([](websocketpp::connection_hdl hdl) {
+        echo_server.set_open_handler([&echo_server](websocketpp::connection_hdl hdl) {
             std::cout << "Client connected\n";
+            echo_server.send(hdl, "connect", websocketpp::frame::opcode::text);
         });
 
         echo_server.set_message_handler([&echo_server, this](websocketpp::connection_hdl hdl, server::message_ptr msg) {

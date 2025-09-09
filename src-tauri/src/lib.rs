@@ -2,6 +2,24 @@ use tauri::{Manager, WindowEvent, Emitter}; // 添加 WindowEvent 和 Emitter
 use serde::Serialize;
 use tauri_plugin_dialog::DialogExt;
 
+use std::fs;
+use std::path::PathBuf;
+use dirs::data_dir;
+
+fn ensure_config_dir() -> PathBuf {
+    // 获取 AppData 根目录（Windows: %APPDATA%）
+    let mut app_data = data_dir().expect("无法获取 AppData 目录");
+    app_data.push("com.clipforge.app");
+    app_data.push("ClipForge");
+
+    // 创建目录（如果不存在）
+    if !app_data.exists() {
+        fs::create_dir_all(&app_data).expect("创建配置目录失败");
+    }
+
+    app_data
+}
+
 // 定义要发送给前端的窗口位置消息结构体
 #[derive(Clone, Serialize)]
 struct WindowPositionMessage {
@@ -34,8 +52,12 @@ fn open_file_async(app_handle: tauri::AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let config_dir = ensure_config_dir();
+    println!("配置目录: {:?}", config_dir);
+
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
         .setup(|app| {
             // 获取主窗口
             let main_window = app.get_webview_window("main").unwrap();

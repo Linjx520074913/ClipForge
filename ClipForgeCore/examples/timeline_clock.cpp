@@ -57,7 +57,7 @@ void TimelineClock::tick_loop()
         if (current_time_ms_ > 10 * 1000) {
             set_speed(2);
         }
-
+        
         if(callback_) {
             callback_(current_time_ms_);
         }
