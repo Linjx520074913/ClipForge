@@ -22,10 +22,15 @@ public:
 protected:
     int init_websocket();
     int init_window();
+    int init_config();
     static LRESULT CALLBACK wndproc(HWND hWnd, UINT message, WPARAM wparam, LPARAM lparam);
 
 public:
     HWND hwnd_;
+    int w_;
+    int h_;
+    int x_;
+    int y_;
 
 private:
     IRenderer* renderer_;

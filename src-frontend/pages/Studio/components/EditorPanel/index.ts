@@ -18,24 +18,41 @@ import { wssocket } from "@frontend/api/ws-api";
 
 import { listen } from '@tauri-apps/api/event'
 
-let tauri_wnd_pos = { x: 0, y: 0 };
-let render_wnd_pos = { x: 0, y: 0 };
+import { ConfigStore } from '@frontend/api/config';
+const config = new ConfigStore();
+config.init().then((data) => {
+    console.log('用户配置加载完成:', data);
+});
+
+export let tauri_wnd_pos = ref({ x: 0, y: 0 });
+export let render_wnd_pos = ref({ x: 0, y: 0 });
+export let render_wnd_size = ref({ w: 800, h: 600 });
+
+let config_data = {
+    render_wnd_pos: {
+        x: 0,
+        y: 0
+    },
+    render_wnd_size: {
+        w: 800,
+        h: 600
+    }
+};
 
 listen('window-event', (msg) => {
-    console.log('收到窗口事件:', msg.payload);
+    // console.log('收到窗口事件:', msg.payload);
     const { event } = msg.payload;
     switch(event) {
         case "window-resized":
             {
-                // const { w, h } = msg.payload;
-                // send_window_size(w, h);
                 send_windos_pos();
             }
             break;
         case "window-moved":
             {
-                tauri_wnd_pos.x = msg.payload.x;
-                tauri_wnd_pos.y = msg.payload.y;
+                const scale = window.devicePixelRatio;
+                tauri_wnd_pos.value.x = msg.payload.x * scale;
+                tauri_wnd_pos.value.y = msg.payload.y * scale;
                 send_windos_pos();
             }
             break;
@@ -44,12 +61,14 @@ listen('window-event', (msg) => {
     }
 });
 
-function send_window_size(w: number, h: number) {
-    wssocket.send({event: 'set_size', data: { w, h }});
+function send_window_size() {
+    config.set('render_wnd_size', { w: render_wnd_size.value.w, h: render_wnd_size.value.h });
+    wssocket.send({event: 'set_size', data: { w: render_wnd_size.value.w, h: render_wnd_size.value.h }});
 }
 
 function send_windos_pos() {
-    wssocket.send({event: 'set_pos',  data: { x: render_wnd_pos.x, y: render_wnd_pos.y }});
+    config.set('render_wnd_pos', { x: render_wnd_pos.value.x, y: render_wnd_pos.value.y });
+    wssocket.send({event: 'set_pos',  data: { x: render_wnd_pos.value.x, y: render_wnd_pos.value.y }});
 }
 
 
@@ -113,11 +132,15 @@ export function useVideoStudio(){
 
         // set_render_window_size(rect.width * scale, rect.height * scale);
         // set_render_window_position(rect.x, rect.y * scale)
-        render_wnd_pos.x = (rect.x) * scale;
-        render_wnd_pos.y = (rect.y) * scale;
+        render_wnd_pos.value.x = (rect.x) * scale;
+        render_wnd_pos.value.y = (rect.y) * scale;
 
-        send_window_size(rect.width * scale, rect.height * scale);
+        render_wnd_size.value.w = rect.width * scale;
+        render_wnd_size.value.h = rect.height * scale;
+
+        console.error('@@@@@@@@@@@@@@@@@@@@@@@@@@@@ set size')
         send_windos_pos()
+        send_window_size();
     }
 
     function addResizeObserver(){
@@ -125,7 +148,7 @@ export function useVideoStudio(){
             resizeObserver = new ResizeObserver(entries => {
                 for (const entry of entries) {
                     const { width, height } = entry.contentRect;
-                    console.error('📏 canvas 尺寸变了：', width, height)
+                    // console.error('📏 canvas 尺寸变了：', width, height)
                     resizeCanvasContainer(ratio)
                 }
             })

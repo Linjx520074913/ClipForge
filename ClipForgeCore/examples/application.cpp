@@ -2,6 +2,7 @@
 #include <websocketpp/server.hpp>
 
 #include "application.h"
+#include "config.h"
 
 #include <thread>
 
@@ -14,8 +15,14 @@ Application::Application()
 
     SetProcessDPIAware();
 
+    init_config();
     init_websocket();
     init_window();
+
+    POINT pt = { x_, y_ };
+    ClientToScreen(GetParent(hwnd_), &pt);
+    SetWindowPos(hwnd_, nullptr, pt.x, pt.y, w_, h_, SWP_NOZORDER | SWP_ASYNCWINDOWPOS);
+    ShowWindow(hwnd_, SW_SHOW);
 
     subscribe("set_size", [this](json& data){
         int width  = data["data"]["w"];
@@ -115,7 +122,7 @@ int Application::init_window()
     hwnd_ = CreateWindow(
         wc.lpszClassName,
         wc.lpszClassName,
-        WS_POPUP | WS_VISIBLE,
+        WS_POPUP,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         300,
@@ -127,6 +134,27 @@ int Application::init_window()
     );
 
     return 0;
+}
+
+int Application::init_config()
+{
+    Config cfg;
+    if (!cfg.load()) {
+        std::cerr << "load failed" << std::endl;
+    }
+
+    const auto& data = cfg.get();
+    std::cout << "Window Size: " << data.render_wnd_size.w << "x" << data.render_wnd_size.h << "\n";
+    std::cout << "Window Pos: (" << data.render_wnd_pos.x << "," << data.render_wnd_pos.y << ")\n";
+    std::cout << "Theme: " << data.theme << "\n";
+
+    w_ = data.render_wnd_size.w;
+    h_ = data.render_wnd_size.h;
+    x_ = data.render_wnd_pos.x;
+    y_ = data.render_wnd_pos.y;
+
+    return 0;
+
 }
 
 int Application::run(IRenderer* renderer)

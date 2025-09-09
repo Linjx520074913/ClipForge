@@ -7,10 +7,11 @@
 
 #include "timeline_clock.h"
 
+//int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 int main()
 {
     Application app;
-    Dx11Renderer dx11(800, 600, app.hwnd_);
+    Dx11Renderer dx11(app.w_, app.h_, app.hwnd_);
     
     Decoder decoder;
     decoder.open_video("D://video//video.mp4", [&](AVFrame* frame){

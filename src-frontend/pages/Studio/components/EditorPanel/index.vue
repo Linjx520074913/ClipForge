@@ -2,6 +2,9 @@
     <div class="flex flex-row w-full h-full">
         <div class="flex flex-col flex-1 min-w-[300px] h-full rounded-[15px] shadow-sm border">
             <!-- 主渲染区域 -->
+            <br>Tauri: {{ tauri_wnd_pos.x }}, {{ tauri_wnd_pos.y }} </br>
+            <br>Pos : {{ render_wnd_pos.x }}, {{ render_wnd_pos.y }} <br/>
+            <br>Size: {{ render_wnd_size.w }} x {{ render_wnd_size.h }}<br/>
             <div 
                 class="stage-canvas w-full h-3/4 rel+ative border-b border-b-gray-300 grid place-items-center"
                 ref="stageCanvasRef"
@@ -80,7 +83,10 @@ import {
     useVideoStudio,
     useDrag,
     TransformableLayer,
-    TimeLine
+    TimeLine,
+    render_wnd_pos,
+    render_wnd_size,
+    tauri_wnd_pos
 } from './index';
 
 import EditorToolbar from './EditorToolbar/index.vue';

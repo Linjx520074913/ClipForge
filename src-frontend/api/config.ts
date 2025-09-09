@@ -20,14 +20,15 @@ export class ConfigStore {
         this.fullPath = await join(configDir, this.fileName);
 
         try {
-        // 读取配置文件
-        const content = await readTextFile(this.fullPath, { dir: BaseDirectory.AppData });
-        this.data = JSON.parse(content);
+            // 读取配置文件
+            const content = await readTextFile(this.fullPath, { dir: BaseDirectory.AppData });
+            this.data = JSON.parse(content);
+            console.error('读取到用户配置:', this.data);
         } catch (e) {
-        // 文件不存在或解析错误 → 使用默认值并写入文件
-        this.data = { ...this.defaultData };
-        // FS 插件会自动创建父目录
-        await writeTextFile(this.fullPath, JSON.stringify(this.data, null, 2), { dir: BaseDirectory.AppData });
+            // 文件不存在或解析错误 → 使用默认值并写入文件
+            this.data = { ...this.defaultData };
+            // FS 插件会自动创建父目录
+            await writeTextFile(this.fullPath, JSON.stringify(this.data, null, 2), { dir: BaseDirectory.AppData });
         }
         return this.data;
     }
@@ -48,22 +49,23 @@ export class ConfigStore {
         let result: any = this.data;
         for (const k of keys) {
         if (result && k in result) result = result[k];
-        else return fallback !== undefined ? fallback : null;
+            else return fallback !== undefined ? fallback : null;
         }
         return result;
     }
 
     /** 设置字段，支持嵌套路径 */
-    set(key: string, value: any) {
+    async set(key: string, value: any) {
         if (!this.data) this.data = { ...this.defaultData };
         const keys = key.split('.');
         let obj: any = this.data;
         for (let i = 0; i < keys.length - 1; i++) {
-        const k = keys[i];
-        if (!(k in obj)) obj[k] = {};
-        obj = obj[k];
+            const k = keys[i];
+            if (!(k in obj)) obj[k] = {};
+            obj = obj[k];
         }
         obj[keys[keys.length - 1]] = value;
+        await this.save();
     }
 
     /** 批量更新并保存 */
