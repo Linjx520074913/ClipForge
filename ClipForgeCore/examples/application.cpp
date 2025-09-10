@@ -17,35 +17,45 @@ Application::Application()
 
     init_config();
     init_websocket();
+
+#ifdef DEBUG_BUILD
     init_window();
 
     POINT pt = { x_, y_ };
     ClientToScreen(GetParent(hwnd_), &pt);
-    SetWindowPos(hwnd_, nullptr, pt.x, pt.y, w_, h_, SWP_NOZORDER | SWP_ASYNCWINDOWPOS);
+    SetWindowPos(hwnd_, HWND_BOTTOM, pt.x, pt.y, w_, h_, SWP_NOZORDER | SWP_ASYNCWINDOWPOS);
     ShowWindow(hwnd_, SW_SHOW);
+#endif
 
     subscribe("set_size", [this](json& data){
-        int width  = data["data"]["w"];
-        int height = data["data"]["h"];
-        std::cout << "W = " << width << " H = " << height << std::endl;
+        w_ = data["data"]["w"];
+        h_ = data["data"]["h"];
+        std::cout << "W = " << w_ << " H = " << h_ << std::endl;
+        if (w_ == 0 || h_ == 0) return;
+
         if(hwnd_) {
-            SetWindowPos(hwnd_, nullptr, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS);
+            SetWindowPos(hwnd_, nullptr, 0, 0, w_, h_, SWP_NOMOVE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS);
         }
 
         if(renderer_) {
             renderer_->resize();
+            renderer_->set_viewport(x_, y_, w_, h_);
         }
     });
     subscribe("set_pos", [this](json& data){
-        int x = data["data"]["x"];
-        int y = data["data"]["y"];
-        POINT pt = { x, y };
-        ClientToScreen(GetParent(hwnd_), &pt);
+        x_ = data["data"]["x"];
+        y_ = data["data"]["y"];
+        if(hwnd_) {
+            POINT pt = { x_, y_ };
+            ClientToScreen(GetParent(hwnd_), &pt);
 
-        RECT rc;
-        GetWindowRect(hwnd_, &rc);
-        SetWindowPos(hwnd_, nullptr, pt.x, pt.y, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER);
+            RECT rc;
+            GetWindowRect(hwnd_, &rc);
+            SetWindowPos(hwnd_, nullptr, pt.x, pt.y, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER);
+        }
+        
     });
+
 
 }
 
@@ -160,6 +170,8 @@ int Application::init_config()
 int Application::run(IRenderer* renderer)
 {
     renderer_ = renderer;
+    renderer_->set_viewport(x_, y_, w_, h_);
+#ifdef DEBUG_BUILD
     MSG msg = {};
     while(msg.message != WM_QUIT) {
         while(PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
@@ -167,6 +179,12 @@ int Application::run(IRenderer* renderer)
             DispatchMessage(&msg);
         }// 每帧渲染
     }
+#else
+    while(true) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        // renderer_->render();
+    }
+#endif
     return 0;
 }
 

@@ -76,11 +76,13 @@ void Dx11Renderer::init()
     swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swap_chain_desc.BufferCount = 2;
     swap_chain_desc.Scaling = DXGI_SCALING_STRETCH;
-    swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+    swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_SEQUENTIAL;
     swap_chain_desc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
     swap_chain_desc.Flags = 0;
 
-    hr = factory->CreateSwapChainForHwnd(device_, hwnd_, &swap_chain_desc, 0, 0, &swap_chain_);
+    // 
+    HWND parent = FindWindow(NULL, "Clipforge");
+    hr = factory->CreateSwapChainForHwnd(device_, parent, &swap_chain_desc, 0, 0, &swap_chain_);
     assert(SUCCEEDED(hr));
     factory->Release();
 
@@ -355,6 +357,12 @@ void Dx11Renderer::render_software_frame()
 
 }
 
+void Dx11Renderer::set_viewport(int x, int y, int w, int h)
+{
+    D3D11_VIEWPORT viewport = { (FLOAT)x, (FLOAT)y, (FLOAT)w, (FLOAT)h, 0, 1 };
+    ctx_->RSSetViewports(1, &viewport);
+}
+
 void Dx11Renderer::render()
 {
     if(need_resize_) {
@@ -378,20 +386,22 @@ void Dx11Renderer::render()
     FLOAT bg_color[4] = { 1.0, 0.0, 0.0, 1.0 };
     ctx_->ClearRenderTargetView(rtv_, bg_color);
 
+    HWND parent = FindWindow(NULL, "Clipforge");
     RECT rect;
-    GetClientRect(hwnd_, &rect);
+    GetClientRect(parent, &rect);
     float win_w = (FLOAT)(rect.right - rect.left);
     float win_h = (FLOAT)(rect.bottom - rect.top);
-    D3D11_VIEWPORT viewport = { 0, 0, win_w, win_h, 0, 1 };
-    ctx_->RSSetViewports(1, &viewport);
 
-    // 获取视频分辨率
-    D3D11_TEXTURE2D_DESC desc;
-    texture_->GetDesc(&desc);
-    float video_w = (float)desc.Width;
-    float video_h = (float)desc.Height;
+    if(texture_) {
+        // 获取视频分辨率
+        D3D11_TEXTURE2D_DESC desc;
+        texture_->GetDesc(&desc);
+        float video_w = (float)desc.Width;
+        float video_h = (float)desc.Height;
 
-    update_transform(0.0f, 0.0f, 1.0f, 0.0f, win_w, win_h, video_w, video_h);
+        update_transform(0.0f, 0.0f, 1.0f, 0.0f, win_w, win_h, video_w, video_h);
+    }
+    
 
     ctx_->OMSetRenderTargets(1, &rtv_, nullptr);
 

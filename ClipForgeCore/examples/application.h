@@ -10,6 +10,8 @@ using json = nlohmann::json;
 
 using WSMessageCallback = std::function<void(json& data)>;
 
+// #define DEBUG_BUILD
+
 class Application
 {
 public:

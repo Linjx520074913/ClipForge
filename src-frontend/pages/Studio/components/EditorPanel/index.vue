@@ -1,19 +1,21 @@
 <template>
     <div class="flex flex-row w-full h-full">
-        <div class="flex flex-col flex-1 min-w-[300px] h-full rounded-[15px] shadow-sm border">
+        <div class="flex flex-col flex-1 min-w-[300px] h-full rounded-[15px] shadow-sm border relative overflow-hidden">
+            <!-- 顶部工具条 -->
+            <EditorToolbar 
+                class="absolute w-[158px] h-[34px] rounded-[5px] shadow-[0_3px_10px_rgba(0,0,0,0.12)] top-[30px] left-1/2 -translate-x-1/2 z-50"
+                @update:ratio="handleRatioUpdate"
+            />
             <!-- 主渲染区域 -->
-            <br>Tauri: {{ tauri_wnd_pos.x }}, {{ tauri_wnd_pos.y }} </br>
-            <br>Pos : {{ render_wnd_pos.x }}, {{ render_wnd_pos.y }} <br/>
-            <br>Size: {{ render_wnd_size.w }} x {{ render_wnd_size.h }}<br/>
+            <div>
+                {{  State.data.render_wnd_pos }}
+                {{ State.data.render_wnd_size }}
+            </div>
             <div 
-                class="stage-canvas w-full h-3/4 rel+ative border-b border-b-gray-300 grid place-items-center"
+                class="stage-canvas w-full h-3/4 relative border-b border-b-gray-300 flex-x-center bg-white"
                 ref="stageCanvasRef"
+                :style="stageCanvasStyle"
             >
-                <!-- 顶部工具条 -->
-                <EditorToolbar 
-                    class="absolute w-[158px] h-[34px] rounded-[5px] shadow-[0_3px_10px_rgba(0,0,0,0.12)] top-2 left-1/2 -translate-x-1/2"
-                    @update:ratio="handleRatioUpdate"
-                />
                 <!-- 预览区域,根据比例重置过大小 -->
                 <div
                     class="canvas-container relative overflow-hidden border-[1px] border-gray-300"
@@ -83,13 +85,11 @@ import {
     useVideoStudio,
     useDrag,
     TransformableLayer,
-    TimeLine,
-    render_wnd_pos,
-    render_wnd_size,
-    tauri_wnd_pos
+    TimeLine
 } from './index';
 
 import EditorToolbar from './EditorToolbar/index.vue';
+import { State } from '@frontend/store/state';
 
 
 defineOptions({ name: 'EditorPanel' });
@@ -98,6 +98,7 @@ let {
     videoRef,
     canvasContainerRef, 
     stageCanvasRef, 
+    stageCanvasStyle,
     resizeObserver,
     resizeCanvasContainer,
     handleRatioUpdate,

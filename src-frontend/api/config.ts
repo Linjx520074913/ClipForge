@@ -7,15 +7,17 @@ export class ConfigStore {
     private fileName = 'clipforge.json';
     private fullPath: string;
 
+    private success = false;
+
     private defaultData = {
         render_wnd_pos: { x: 0, y: 0 },
-        render_wnd_size: { w: 800, h: 600 },
-        theme: 'light',
+        render_wnd_size: { w: 800, h: 600 }
     };
 
     /** 初始化：读取用户配置文件，如果不存在就创建默认数据 */
     async init() {
         const appDataPath = await appDataDir();
+        console.error('应用数据目录:', appDataPath);
         const configDir = await join(appDataPath, this.configDirName);
         this.fullPath = await join(configDir, this.fileName);
 
@@ -25,6 +27,7 @@ export class ConfigStore {
             this.data = JSON.parse(content);
             console.error('读取到用户配置:', this.data);
         } catch (e) {
+            console.error('读取用户配置失败，使用默认值:', e);
             // 文件不存在或解析错误 → 使用默认值并写入文件
             this.data = { ...this.defaultData };
             // FS 插件会自动创建父目录

@@ -18,26 +18,7 @@ import { wssocket } from "@frontend/api/ws-api";
 
 import { listen } from '@tauri-apps/api/event'
 
-import { ConfigStore } from '@frontend/api/config';
-const config = new ConfigStore();
-config.init().then((data) => {
-    console.log('用户配置加载完成:', data);
-});
-
-export let tauri_wnd_pos = ref({ x: 0, y: 0 });
-export let render_wnd_pos = ref({ x: 0, y: 0 });
-export let render_wnd_size = ref({ w: 800, h: 600 });
-
-let config_data = {
-    render_wnd_pos: {
-        x: 0,
-        y: 0
-    },
-    render_wnd_size: {
-        w: 800,
-        h: 600
-    }
-};
+import { State } from '@frontend/store/state';
 
 listen('window-event', (msg) => {
     // console.log('收到窗口事件:', msg.payload);
@@ -46,13 +27,12 @@ listen('window-event', (msg) => {
         case "window-resized":
             {
                 send_windos_pos();
+                State.data.render_wnd_pos = { x: render_wnd_pos.value.x, y: render_wnd_pos.value.y };
             }
             break;
         case "window-moved":
             {
                 const scale = window.devicePixelRatio;
-                tauri_wnd_pos.value.x = msg.payload.x * scale;
-                tauri_wnd_pos.value.y = msg.payload.y * scale;
                 send_windos_pos();
             }
             break;
@@ -62,13 +42,11 @@ listen('window-event', (msg) => {
 });
 
 function send_window_size() {
-    config.set('render_wnd_size', { w: render_wnd_size.value.w, h: render_wnd_size.value.h });
-    wssocket.send({event: 'set_size', data: { w: render_wnd_size.value.w, h: render_wnd_size.value.h }});
+    wssocket.send({event: 'set_size', data: { w: State.data.render_wnd_size.w, h: State.data.render_wnd_size.h }});
 }
 
 function send_windos_pos() {
-    config.set('render_wnd_pos', { x: render_wnd_pos.value.x, y: render_wnd_pos.value.y });
-    wssocket.send({event: 'set_pos',  data: { x: render_wnd_pos.value.x, y: render_wnd_pos.value.y }});
+    wssocket.send({event: 'set_pos',  data: { x: State.data.render_wnd_pos.x, y: State.data.render_wnd_pos.y }});
 }
 
 
@@ -79,6 +57,8 @@ export function useVideoStudio(){
     const stageCanvasRef = ref<HTMLElement | null>();
     const canvasContainerRef = ref<HTMLElement | null>();
     let resizeObserver: ResizeObserver | null = null;
+
+    const stageCanvasStyle = ref("");
 
     const mediaRef = ref(null);
 
@@ -130,15 +110,21 @@ export function useVideoStudio(){
         const rect = canvasContainerRef.value.getBoundingClientRect();
         const scale = window.devicePixelRatio;
 
-        // set_render_window_size(rect.width * scale, rect.height * scale);
-        // set_render_window_position(rect.x, rect.y * scale)
-        render_wnd_pos.value.x = (rect.x) * scale;
-        render_wnd_pos.value.y = (rect.y) * scale;
+        State.data.render_wnd_pos = { x: rect.x * scale, y: rect.y * scale };
+        State.data.render_wnd_size = { w: rect.width * scale, h: rect.height * scale };
+        
+        stageCanvasStyle.value = `
+            -webkit-mask: 
+            linear-gradient(black, black) content-box, 
+            linear-gradient(black, black);
+            -webkit-mask-composite: xor;
 
-        render_wnd_size.value.w = rect.width * scale;
-        render_wnd_size.value.h = rect.height * scale;
+            padding: 
+            ${(h - State.data.render_wnd_size.h)/2} 
+            ${(w - State.data.render_wnd_size.w)/2} 
+            ${(h - State.data.render_wnd_size.h)/2} 
+            ${(w - State.data.render_wnd_size.w)/2}; /* 控制镂空区域 */`;
 
-        console.error('@@@@@@@@@@@@@@@@@@@@@@@@@@@@ set size')
         send_windos_pos()
         send_window_size();
     }
@@ -148,7 +134,6 @@ export function useVideoStudio(){
             resizeObserver = new ResizeObserver(entries => {
                 for (const entry of entries) {
                     const { width, height } = entry.contentRect;
-                    // console.error('📏 canvas 尺寸变了：', width, height)
                     resizeCanvasContainer(ratio)
                 }
             })
@@ -166,6 +151,7 @@ export function useVideoStudio(){
 
     return {
         stageCanvasRef,
+        stageCanvasStyle,
         canvasContainerRef,
         resizeObserver,
         videoRef,

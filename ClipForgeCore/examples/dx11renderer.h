@@ -37,6 +37,8 @@ public:
     void destroy();
     void resize();
 
+    void set_viewport(int x, int y, int w, int h);
+
 protected:
     void init();
     void init_vertex_buffer();

@@ -1,4 +1,7 @@
 class ReconnectWebSocket {
+
+    private connectedCallback = null;
+
     constructor(url, options = {}) {
         this.url = url;
         this.reconnectDelay = options.reconnectDelay || 3000; // 重连间隔
@@ -14,6 +17,9 @@ class ReconnectWebSocket {
             console.log("✅ 已连接");
             this.retries = 0; // 连接成功，重置重试次数
             this.send({event: 'connect', data: {msg: "Hello, I am client"}});
+            if(this.connectedCallback) {
+                this.connectedCallback();
+            }
         };
 
         this.ws.onmessage = (e) => {
@@ -32,6 +38,10 @@ class ReconnectWebSocket {
                     setTimeout(() => this.connect(), this.reconnectDelay);
             }
         };
+    }
+
+    setConnectedCallback(cb) {
+        this.connectedCallback = cb;
     }
 
     send(data) {
