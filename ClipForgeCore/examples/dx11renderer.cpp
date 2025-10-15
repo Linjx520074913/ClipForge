@@ -11,6 +11,7 @@
 void Dx11Renderer::init()
 {
     need_resize_ = false;
+    is_resizing_ = false;
 
     // Create D3D11 Device and Context
     ID3D11Device* base_device;
@@ -76,7 +77,7 @@ void Dx11Renderer::init()
     swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swap_chain_desc.BufferCount = 2;
     swap_chain_desc.Scaling = DXGI_SCALING_STRETCH;
-    swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_SEQUENTIAL;
+    swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
     swap_chain_desc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
     swap_chain_desc.Flags = 0;
 
@@ -292,7 +293,9 @@ void Dx11Renderer::init_shader()
 
 void Dx11Renderer::resize()
 {
-    need_resize_ = true;
+    if (!is_resizing_) {
+        need_resize_ = true;
+    }
 }
 
 void Dx11Renderer::update_transform(float tx, float ty, float scale, float angle, float win_w, float win_h, float video_w, float video_h)
@@ -366,24 +369,50 @@ void Dx11Renderer::set_viewport(int x, int y, int w, int h)
 void Dx11Renderer::render()
 {
     if(need_resize_) {
-        ctx_->OMSetRenderTargets(0, 0, 0);
-        rtv_->Release();
-
-        HRESULT res = swap_chain_->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
-        assert(SUCCEEDED(res));
-        
-        ID3D11Texture2D* d3d11FrameBuffer;
-        res = swap_chain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&d3d11FrameBuffer);
-        assert(SUCCEEDED(res));
-
-        res = device_->CreateRenderTargetView(d3d11FrameBuffer, NULL, &rtv_);
-        assert(SUCCEEDED(res));
-        d3d11FrameBuffer->Release();
-        
+        // 设置 resize 状态，防止多次触发
+        is_resizing_ = true;
         need_resize_ = false;
+        
+        // 解绑渲染目标
+        ctx_->OMSetRenderTargets(0, 0, 0);
+        ctx_->Flush(); // 确保所有命令执行完毕
+        
+        if (rtv_) {
+            rtv_->Release();
+            rtv_ = nullptr;
+        }
+
+        // 使用更安全的 ResizeBuffers 调用
+        HRESULT res = swap_chain_->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+        if (SUCCEEDED(res)) {
+            ID3D11Texture2D* d3d11FrameBuffer = nullptr;
+            res = swap_chain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&d3d11FrameBuffer);
+            if (SUCCEEDED(res) && d3d11FrameBuffer) {
+                res = device_->CreateRenderTargetView(d3d11FrameBuffer, NULL, &rtv_);
+                d3d11FrameBuffer->Release();
+                
+                if (SUCCEEDED(res)) {
+                    // 立即清除新的缓冲区为黑色，避免显示未初始化内容
+                    FLOAT clear_color[4] = { 0.0, 0.0, 0.0, 1.0 };
+                    ctx_->OMSetRenderTargets(1, &rtv_, nullptr);
+                    ctx_->ClearRenderTargetView(rtv_, clear_color);
+                    swap_chain_->Present(0, 0); // 立即显示黑屏
+                    is_resizing_ = false; // 完成 resize
+                    return; // 这一帧只做清除，下一帧再正常渲染
+                }
+            }
+        }
+        
+        // 如果 resize 失败，跳过这一帧
+        is_resizing_ = false;
+        return;
     }
 
-    FLOAT bg_color[4] = { 1.0, 0.0, 0.0, 1.0 };
+    if (!rtv_) {
+        return;
+    }
+
+    FLOAT bg_color[4] = { 0.0, 0.0, 0.0, 1.0 };
     ctx_->ClearRenderTargetView(rtv_, bg_color);
 
     HWND parent = FindWindow(NULL, "Clipforge");
@@ -420,7 +449,14 @@ void Dx11Renderer::render()
     ctx_->IASetVertexBuffers(0, 1, &v_buffer_, &stride_, &offset_);
 
     ctx_->Draw(num_, 0);
-    swap_chain_->Present(1, 0);
+    
+    // 使用更稳定的 Present 调用
+    HRESULT hr = swap_chain_->Present(1, 0);
+    
+    // 处理设备丢失情况
+    if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
+        need_resize_ = true;
+    }
 }
 
 void Dx11Renderer::destroy() {}

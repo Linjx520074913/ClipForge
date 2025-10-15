@@ -71,4 +71,5 @@ private:
     ID3D11Buffer* transform_;
 
     bool need_resize_;
+    bool is_resizing_;
 };

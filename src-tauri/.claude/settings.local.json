@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(/D:\\ClipForge\\src-tauri\\src/**)",
+      "Read(/D:\\ClipForge\\src-tauri\\src/**)",
+      "Read(/D:\\ClipForge\\src-frontend/**)",
+      "Read(/D:\\ClipForge\\src-frontend/**)",
+      "Read(/D:\\ClipForge\\src-frontend\\api/**)",
+      "Bash(cargo check:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

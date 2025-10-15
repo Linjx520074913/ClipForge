@@ -53,7 +53,6 @@ Application::Application()
             GetWindowRect(hwnd_, &rc);
             SetWindowPos(hwnd_, nullptr, pt.x, pt.y, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER);
         }
-        
     });
 
 

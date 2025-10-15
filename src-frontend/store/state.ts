@@ -24,7 +24,7 @@ await State.methods.init();
 
 watch(() => State, (value) => {
     // 重新保存配置
-    console.error('保存用户配置:', value)
+    // console.error('保存用户配置:', value)
     if(config) {
         config.set('render_wnd_pos', State.data.render_wnd_pos);
         config.set('render_wnd_size', State.data.render_wnd_size);

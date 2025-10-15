@@ -19,6 +19,7 @@ import { wssocket } from "@frontend/api/ws-api";
 import { listen } from '@tauri-apps/api/event'
 
 import { State } from '@frontend/store/state';
+import { debug } from 'console';
 
 listen('window-event', (msg) => {
     // console.log('收到窗口事件:', msg.payload);
@@ -82,14 +83,12 @@ export function useVideoStudio(){
      * @param ratio  目标比例, 比如 16/9
      */
     function resizeCanvasContainer(ratio: number){
-
         // padding
         const padding = { h: 100, v: 100 };
         // 渲染区域尺寸
         const stageCanvas = stageCanvasRef.value!;
         const w = stageCanvas.clientWidth - padding.h;
         const h = stageCanvas.clientHeight - padding.v;
-
         // 先按宽度算高度
         targetW = w;
         targetH = w / ratio;
@@ -109,9 +108,19 @@ export function useVideoStudio(){
 
         const rect = canvasContainerRef.value.getBoundingClientRect();
         const scale = window.devicePixelRatio;
+        
+        const pos = {
+            x: Math.ceil(rect.x * scale),
+            y: Math.ceil(rect.y * scale)
+        };
+        const size = {
+            w: Math.ceil(rect.width * scale),
+            h: Math.ceil(rect.height * scale)
+        };
+        
 
-        State.data.render_wnd_pos = { x: rect.x * scale, y: rect.y * scale };
-        State.data.render_wnd_size = { w: rect.width * scale, h: rect.height * scale };
+        State.data.render_wnd_pos = pos;
+        State.data.render_wnd_size = size;
         
         stageCanvasStyle.value = `
             -webkit-mask: 
@@ -125,8 +134,11 @@ export function useVideoStudio(){
             ${(h - State.data.render_wnd_size.h)/2} 
             ${(w - State.data.render_wnd_size.w)/2}; /* 控制镂空区域 */`;
 
-        send_windos_pos()
-        send_window_size();
+        send_windos_pos();
+        if(!(size.w == State.data.render_wnd_size.w && size.h == State.data.render_wnd_size.h)){
+            send_window_size();
+        }
+        
     }
 
     function addResizeObserver(){
